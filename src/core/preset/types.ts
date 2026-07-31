@@ -7,6 +7,9 @@ export type Background =
 export type Preset = {
   id: string;
   name: string;
+  // original — полный кадр исходника без кропа/масштаба;
+  // fixed — холст, поля и привязка из canvas/fit/anchor
+  sizeMode: 'original' | 'fixed';
   canvas: { width: number; height: number };
   fit: {
     // доля холста, оставляемая пустой по каждой стороне (0..1)
@@ -24,7 +27,8 @@ export type Preset = {
 export function defaultPreset(): Preset {
   return {
     id: crypto.randomUUID(),
-    name: 'Мой пресет',
+    name: 'Оригинал',
+    sizeMode: 'original',
     canvas: { width: 1200, height: 1600 },
     fit: {
       margin: { top: 0.05, right: 0.05, bottom: 0.05, left: 0.05 },

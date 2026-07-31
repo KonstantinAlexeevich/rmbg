@@ -25,13 +25,14 @@ export class ZipBuilder {
     });
   }
 
-  // имя в архиве: <исходное имя без расширения>.<новое расширение>;
+  // имя в архиве: [<папка>/]<исходное имя без расширения>.<новое расширение>;
   // при коллизии добавляется суффикс -2, -3
-  uniqueName(originalName: string, extension: string): string {
+  uniqueName(originalName: string, extension: string, folder = ''): string {
     const base = originalName.replace(/\.[^.]+$/, '');
-    let candidate = `${base}.${extension}`;
+    const prefix = folder === '' ? '' : `${folder}/`;
+    let candidate = `${prefix}${base}.${extension}`;
     for (let n = 2; this.usedNames.has(candidate); n++) {
-      candidate = `${base}-${n}.${extension}`;
+      candidate = `${prefix}${base}-${n}.${extension}`;
     }
     this.usedNames.add(candidate);
     return candidate;
@@ -48,6 +49,30 @@ export class ZipBuilder {
     await this.done;
     return new Blob(this.chunks as BlobPart[], { type: 'application/zip' });
   }
+}
+
+export function sanitizeFolderName(name: string): string {
+  const cleaned = name
+    .trim()
+    .replace(/[/\\?%*:|"<>]/g, '_')
+    .replace(/[\u0000-\u001f]/g, '_')
+    .replace(/\.+$/g, '')
+    .trim();
+  return cleaned === '' ? 'preset' : cleaned;
+}
+
+// уникальные имена папок для списка пресетов (коллизии → -2, -3)
+export function uniqueFolderNames(names: string[]): string[] {
+  const used = new Set<string>();
+  return names.map((raw) => {
+    const base = sanitizeFolderName(raw);
+    let candidate = base;
+    for (let n = 2; used.has(candidate); n++) {
+      candidate = `${base}-${n}`;
+    }
+    used.add(candidate);
+    return candidate;
+  });
 }
 
 export function archiveFileName(date = new Date()): string {

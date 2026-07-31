@@ -72,7 +72,8 @@ type StudioState = {
   toasts: Toast[];
   compareItemId: string; // '' = модалка закрыта
   diagnosticsOpen: boolean;
-  processRequested: boolean; // «Обработать» нажали до готовности модели
+  exportPickerOpen: boolean;
+  processRequested: boolean; // файлы добавлены до готовности модели
 
   setSettings: (settings: Settings) => void;
   setItems: (items: ItemView[]) => void;
@@ -88,6 +89,7 @@ type StudioState = {
   dismissToast: (id: number) => void;
   setCompareItemId: (id: string) => void;
   setDiagnosticsOpen: (open: boolean) => void;
+  setExportPickerOpen: (open: boolean) => void;
   setProcessRequested: (requested: boolean) => void;
 };
 
@@ -114,6 +116,7 @@ export const useStudioStore = create<StudioState>((set) => ({
   toasts: [],
   compareItemId: '',
   diagnosticsOpen: false,
+  exportPickerOpen: false,
   processRequested: false,
 
   setSettings: (settings) => set({ settings, settingsLoaded: true }),
@@ -147,5 +150,6 @@ export const useStudioStore = create<StudioState>((set) => ({
     set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) })),
   setCompareItemId: (id) => set({ compareItemId: id }),
   setDiagnosticsOpen: (open) => set({ diagnosticsOpen: open }),
+  setExportPickerOpen: (open) => set({ exportPickerOpen: open }),
   setProcessRequested: (requested) => set({ processRequested: requested }),
 }));

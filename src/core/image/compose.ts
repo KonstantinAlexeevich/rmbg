@@ -21,6 +21,20 @@ export function composeOnCanvas(
   bboxNorm: Rect,
   preset: Preset,
 ): OffscreenCanvas {
+  if (preset.sizeMode === 'original') {
+    const canvas = new OffscreenCanvas(cut.width, cut.height);
+    const ctx = canvas.getContext('2d');
+    if (ctx === null) throw new Error('Не удалось создать 2d-контекст');
+
+    const background = effectiveBackground(preset);
+    if (background.kind === 'solid') {
+      ctx.fillStyle = background.color;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    ctx.drawImage(cut, 0, 0);
+    return canvas;
+  }
+
   const bboxPx: Rect = {
     x: bboxNorm.x * cut.width,
     y: bboxNorm.y * cut.height,

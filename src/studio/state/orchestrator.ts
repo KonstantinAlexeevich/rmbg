@@ -6,6 +6,7 @@ import { hasCachedModel } from '../../core/storage/model-cache';
 import {
   activePreset,
   loadSettings,
+  resolveExportPresets,
   saveSettings,
   settingsHash,
   type Settings,
@@ -149,6 +150,8 @@ export async function bootstrap(): Promise<void> {
   segWorker = new SegmentationWorkerClient();
 
   await startModelPipeline();
+  // восстановленная очередь / stale — без кнопки «Обработать»
+  void processAll();
 }
 
 // ---------------------------------------------------------------------------
@@ -341,6 +344,7 @@ export async function addFiles(files: File[]): Promise<void> {
     }
   }
   await touchSession(db, sessionId);
+  void processAll();
 }
 
 // ---------------------------------------------------------------------------
@@ -673,12 +677,25 @@ export async function exportZip(): Promise<void> {
     .map((i) => i.id);
   if (ids.length === 0) return;
 
+  const presets = resolveExportPresets(state.settings);
+  if (presets.length === 0) {
+    state.addToast('error', t('errorNoExportPresets'));
+    return;
+  }
+
   if (exportWorker === null) exportWorker = new ExportWorkerClient();
-  state.setExporting({ running: true, done: 0, total: ids.length });
+  const total = ids.length * presets.length;
+  state.setExporting({ running: true, done: 0, total });
   try {
-    const { blob, fileName } = await exportWorker.zip(ids, (done, total) => {
-      store.getState().setExporting({ done, total });
-    });
+    const { blob, fileName } = await exportWorker.zip(
+      ids,
+      presets,
+      state.settings.edge,
+      state.settings.activePresetId,
+      (done, nextTotal) => {
+        store.getState().setExporting({ done, total: nextTotal });
+      },
+    );
     await downloadBlob(blob, fileName, true);
   } catch (e) {
     store.getState().addToast('error', e instanceof Error ? e.message : String(e));

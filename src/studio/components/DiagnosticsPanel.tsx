@@ -83,7 +83,7 @@ export function DiagnosticsPanel() {
           <button
             type="button"
             onClick={() => {
-              if (window.confirm(t('confirmNewSession'))) void clearAllData();
+              if (window.confirm(t('confirmClear'))) void clearAllData();
             }}
             className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
           >

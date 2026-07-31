@@ -63,6 +63,11 @@ export type ExportRequest = {
   // id элементов в порядке добавления; воркер читает блобы из IndexedDB
   // по одному, а не получает всю пачку в память разом
   itemIds: string[];
+  // пресеты для экспорта — каждый в своей папке архива
+  presets: Preset[];
+  edge: EdgeSettings;
+  // для активного пресета со свежим result берём кэш из IndexedDB
+  activePresetId: string;
 };
 
 export type ExportResponse =

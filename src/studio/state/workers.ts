@@ -133,6 +133,9 @@ export class ExportWorkerClient {
 
   zip(
     itemIds: string[],
+    presets: Preset[],
+    edge: EdgeSettings,
+    activePresetId: string,
     onProgress: (done: number, total: number) => void,
   ): Promise<{ blob: Blob; fileName: string }> {
     const requestId = this.nextId++;
@@ -155,7 +158,14 @@ export class ExportWorkerClient {
         }
       };
       this.worker.addEventListener('message', handler);
-      const request: ExportRequest = { type: 'zip', requestId, itemIds };
+      const request: ExportRequest = {
+        type: 'zip',
+        requestId,
+        itemIds,
+        presets,
+        edge,
+        activePresetId,
+      };
       this.worker.postMessage(request);
     });
   }

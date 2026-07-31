@@ -10,6 +10,7 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { BottomBar } from './components/BottomBar';
 import { CompareModal } from './components/CompareModal';
 import { DiagnosticsPanel } from './components/DiagnosticsPanel';
+import { ExportPresetsModal } from './components/ExportPresetsModal';
 import { Toasts } from './components/Toasts';
 
 export function App() {
@@ -98,6 +99,7 @@ export function App() {
 
       <CompareModal />
       <DiagnosticsPanel />
+      <ExportPresetsModal />
       <Toasts />
     </div>
   );

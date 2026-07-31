@@ -2,9 +2,8 @@
 // словарь без изменений в компонентах.
 const ru = {
   appName: 'rmbg',
-  headerNewSession: 'Новая сессия',
-  headerDownloadZip: 'Скачать ZIP',
-  headerProcess: 'Обработать',
+  headerClear: 'Очистить',
+  headerDownloadZip: 'Скачать',
 
   emptyTitle: 'Перетащите изображения сюда',
   emptyChooseFiles: 'Выбрать файлы',
@@ -34,6 +33,16 @@ const ru = {
   cardZoom: 'Увеличить',
   cardEmptyMask: 'Фон не найден',
 
+  settingsPresets: 'Пресеты',
+  settingsPresetAdd: 'Добавить',
+  settingsPresetDelete: 'Удалить',
+  settingsPresetName: 'Название',
+  settingsPresetExport: 'В экспорт',
+  settingsPresetActive: 'Активный',
+  settingsPresetEdit: 'Настройки пресета',
+  settingsSizeMode: 'Размер',
+  settingsSizeOriginal: 'Оригинальный',
+  settingsSizeFixed: 'Заданный',
   settingsBackground: 'Фон',
   settingsBgTransparent: 'Прозрачный',
   settingsBgSolid: 'Однотонный',
@@ -43,7 +52,6 @@ const ru = {
   settingsEdgeErode: 'Убрать светлый ореол',
   settingsEdgeFeather: 'Смягчить кромку',
   settingsEdgeReset: 'Сбросить',
-  settingsPreset: 'Пресет вывода',
   settingsCanvasWidth: 'Ширина холста',
   settingsCanvasHeight: 'Высота холста',
   settingsMargins: 'Поля, %',
@@ -59,6 +67,10 @@ const ru = {
   settingsNoUpscale: 'Не увеличивать объект',
   settingsFormat: 'Формат',
   settingsQuality: 'Качество',
+  errorNoExportPresets: 'Отметьте хотя бы один пресет для экспорта.',
+  exportPickerTitle: 'Пресеты для экспорта',
+  exportPickerCancel: 'Отмена',
+  exportPickerConfirm: 'Скачать ZIP',
 
   progressProcessed: 'Обработано {done} из {total}',
   progressEta: 'осталось примерно {eta}',
@@ -99,7 +111,7 @@ const ru = {
   warnNoPersist:
     'Браузер не дал разрешения на постоянное хранение: модель может потребовать повторной загрузки.',
 
-  confirmNewSession: 'Начать новую сессию? Текущие изображения и результаты будут удалены.',
+  confirmClear: 'Очистить сессию? Текущие изображения и результаты будут удалены.',
   confirmDeleteSelected: 'Удалить выбранные изображения?',
   selectedCount: 'Выбрано: {count}',
 } as const;

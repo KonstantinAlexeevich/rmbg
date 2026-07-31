@@ -118,8 +118,9 @@ type ModelAsset = {
 ```ts
 type Settings = {
   version: 1;
-  presets: Preset[];        // в v1 ровно один пользовательский пресет
+  presets: Preset[];
   activePresetId: string;
+  exportPresetIds: string[]; // пресеты, по которым собирается ZIP
   edge: { threshold: number; erode: number; feather: number };
   ui: { locale: 'ru' | 'en'; theme: 'system' | 'light' | 'dark' };
   backendOverride: 'auto' | 'webgpu' | 'wasm';  // для диагностики
@@ -133,7 +134,8 @@ type Settings = {
 ## Хэш настроек
 
 `settingsHash` считается от той части настроек, которая влияет на пиксели результата:
-пресет целиком плюс блок `edge`. Локаль, тема и порядок карточек в него не входят.
+поля пресета без `id`/`name` плюс блок `edge`. Локаль, тема и порядок карточек в него
+не входят.
 Сериализуем в стабильном порядке ключей и берём короткий хэш (djb2 или FNV-1a, крипто здесь
 не нужно). Несовпадение хэша с текущим — признак, что результат устарел и требует
 перекомпозиции.
