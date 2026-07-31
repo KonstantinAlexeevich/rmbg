@@ -1,17 +1,7 @@
-import type { EdgeSettings } from '../types';
-import type { Background, Preset } from './types';
+import type { EdgeSettings, ItemOverride } from '../types';
+import type { Preset } from './types';
 
-// Слепок настроек для одной картинки в одном пресете.
-// output и name остаются пресетными — формат в папке архива предсказуем.
-export type ItemOverride = {
-  presetId: string;
-  sizeMode: Preset['sizeMode'];
-  canvas: Preset['canvas'];
-  fit: Preset['fit'];
-  anchor: Preset['anchor'];
-  background: Background;
-  edge: EdgeSettings;
-};
+export type { ItemOverride };
 
 export function createOverride(preset: Preset, edge: EdgeSettings): ItemOverride {
   return {
@@ -51,13 +41,6 @@ export function dropOverride(
   presetId: string,
 ): ItemOverride[] {
   return overrides.filter((o) => o.presetId !== presetId);
-}
-
-export function dropOverridesForPreset(
-  overrides: ItemOverride[],
-  presetId: string,
-): ItemOverride[] {
-  return dropOverride(overrides, presetId);
 }
 
 // Всегда возвращает готовую пару: при наличии слепка поля пресета

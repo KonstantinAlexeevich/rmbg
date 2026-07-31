@@ -14,9 +14,8 @@ import {
 } from '../core/inference/session';
 import { readCachedModel } from '../core/storage/model-cache';
 import { decodeImage, makeThumbnail } from '../core/image/decode';
-import { expandMask, refineMask } from '../core/image/mask';
-import { composeOnCanvas, cutout } from '../core/image/compose';
-import { encodeCanvas } from '../core/image/encode';
+import { composeCompareBefore } from '../core/image/compose';
+import { composeFromBitmaps, runComposePipeline } from '../core/image/pipeline';
 import type {
   SegmentPayload,
   SegmentationRequest,
@@ -59,28 +58,53 @@ self.onmessage = async (event: MessageEvent<SegmentationRequest>) => {
         break;
       }
       case 'compose': {
+        const composed = await runComposePipeline({
+          original: request.original,
+          mask: request.mask,
+          coverage: request.coverage,
+          bbox: request.bbox,
+          edge: request.edge,
+          preset: request.preset,
+        });
+        const thumbnail = await makeThumbnail(composed.canvas);
+        respond({
+          type: 'compose-done',
+          requestId: request.requestId,
+          payload: {
+            blob: composed.blob,
+            thumbnail,
+            width: composed.width,
+            height: composed.height,
+          },
+        });
+        break;
+      }
+      case 'compose-compare': {
         const source = await decodeImage(request.original);
         const maskBitmap = await createImageBitmap(request.mask);
         try {
-          const expanded = expandMask(
+          const before = composeCompareBefore(source, request.bbox, request.preset);
+          const after = await composeFromBitmaps(
+            source,
             maskBitmap,
             request.coverage,
-            source.width,
-            source.height,
+            request.bbox,
+            request.edge,
+            request.preset,
           );
-          const refined = refineMask(expanded, request.edge);
-          const cut = cutout(source, refined);
-          const canvas = composeOnCanvas(cut, request.bbox, request.preset);
-          const blob = await encodeCanvas(
-            canvas,
-            request.preset.output.format,
-            request.preset.output.quality,
-          );
-          const thumbnail = await makeThumbnail(canvas);
+          const [beforeBlob, afterBlob] = await Promise.all([
+            before.convertToBlob({ type: 'image/png' }),
+            after.canvas.convertToBlob({ type: 'image/png' }),
+          ]);
           respond({
-            type: 'compose-done',
+            type: 'compose-compare-done',
             requestId: request.requestId,
-            payload: { blob, thumbnail, width: canvas.width, height: canvas.height },
+            payload: {
+              before: beforeBlob,
+              after: afterBlob,
+              width: after.width,
+              height: after.height,
+            },
           });
         } finally {
           source.close();

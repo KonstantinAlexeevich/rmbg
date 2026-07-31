@@ -4,18 +4,34 @@ import { useStudioStore } from '../state/store';
 import { t } from '../state/i18n';
 import { loadCompareUrls } from '../state/orchestrator';
 
+type CompareUrls = {
+  originalUrl: string;
+  resultUrl: string;
+  resultWidth: number;
+  resultHeight: number;
+};
+
+const EMPTY: CompareUrls = {
+  originalUrl: '',
+  resultUrl: '',
+  resultWidth: 0,
+  resultHeight: 0,
+};
+
+function revokeUrls(urls: CompareUrls): void {
+  URL.revokeObjectURL(urls.originalUrl);
+  URL.revokeObjectURL(urls.resultUrl);
+}
+
 export function Viewer() {
   const compareItemId = useStudioStore((s) => s.compareItemId);
   const setCompareItemId = useStudioStore((s) => s.setCompareItemId);
   const items = useStudioStore((s) => s.items);
   const settings = useStudioStore((s) => s.settings);
 
-  const [urls, setUrls] = useState({
-    originalUrl: '',
-    resultUrl: '',
-    resultWidth: 0,
-    resultHeight: 0,
-  });
+  const [urls, setUrls] = useState<CompareUrls>(EMPTY);
+  const urlsRef = useRef(urls);
+  urlsRef.current = urls;
   const [split, setSplit] = useState(50);
   const dragging = useRef(false);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -24,7 +40,6 @@ export function Viewer() {
 
   const index = items.findIndex((i) => i.id === compareItemId);
   const item = index >= 0 ? items[index] : undefined;
-  const stale = item?.stale ?? false;
 
   const aspectW = urls.resultWidth > 0 ? urls.resultWidth : (item?.width ?? 1);
   const aspectH = urls.resultHeight > 0 ? urls.resultHeight : (item?.height ?? 1);
@@ -51,7 +66,6 @@ export function Viewer() {
     observer.observe(frame);
     return () => observer.disconnect();
   }, [aspectW, aspectH, compareItemId]);
-
 
   // ключ layout: при смене пресета/края/слепка пересобираем оба кадра
   const layoutKey = useMemo(() => {
@@ -82,35 +96,40 @@ export function Viewer() {
     ].join('|');
   }, [settings, item?.override]);
 
+  // смена картинки — сброс; смена настроек — держим старый кадр до готовности нового
   useEffect(() => {
-    if (compareItemId === '') return;
     setSplit(50);
+    revokeUrls(urlsRef.current);
+    urlsRef.current = EMPTY;
+    setUrls(EMPTY);
   }, [compareItemId]);
 
   useEffect(() => {
     if (compareItemId === '') return;
     let cancelled = false;
-    let loaded = { originalUrl: '', resultUrl: '', resultWidth: 0, resultHeight: 0 };
     // дебаунс как у recompose: слайдеры не должны каждый тик гонять compose
     const timer = window.setTimeout(() => {
       void loadCompareUrls(compareItemId).then((result) => {
         if (cancelled) {
-          URL.revokeObjectURL(result.originalUrl);
-          URL.revokeObjectURL(result.resultUrl);
+          revokeUrls(result);
           return;
         }
-        loaded = result;
+        const prev = urlsRef.current;
+        urlsRef.current = result;
         setUrls(result);
+        // revoke после paint, чтобы img не потерял src на том же кадре
+        requestAnimationFrame(() => revokeUrls(prev));
       });
     }, 200);
     return () => {
       cancelled = true;
       clearTimeout(timer);
-      URL.revokeObjectURL(loaded.originalUrl);
-      URL.revokeObjectURL(loaded.resultUrl);
-      setUrls({ originalUrl: '', resultUrl: '', resultWidth: 0, resultHeight: 0 });
     };
   }, [compareItemId, layoutKey]);
+
+  useEffect(() => {
+    return () => revokeUrls(urlsRef.current);
+  }, []);
 
   const navigate = useCallback(
     (delta: number) => {
@@ -159,9 +178,7 @@ export function Viewer() {
       <div ref={frameRef} className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
         <div
           ref={stageRef}
-          className={`checkerboard relative cursor-ew-resize touch-none overflow-hidden rounded-lg select-none ${
-            stale ? 'opacity-60' : ''
-          }`}
+          className="checkerboard relative cursor-ew-resize touch-none overflow-hidden rounded-lg select-none"
           style={{
             width: stageSize.width > 0 ? stageSize.width : undefined,
             height: stageSize.height > 0 ? stageSize.height : undefined,

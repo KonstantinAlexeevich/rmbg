@@ -8,7 +8,7 @@ export type Settings = {
   // пресеты, по которым идёт экспорт ZIP (каждый — своя папка)
   exportPresetIds: string[];
   edge: EdgeSettings;
-  ui: { locale: 'ru' | 'en'; theme: 'system' | 'light' | 'dark' };
+  ui: { locale: 'ru' | 'en' };
   backendOverride: 'auto' | 'webgpu' | 'wasm'; // для диагностики
   modelAssets: ModelAsset[]; // скачанные варианты; пустой массив = ещё ничего нет
 };
@@ -23,7 +23,7 @@ export function defaultSettings(): Settings {
     activePresetId: preset.id,
     exportPresetIds: [preset.id],
     edge: { threshold: 0, erode: 1, feather: 0 },
-    ui: { locale: 'ru', theme: 'system' },
+    ui: { locale: 'ru' },
     backendOverride: 'auto',
     modelAssets: [],
   };
@@ -52,11 +52,13 @@ function migrateSettings(value: Settings): Settings {
 
   const rawExport = Array.isArray(value.exportPresetIds) ? value.exportPresetIds : [];
   const exportPresetIds = rawExport.filter((id) => presets.some((p) => p.id === id));
+  const locale = value.ui?.locale === 'en' ? 'en' : 'ru';
   return {
     ...value,
     presets,
     activePresetId,
     exportPresetIds: exportPresetIds.length > 0 ? exportPresetIds : [activePresetId],
+    ui: { locale },
   };
 }
 

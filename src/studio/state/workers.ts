@@ -1,6 +1,7 @@
 import type { Backend, EdgeSettings, Rect } from '../../core/types';
 import type { Preset } from '../../core/preset/types';
 import type {
+  ComposeComparePayload,
   ComposePayload,
   ExportRequest,
   ExportResponse,
@@ -53,6 +54,9 @@ export class SegmentationWorkerClient {
         case 'compose-done':
           (pending.resolve as (v: ComposePayload) => void)(response.payload);
           break;
+        case 'compose-compare-done':
+          (pending.resolve as (v: ComposeComparePayload) => void)(response.payload);
+          break;
       }
     };
   }
@@ -101,6 +105,26 @@ export class SegmentationWorkerClient {
   ): Promise<ComposePayload> {
     return this.send<ComposePayload>({
       type: 'compose',
+      requestId: this.nextId++,
+      original,
+      mask,
+      coverage,
+      bbox,
+      edge,
+      preset,
+    });
+  }
+
+  composeCompare(
+    original: Blob,
+    mask: Blob,
+    coverage: Rect,
+    bbox: Rect,
+    edge: EdgeSettings,
+    preset: Preset,
+  ): Promise<ComposeComparePayload> {
+    return this.send<ComposeComparePayload>({
+      type: 'compose-compare',
       requestId: this.nextId++,
       original,
       mask,

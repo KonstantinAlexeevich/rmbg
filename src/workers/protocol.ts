@@ -24,6 +24,16 @@ export type SegmentationRequest =
       bbox: Rect;
       edge: EdgeSettings;
       preset: Preset;
+    }
+  | {
+      type: 'compose-compare';
+      requestId: number;
+      original: Blob;
+      mask: Blob;
+      coverage: Rect;
+      bbox: Rect;
+      edge: EdgeSettings;
+      preset: Preset;
     };
 
 export type SegmentPayload = {
@@ -43,6 +53,13 @@ export type ComposePayload = {
   height: number;
 };
 
+export type ComposeComparePayload = {
+  before: Blob;
+  after: Blob;
+  width: number;
+  height: number;
+};
+
 export type SegmentationResponse =
   | {
       type: 'init-done';
@@ -53,6 +70,7 @@ export type SegmentationResponse =
     }
   | { type: 'segment-done'; requestId: number; payload: SegmentPayload }
   | { type: 'compose-done'; requestId: number; payload: ComposePayload }
+  | { type: 'compose-compare-done'; requestId: number; payload: ComposeComparePayload }
   | { type: 'error'; requestId: number; message: string };
 
 // --- воркер экспорта ---

@@ -72,7 +72,7 @@ type StudioState = {
   batch: BatchProgress;
   exporting: ExportProgress;
   toasts: Toast[];
-  compareItemId: string; // '' = модалка закрыта
+  compareItemId: string; // '' = просмотр закрыт, иначе id открытой картинки
   diagnosticsOpen: boolean;
   exportPickerOpen: boolean;
   processRequested: boolean; // файлы добавлены до готовности модели

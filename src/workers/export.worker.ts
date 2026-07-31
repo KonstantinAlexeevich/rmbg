@@ -1,8 +1,6 @@
 import { openDatabase, getItem } from '../core/storage/db';
-import { decodeImage } from '../core/image/decode';
-import { expandMask, refineMask } from '../core/image/mask';
-import { composeOnCanvas, cutout } from '../core/image/compose';
-import { encodeCanvas, extensionForFormat } from '../core/image/encode';
+import { runComposePipeline } from '../core/image/pipeline';
+import { extensionForFormat } from '../core/image/encode';
 import { settingsHash } from '../core/storage/settings';
 import { resolveComposition } from '../core/preset/override';
 import type { Preset } from '../core/preset/types';
@@ -22,24 +20,15 @@ async function composeForPreset(
   if (item.mask === null) {
     throw new Error(`Нет маски для «${item.name}»`);
   }
-  const source = await decodeImage(item.source.blob);
-  const maskBitmap = await createImageBitmap(item.mask.blob);
-  try {
-    const expanded = expandMask(
-      maskBitmap,
-      item.mask.coverage,
-      source.width,
-      source.height,
-    );
-    const refined = refineMask(expanded, edge);
-    const cut = cutout(source, refined);
-    const canvas = composeOnCanvas(cut, item.mask.bbox, preset);
-    const blob = await encodeCanvas(canvas, preset.output.format, preset.output.quality);
-    return { blob, format: preset.output.format };
-  } finally {
-    source.close();
-    maskBitmap.close();
-  }
+  const composed = await runComposePipeline({
+    original: item.source.blob,
+    mask: item.mask.blob,
+    coverage: item.mask.coverage,
+    bbox: item.mask.bbox,
+    edge,
+    preset,
+  });
+  return { blob: composed.blob, format: preset.output.format };
 }
 
 self.onmessage = async (event: MessageEvent<ExportRequest>) => {
@@ -59,11 +48,10 @@ self.onmessage = async (event: MessageEvent<ExportRequest>) => {
       for (const itemId of request.itemIds) {
         const item = await getItem(db, itemId);
         if (item !== null && item.mask !== null) {
-          const overrides = item.overrides ?? [];
           const { preset, edge } = resolveComposition(
             basePreset,
             request.edge,
-            overrides,
+            item.overrides,
           );
           const effectiveHash = settingsHash(preset, edge);
 

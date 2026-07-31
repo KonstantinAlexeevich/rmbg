@@ -1,4 +1,4 @@
-import type { ItemOverride } from './preset/override';
+import type { Background, Preset } from './preset/types';
 
 export type Backend = 'webgpu' | 'wasm';
 
@@ -13,7 +13,24 @@ export type ItemStatus =
   | 'done'
   | 'failed';
 
-export type { ItemOverride };
+// настройки уточнения края маски, применяются к развёрнутой маске перед cutout
+export type EdgeSettings = {
+  threshold: number; // 0..1, ниже порога альфа обнуляется
+  erode: number; // пиксели, поджатие маски внутрь
+  feather: number; // пиксели, размытие кромки
+};
+
+// Слепок настроек для одной картинки в одном пресете.
+// output и name остаются пресетными — формат в папке архива предсказуем.
+export type ItemOverride = {
+  presetId: string;
+  sizeMode: Preset['sizeMode'];
+  canvas: Preset['canvas'];
+  fit: Preset['fit'];
+  anchor: Preset['anchor'];
+  background: Background;
+  edge: EdgeSettings;
+};
 
 export type MaskRecord = {
   // PNG в оттенках серого, в родном разрешении прохода (не в разрешении оригинала)
@@ -71,11 +88,4 @@ export type ModelAsset = {
   sha256: string;
   sizeBytes: number;
   downloadedAt: number;
-};
-
-// настройки уточнения края маски, применяются к развёрнутой маске перед cutout
-export type EdgeSettings = {
-  threshold: number; // 0..1, ниже порога альфа обнуляется
-  erode: number; // пиксели, поджатие маски внутрь
-  feather: number; // пиксели, размытие кромки
 };
