@@ -7,27 +7,37 @@ import {
   setActivePresetId,
 } from '../../core/storage/settings';
 import type { Preset } from '../../core/preset/types';
+import type { EdgeSettings, ItemOverride } from '../../core/types';
 import { useStudioStore } from '../state/store';
 import { t } from '../state/i18n';
 import {
   exportZip,
   newSession,
+  overrideCurrentItem,
+  patchItemOverride,
+  purgeOverridesForPreset,
   resetEdgeSettings,
+  resetItemOverride,
   updateSettings,
 } from '../state/orchestrator';
 
 const SWATCHES = ['#ffffff', '#f4f4f5', '#000000'];
 
-function patchPreset(patch: (preset: Preset) => Preset): void {
-  void updateSettings((s) => ({
-    ...s,
-    presets: s.presets.map((p) => (p.id === s.activePresetId ? patch(p) : p)),
-  }));
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+  highlighted,
+}: {
+  title: string;
+  children: React.ReactNode;
+  highlighted?: boolean;
+}) {
   return (
-    <section className="flex flex-col gap-2.5 border-b border-zinc-200 px-4 py-4">
+    <section
+      className={`flex flex-col gap-2.5 border-b border-zinc-200 px-4 py-4 ${
+        highlighted ? 'bg-amber-50/60' : ''
+      }`}
+    >
       <h3 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
         {title}
       </h3>
@@ -39,13 +49,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function CollapsibleSection({
   title,
   children,
+  highlighted,
 }: {
   title: string;
   children: React.ReactNode;
+  highlighted?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <section className="border-b border-zinc-200">
+    <section className={`border-b border-zinc-200 ${highlighted ? 'bg-amber-50/60' : ''}`}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -157,6 +169,7 @@ export function SettingsPanel() {
   const settings = useStudioStore((s) => s.settings);
   const settingsLoaded = useStudioStore((s) => s.settingsLoaded);
   const items = useStudioStore((s) => s.items);
+  const compareItemId = useStudioStore((s) => s.compareItemId);
   const exporting = useStudioStore((s) => s.exporting);
   const setExportPickerOpen = useStudioStore((s) => s.setExportPickerOpen);
   const [linkedMargins, setLinkedMargins] = useState(true);
@@ -164,10 +177,22 @@ export function SettingsPanel() {
   if (!settingsLoaded) return <aside className="w-72 border-l border-zinc-200 bg-white" />;
 
   const preset = activePreset(settings);
-  const { edge } = settings;
-  const isTransparent = preset.background.kind === 'transparent';
-  const solidColor = preset.background.kind === 'solid' ? preset.background.color : '#ffffff';
-  const isFixed = preset.sizeMode === 'fixed';
+  const compareItem = items.find((i) => i.id === compareItemId);
+  const viewing = compareItemId !== '' && compareItem !== undefined;
+  const itemOverride = viewing ? compareItem.override : null;
+  const editingOverride = itemOverride !== null;
+
+  // эффективные значения: слепок картинки или глобальные настройки
+  const sizeMode = editingOverride ? itemOverride.sizeMode : preset.sizeMode;
+  const canvas = editingOverride ? itemOverride.canvas : preset.canvas;
+  const fit = editingOverride ? itemOverride.fit : preset.fit;
+  const anchor = editingOverride ? itemOverride.anchor : preset.anchor;
+  const background = editingOverride ? itemOverride.background : preset.background;
+  const edge: EdgeSettings = editingOverride ? itemOverride.edge : settings.edge;
+
+  const isTransparent = background.kind === 'transparent';
+  const solidColor = background.kind === 'solid' ? background.color : '#ffffff';
+  const isFixed = sizeMode === 'fixed';
 
   const exportable = items.filter((i) => i.selected && i.status === 'done').length;
 
@@ -179,35 +204,104 @@ export function SettingsPanel() {
     setExportPickerOpen(true);
   };
 
+  // правки layout/edge идут в слепок, если он есть; иначе — в пресет/настройки
+  const patchLayout = (mutate: (fields: ItemOverride) => Partial<ItemOverride>): void => {
+    if (editingOverride && viewing) {
+      void patchItemOverride(compareItemId, (o) => ({ ...o, ...mutate(o) }));
+      return;
+    }
+    void updateSettings((s) => ({
+      ...s,
+      presets: s.presets.map((p) => {
+        if (p.id !== s.activePresetId) return p;
+        const patch = mutate({
+          presetId: p.id,
+          sizeMode: p.sizeMode,
+          canvas: p.canvas,
+          fit: p.fit,
+          anchor: p.anchor,
+          background: p.background,
+          edge: s.edge,
+        });
+        return {
+          ...p,
+          ...(patch.sizeMode !== undefined ? { sizeMode: patch.sizeMode } : {}),
+          ...(patch.canvas !== undefined ? { canvas: patch.canvas } : {}),
+          ...(patch.fit !== undefined ? { fit: patch.fit } : {}),
+          ...(patch.anchor !== undefined ? { anchor: patch.anchor } : {}),
+          ...(patch.background !== undefined ? { background: patch.background } : {}),
+        };
+      }),
+    }));
+  };
+
+  const patchEdge = (patch: Partial<EdgeSettings>): void => {
+    if (editingOverride && viewing) {
+      void patchItemOverride(compareItemId, (o) => ({
+        ...o,
+        edge: { ...o.edge, ...patch },
+      }));
+      return;
+    }
+    void updateSettings((s) => ({ ...s, edge: { ...s.edge, ...patch } }));
+  };
+
   const setMargin = (side: keyof Preset['fit']['margin'], percent: number) => {
     const value = percent / 100;
-    patchPreset((p) => ({
-      ...p,
+    patchLayout((fields) => ({
       fit: {
-        ...p.fit,
+        ...fields.fit,
         margin: linkedMargins
           ? { top: value, right: value, bottom: value, left: value }
-          : { ...p.fit.margin, [side]: value },
+          : { ...fields.fit.margin, [side]: value },
       },
     }));
   };
 
   const marginPercent = (side: keyof Preset['fit']['margin']) =>
-    Math.round(preset.fit.margin[side] * 100);
+    Math.round(fit.margin[side] * 100);
 
   return (
     <aside className="flex w-72 shrink-0 flex-col border-l border-zinc-200 bg-white">
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <Section title={t('settingsEdge')}>
+        {viewing && (
+          <div className="flex flex-col gap-2 border-b border-zinc-200 bg-zinc-50 px-4 py-3">
+            <span className="truncate text-xs text-zinc-500" title={compareItem.name}>
+              {compareItem.name}
+            </span>
+            {editingOverride ? (
+              <div className="flex flex-col gap-1.5">
+                <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                  {t('overrideActive')}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void resetItemOverride(compareItemId)}
+                  className="self-start text-xs text-blue-600 hover:underline"
+                >
+                  {t('overrideReset')}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void overrideCurrentItem(compareItemId)}
+                className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs text-zinc-700 hover:bg-zinc-50"
+              >
+                {t('overrideCreate')}
+              </button>
+            )}
+          </div>
+        )}
+
+        <Section title={t('settingsEdge')} highlighted={editingOverride}>
           <Slider
             label={t('settingsEdgeThreshold')}
             min={0}
             max={1}
             step={0.05}
             value={edge.threshold}
-            onChange={(threshold) =>
-              void updateSettings((s) => ({ ...s, edge: { ...s.edge, threshold } }))
-            }
+            onChange={(threshold) => patchEdge({ threshold })}
           />
           <Slider
             label={t('settingsEdgeErode')}
@@ -215,9 +309,7 @@ export function SettingsPanel() {
             max={5}
             step={1}
             value={edge.erode}
-            onChange={(erode) =>
-              void updateSettings((s) => ({ ...s, edge: { ...s.edge, erode } }))
-            }
+            onChange={(erode) => patchEdge({ erode })}
           />
           <Slider
             label={t('settingsEdgeFeather')}
@@ -225,9 +317,7 @@ export function SettingsPanel() {
             max={10}
             step={1}
             value={edge.feather}
-            onChange={(feather) =>
-              void updateSettings((s) => ({ ...s, edge: { ...s.edge, feather } }))
-            }
+            onChange={(feather) => patchEdge({ feather })}
           />
           <button
             type="button"
@@ -269,7 +359,12 @@ export function SettingsPanel() {
             <button
               type="button"
               disabled={settings.presets.length <= 1}
-              onClick={() => void updateSettings((s) => removePreset(s, s.activePresetId))}
+              onClick={() => {
+                const id = settings.activePresetId;
+                void updateSettings((s) => removePreset(s, id)).then(() =>
+                  purgeOverridesForPreset(id),
+                );
+              }}
               className="rounded-md border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50 disabled:opacity-40"
             >
               {t('settingsPresetDelete')}
@@ -277,38 +372,40 @@ export function SettingsPanel() {
           </div>
         </Section>
 
-        <CollapsibleSection title={t('settingsPresetEdit')}>
-          <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            {t('settingsPresetName')}
-            <input
-              type="text"
-              value={preset.name}
-              onChange={(e) =>
-                void updateSettings((s) => renamePreset(s, s.activePresetId, e.target.value))
-              }
-              onBlur={() => {
-                const trimmed = preset.name.trim();
-                if (trimmed === preset.name) return;
-                void updateSettings((s) =>
-                  renamePreset(s, s.activePresetId, trimmed === '' ? 'Оригинал' : trimmed),
-                );
-              }}
-              className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
-            />
-          </label>
+        <CollapsibleSection title={t('settingsPresetEdit')} highlighted={editingOverride}>
+          {!editingOverride && (
+            <label className="flex flex-col gap-1 text-sm text-zinc-700">
+              {t('settingsPresetName')}
+              <input
+                type="text"
+                value={preset.name}
+                onChange={(e) =>
+                  void updateSettings((s) => renamePreset(s, s.activePresetId, e.target.value))
+                }
+                onBlur={() => {
+                  const trimmed = preset.name.trim();
+                  if (trimmed === preset.name) return;
+                  void updateSettings((s) =>
+                    renamePreset(s, s.activePresetId, trimmed === '' ? 'Оригинал' : trimmed),
+                  );
+                }}
+                className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+              />
+            </label>
+          )}
 
           <span className="mt-1 text-sm font-medium text-zinc-700">{t('settingsSizeMode')}</span>
           <div className="flex rounded-lg bg-zinc-100 p-0.5 text-sm">
             <button
               type="button"
-              onClick={() => patchPreset((p) => ({ ...p, sizeMode: 'original' }))}
+              onClick={() => patchLayout(() => ({ sizeMode: 'original' }))}
               className={`flex-1 rounded-md px-2 py-1 ${!isFixed ? 'bg-white shadow' : 'text-zinc-500'}`}
             >
               {t('settingsSizeOriginal')}
             </button>
             <button
               type="button"
-              onClick={() => patchPreset((p) => ({ ...p, sizeMode: 'fixed' }))}
+              onClick={() => patchLayout(() => ({ sizeMode: 'fixed' }))}
               className={`flex-1 rounded-md px-2 py-1 ${isFixed ? 'bg-white shadow' : 'text-zinc-500'}`}
             >
               {t('settingsSizeFixed')}
@@ -319,7 +416,7 @@ export function SettingsPanel() {
           <div className="flex rounded-lg bg-zinc-100 p-0.5 text-sm">
             <button
               type="button"
-              onClick={() => patchPreset((p) => ({ ...p, background: { kind: 'transparent' } }))}
+              onClick={() => patchLayout(() => ({ background: { kind: 'transparent' } }))}
               className={`flex-1 rounded-md px-2 py-1 ${isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
             >
               {t('settingsBgTransparent')}
@@ -327,7 +424,7 @@ export function SettingsPanel() {
             <button
               type="button"
               onClick={() =>
-                patchPreset((p) => ({ ...p, background: { kind: 'solid', color: solidColor } }))
+                patchLayout(() => ({ background: { kind: 'solid', color: solidColor } }))
               }
               className={`flex-1 rounded-md px-2 py-1 ${!isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
             >
@@ -342,7 +439,7 @@ export function SettingsPanel() {
                   type="button"
                   aria-label={color}
                   onClick={() =>
-                    patchPreset((p) => ({ ...p, background: { kind: 'solid', color } }))
+                    patchLayout(() => ({ background: { kind: 'solid', color } }))
                   }
                   className={`h-7 w-7 rounded-full border ${
                     solidColor === color
@@ -356,8 +453,7 @@ export function SettingsPanel() {
                 type="color"
                 value={solidColor}
                 onChange={(e) =>
-                  patchPreset((p) => ({
-                    ...p,
+                  patchLayout(() => ({
                     background: { kind: 'solid', color: e.target.value },
                   }))
                 }
@@ -375,16 +471,16 @@ export function SettingsPanel() {
               <div className="mt-1 grid grid-cols-2 gap-2">
                 <NumberField
                   label={t('settingsCanvasWidth')}
-                  value={preset.canvas.width}
+                  value={canvas.width}
                   onChange={(width) =>
-                    patchPreset((p) => ({ ...p, canvas: { ...p.canvas, width } }))
+                    patchLayout((f) => ({ canvas: { ...f.canvas, width } }))
                   }
                 />
                 <NumberField
                   label={t('settingsCanvasHeight')}
-                  value={preset.canvas.height}
+                  value={canvas.height}
                   onChange={(height) =>
-                    patchPreset((p) => ({ ...p, canvas: { ...p.canvas, height } }))
+                    patchLayout((f) => ({ canvas: { ...f.canvas, height } }))
                   }
                 />
               </div>
@@ -433,9 +529,11 @@ export function SettingsPanel() {
               <label className="flex flex-col gap-1 text-sm text-zinc-700">
                 {t('settingsAnchor')}
                 <select
-                  value={preset.anchor}
+                  value={anchor}
                   onChange={(e) =>
-                    patchPreset((p) => ({ ...p, anchor: e.target.value as Preset['anchor'] }))
+                    patchLayout(() => ({
+                      anchor: e.target.value as Preset['anchor'],
+                    }))
                   }
                   className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
                 >
@@ -448,11 +546,10 @@ export function SettingsPanel() {
               <label className="flex items-center gap-2 text-sm text-zinc-700">
                 <input
                   type="checkbox"
-                  checked={!preset.fit.allowUpscale}
+                  checked={!fit.allowUpscale}
                   onChange={(e) =>
-                    patchPreset((p) => ({
-                      ...p,
-                      fit: { ...p.fit, allowUpscale: !e.target.checked },
+                    patchLayout((f) => ({
+                      fit: { ...f.fit, allowUpscale: !e.target.checked },
                     }))
                   }
                   className="accent-blue-600"
@@ -462,37 +559,55 @@ export function SettingsPanel() {
             </>
           )}
 
-          <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            {t('settingsFormat')}
-            <select
-              value={preset.output.format}
-              onChange={(e) =>
-                patchPreset((p) => ({
-                  ...p,
-                  output: {
-                    ...p.output,
-                    format: e.target.value as Preset['output']['format'],
-                  },
-                }))
-              }
-              className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
-            >
-              <option value="png">PNG</option>
-              <option value="jpeg">JPEG</option>
-              <option value="webp">WebP</option>
-            </select>
-          </label>
-          {preset.output.format !== 'png' && (
-            <Slider
-              label={t('settingsQuality')}
-              min={0.5}
-              max={1}
-              step={0.01}
-              value={preset.output.quality}
-              onChange={(quality) =>
-                patchPreset((p) => ({ ...p, output: { ...p.output, quality } }))
-              }
-            />
+          {!editingOverride && (
+            <>
+              <label className="flex flex-col gap-1 text-sm text-zinc-700">
+                {t('settingsFormat')}
+                <select
+                  value={preset.output.format}
+                  onChange={(e) =>
+                    void updateSettings((s) => ({
+                      ...s,
+                      presets: s.presets.map((p) =>
+                        p.id === s.activePresetId
+                          ? {
+                              ...p,
+                              output: {
+                                ...p.output,
+                                format: e.target.value as Preset['output']['format'],
+                              },
+                            }
+                          : p,
+                      ),
+                    }))
+                  }
+                  className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+                >
+                  <option value="png">PNG</option>
+                  <option value="jpeg">JPEG</option>
+                  <option value="webp">WebP</option>
+                </select>
+              </label>
+              {preset.output.format !== 'png' && (
+                <Slider
+                  label={t('settingsQuality')}
+                  min={0.5}
+                  max={1}
+                  step={0.01}
+                  value={preset.output.quality}
+                  onChange={(quality) =>
+                    void updateSettings((s) => ({
+                      ...s,
+                      presets: s.presets.map((p) =>
+                        p.id === s.activePresetId
+                          ? { ...p, output: { ...p.output, quality } }
+                          : p,
+                      ),
+                    }))
+                  }
+                />
+              )}
+            </>
           )}
         </CollapsibleSection>
       </div>

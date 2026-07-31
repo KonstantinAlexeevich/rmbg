@@ -14,17 +14,29 @@ interface RmbgDB extends DBSchema {
 }
 
 const DB_NAME = 'rmbg';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export type Database = IDBPDatabase<RmbgDB>;
 
 export function openDatabase(): Promise<Database> {
   return openDB<RmbgDB>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      db.createObjectStore('sessions', { keyPath: 'id' });
-      const items = db.createObjectStore('items', { keyPath: 'id' });
-      items.createIndex('by-session', 'sessionId');
-      items.createIndex('by-status', 'status');
+    async upgrade(db, oldVersion, _newVersion, transaction) {
+      if (oldVersion < 1) {
+        db.createObjectStore('sessions', { keyPath: 'id' });
+        const items = db.createObjectStore('items', { keyPath: 'id' });
+        items.createIndex('by-session', 'sessionId');
+        items.createIndex('by-status', 'status');
+      }
+      // v2: у элементов появляется overrides (слепки настроек по пресету)
+      if (oldVersion < 2) {
+        const store = transaction.objectStore('items');
+        for await (const cursor of store) {
+          const value = cursor.value as ItemRecord & { overrides?: ItemRecord['overrides'] };
+          if (!Array.isArray(value.overrides)) {
+            await cursor.update({ ...value, overrides: [] });
+          }
+        }
+      }
     },
   });
 }

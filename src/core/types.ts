@@ -1,3 +1,5 @@
+import type { ItemOverride } from './preset/override';
+
 export type Backend = 'webgpu' | 'wasm';
 
 export type ModelVariant = 'fp32' | 'q8';
@@ -10,6 +12,8 @@ export type ItemStatus =
   | 'composing' // применяются фон и пресет
   | 'done'
   | 'failed';
+
+export type { ItemOverride };
 
 export type MaskRecord = {
   // PNG в оттенках серого, в родном разрешении прохода (не в разрешении оригинала)
@@ -50,6 +54,8 @@ export type ItemRecord = {
   thumbnail: Blob; // длинная сторона 256 px, единственное, что живёт в памяти грида
   mask: MaskRecord | null; // null = сегментация ещё не выполнена
   result: ResultRecord | null; // null = композиция ещё не выполнена
+  // слепки настроек по presetId; пустой массив = переопределений нет
+  overrides: ItemOverride[];
 };
 
 export type SessionRecord = {

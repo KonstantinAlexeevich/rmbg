@@ -8,7 +8,7 @@ import { Grid } from './components/Grid';
 import { EmptyState } from './components/EmptyState';
 import { SettingsPanel } from './components/SettingsPanel';
 import { BottomBar } from './components/BottomBar';
-import { CompareModal } from './components/CompareModal';
+import { Viewer } from './components/Viewer';
 import { DiagnosticsPanel } from './components/DiagnosticsPanel';
 import { ExportPresetsModal } from './components/ExportPresetsModal';
 import { Toasts } from './components/Toasts';
@@ -67,12 +67,14 @@ export function App() {
 
       <div className="flex min-h-0 flex-1">
         <main className="relative min-w-0 flex-1 overflow-y-auto">
-          {items.length === 0 ? (
+          {compareItemId !== '' ? (
+            <Viewer />
+          ) : items.length === 0 ? (
             <EmptyState onChooseFiles={() => fileInputRef.current?.click()} />
           ) : (
             <Grid />
           )}
-          {dragOver && (
+          {dragOver && compareItemId === '' && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-4 border-dashed border-blue-400 bg-blue-100/60">
               <span className="rounded-xl bg-white px-6 py-3 text-lg font-medium text-blue-700 shadow">
                 {t('emptyTitle')}
@@ -97,7 +99,6 @@ export function App() {
         }}
       />
 
-      <CompareModal />
       <DiagnosticsPanel />
       <ExportPresetsModal />
       <Toasts />

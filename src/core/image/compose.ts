@@ -68,3 +68,38 @@ export function composeOnCanvas(
   );
   return canvas;
 }
+
+// «До» для слайдера: тот же scale/смещение, что у результата (bbox → dest),
+// но рисуем весь оригинал — края кадра продолжаются в поля холста.
+export function composeCompareBefore(
+  source: ImageBitmap,
+  bboxNorm: Rect,
+  preset: Preset,
+): OffscreenCanvas {
+  if (preset.sizeMode === 'original') {
+    const canvas = new OffscreenCanvas(source.width, source.height);
+    const ctx = canvas.getContext('2d');
+    if (ctx === null) throw new Error('Не удалось создать 2d-контекст');
+    ctx.drawImage(source, 0, 0);
+    return canvas;
+  }
+
+  const bboxPx: Rect = {
+    x: bboxNorm.x * source.width,
+    y: bboxNorm.y * source.height,
+    width: Math.max(1, bboxNorm.width * source.width),
+    height: Math.max(1, bboxNorm.height * source.height),
+  };
+
+  const canvas = new OffscreenCanvas(preset.canvas.width, preset.canvas.height);
+  const ctx = canvas.getContext('2d');
+  if (ctx === null) throw new Error('Не удалось создать 2d-контекст');
+
+  const { dest, scale } = layoutSubject(bboxPx, preset);
+  const ox = dest.x - bboxPx.x * scale;
+  const oy = dest.y - bboxPx.y * scale;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(source, ox, oy, source.width * scale, source.height * scale);
+  return canvas;
+}

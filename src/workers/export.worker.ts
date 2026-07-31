@@ -4,6 +4,7 @@ import { expandMask, refineMask } from '../core/image/mask';
 import { composeOnCanvas, cutout } from '../core/image/compose';
 import { encodeCanvas, extensionForFormat } from '../core/image/encode';
 import { settingsHash } from '../core/storage/settings';
+import { resolveComposition } from '../core/preset/override';
 import type { Preset } from '../core/preset/types';
 import type { EdgeSettings, ItemRecord } from '../core/types';
 import { ZipBuilder, archiveFileName, uniqueFolderNames } from '../core/zip/archive';
@@ -51,18 +52,25 @@ self.onmessage = async (event: MessageEvent<ExportRequest>) => {
     let done = 0;
 
     for (let pi = 0; pi < request.presets.length; pi++) {
-      const preset = request.presets[pi];
+      const basePreset = request.presets[pi];
       const folder = folders[pi];
-      if (preset === undefined || folder === undefined) continue;
-      const presetHash = settingsHash(preset, request.edge);
+      if (basePreset === undefined || folder === undefined) continue;
 
       for (const itemId of request.itemIds) {
         const item = await getItem(db, itemId);
         if (item !== null && item.mask !== null) {
+          const overrides = item.overrides ?? [];
+          const { preset, edge } = resolveComposition(
+            basePreset,
+            request.edge,
+            overrides,
+          );
+          const effectiveHash = settingsHash(preset, edge);
+
           const canReuse =
-            preset.id === request.activePresetId &&
+            basePreset.id === request.activePresetId &&
             item.result !== null &&
-            item.result.settingsHash === presetHash;
+            item.result.settingsHash === effectiveHash;
 
           let blob: Blob;
           let format: Preset['output']['format'];
@@ -70,7 +78,7 @@ self.onmessage = async (event: MessageEvent<ExportRequest>) => {
             blob = item.result.blob;
             format = item.result.format;
           } else {
-            const composed = await composeForPreset(item, preset, request.edge);
+            const composed = await composeForPreset(item, preset, edge);
             blob = composed.blob;
             format = composed.format;
           }

@@ -100,6 +100,13 @@ const ru = {
 
   compareBefore: 'До',
   compareAfter: 'После',
+  viewerBack: 'К сетке',
+  viewerClose: 'Закрыть просмотр',
+
+  overrideCreate: 'Переопределить для этой картинки',
+  overrideActive: 'Переопределено',
+  overrideReset: 'Вернуть к пресету',
+  cardOverride: 'Есть переопределение',
 
   errorUnsupportedFile: 'Файл «{name}» пропущен: поддерживаются PNG, JPEG и WebP.',
   errorDecode: 'Не удалось прочитать изображение. Файл повреждён или не является картинкой.',

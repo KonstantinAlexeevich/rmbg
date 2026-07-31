@@ -1,4 +1,4 @@
-import type { Backend, ItemRecord, ModelVariant } from '../../core/types';
+import type { Backend, ItemRecord, ItemOverride, ModelVariant } from '../../core/types';
 import { detectBackend, gpuAdapterName } from '../../core/inference/backend';
 import { ensureModel } from '../../core/inference/model-loader';
 import { canonicalUrl, variantForBackend } from '../../core/inference/model-manifest';
@@ -25,10 +25,17 @@ import {
   type Database,
 } from '../../core/storage/db';
 import { decodeImage, isAcceptedType, makeThumbnail } from '../../core/image/decode';
+import { composeCompareBefore, composeOnCanvas, cutout } from '../../core/image/compose';
 import { expandMask, refineMask } from '../../core/image/mask';
-import { cutout } from '../../core/image/compose';
 import { extensionForFormat } from '../../core/image/encode';
 import { defaultPreset } from '../../core/preset/types';
+import {
+  createOverride,
+  dropOverride,
+  findOverride,
+  putOverride,
+  resolveComposition,
+} from '../../core/preset/override';
 import { setLocale, t } from './i18n';
 import { useStudioStore, type ItemView } from './store';
 import { ExportWorkerClient, SegmentationWorkerClient } from './workers';
@@ -54,11 +61,16 @@ export function setVisibleIds(ids: Set<string>): void {
   visibleIds = ids;
 }
 
-function currentHash(settings: Settings): string {
-  return settingsHash(activePreset(settings), settings.edge);
+function itemHash(settings: Settings, overrides: ItemOverride[]): string {
+  const { preset, edge } = resolveComposition(
+    activePreset(settings),
+    settings.edge,
+    overrides,
+  );
+  return settingsHash(preset, edge);
 }
 
-function toView(item: ItemRecord, hash: string): ItemView {
+function toView(item: ItemRecord, settings: Settings): ItemView {
   const oldThumb = thumbUrls.get(item.id);
   if (oldThumb !== undefined) URL.revokeObjectURL(oldThumb);
   const thumbnailUrl = URL.createObjectURL(item.thumbnail);
@@ -74,6 +86,10 @@ function toView(item: ItemRecord, hash: string): ItemView {
     resultThumbUrls.delete(item.id);
   }
 
+  const overrides = item.overrides ?? [];
+  const hash = itemHash(settings, overrides);
+  const override = findOverride(overrides, settings.activePresetId);
+
   return {
     id: item.id,
     name: item.name,
@@ -87,6 +103,7 @@ function toView(item: ItemRecord, hash: string): ItemView {
     hasMask: item.mask !== null,
     maskEmpty: item.mask !== null && item.mask.empty,
     stale: item.result !== null && item.result.settingsHash !== hash,
+    override: override ?? null,
   };
 }
 
@@ -123,17 +140,17 @@ export async function bootstrap(): Promise<void> {
   }
   sessionId = session.id;
 
-  const hash = currentHash(settings);
   const items = await sessionItems(db, sessionId);
   // незавершённые статусы прошлой сессии откатываются: с готовым результатом —
   // done, иначе обратно в очередь (сегментация пропустится, если маска есть)
   for (const item of items) {
+    if (!Array.isArray(item.overrides)) item.overrides = [];
     if (item.status === 'segmenting' || item.status === 'composing') {
       item.status = item.result !== null ? 'done' : 'queued';
       await putItem(db, item);
     }
   }
-  store.getState().setItems(items.map((item) => toView(item, hash)));
+  store.getState().setItems(items.map((item) => toView(item, settings)));
 
   // предупреждение о заполнении квоты origin
   const estimate = await navigator.storage.estimate();
@@ -308,7 +325,7 @@ export function cancelModelDownload(): void {
 
 export async function addFiles(files: File[]): Promise<void> {
   const state = store.getState();
-  const hash = currentHash(state.settings);
+  const settings = state.settings;
 
   for (const file of files) {
     if (!isAcceptedType(file.type)) {
@@ -331,10 +348,11 @@ export async function addFiles(files: File[]): Promise<void> {
         thumbnail,
         mask: null,
         result: null,
+        overrides: [],
       };
       bitmap.close();
       await putItem(db, item);
-      store.getState().upsertItem(toView(item, hash));
+      store.getState().upsertItem(toView(item, settings));
     } catch (e) {
       if (isQuotaError(e)) {
         state.addToast('error', t('errorQuota'));
@@ -419,10 +437,15 @@ async function processItem(id: string): Promise<void> {
 
   const record = await getItem(db, id);
   if (record === null) return;
+  if (!Array.isArray(record.overrides)) record.overrides = [];
 
   const settings = store.getState().settings;
-  const preset = activePreset(settings);
-  const hash = currentHash(settings);
+  const { preset, edge } = resolveComposition(
+    activePreset(settings),
+    settings.edge,
+    record.overrides,
+  );
+  const hash = settingsHash(preset, edge);
 
   try {
     // сегментация выполняется один раз; при готовой маске — только композиция
@@ -490,7 +513,7 @@ async function processItem(id: string): Promise<void> {
       record.mask.blob,
       record.mask.coverage,
       record.mask.bbox,
-      settings.edge,
+      edge,
       preset,
     );
 
@@ -504,7 +527,7 @@ async function processItem(id: string): Promise<void> {
     };
     record.status = 'done';
     await putItem(db, record);
-    store.getState().upsertItem(toView(record, currentHash(store.getState().settings)));
+    store.getState().upsertItem(toView(record, store.getState().settings));
   } catch (e) {
     if (isQuotaError(e)) {
       store.getState().addToast('error', t('errorQuota'));
@@ -528,30 +551,38 @@ async function processItem(id: string): Promise<void> {
 let recomposeTimer = 0;
 let recomposeGeneration = 0;
 
-export async function updateSettings(mutate: (settings: Settings) => Settings): Promise<void> {
-  const before = store.getState().settings;
-  const after = mutate(before);
-  store.getState().setSettings(after);
-  await saveSettings(after);
-
-  const hashBefore = currentHash(before);
-  const hashAfter = currentHash(after);
-  if (hashBefore === hashAfter) return;
-
-  // изменение фона, края или пресета помечает результаты устаревшими
-  const items = store.getState().items;
-  for (const item of items) {
-    if (item.resultThumbnailUrl !== '' || item.hasMask) {
-      store.getState().patchItem(item.id, { stale: true });
-    }
-  }
-
-  // дебаунс 200 мс: перетаскивание слайдера не должно запускать
-  // десятки пересчётов
+function scheduleRecompose(): void {
   clearTimeout(recomposeTimer);
   recomposeTimer = window.setTimeout(() => {
     void recomposeStale();
   }, 200);
+}
+
+async function refreshStaleFlags(settings: Settings): Promise<boolean> {
+  let anyStale = false;
+  for (const view of store.getState().items) {
+    const record = await getItem(db, view.id);
+    if (record === null) continue;
+    const overrides = record.overrides ?? [];
+    const hash = itemHash(settings, overrides);
+    const stale = record.result !== null && record.result.settingsHash !== hash;
+    if (stale) anyStale = true;
+    store.getState().patchItem(view.id, {
+      override: findOverride(overrides, settings.activePresetId) ?? null,
+      stale,
+    });
+  }
+  return anyStale;
+}
+
+export async function updateSettings(mutate: (settings: Settings) => Settings): Promise<void> {
+  const after = mutate(store.getState().settings);
+  store.getState().setSettings(after);
+  await saveSettings(after);
+
+  // поэлементный хэш: слепки не реагируют на правку глобального пресета/края
+  const anyStale = await refreshStaleFlags(after);
+  if (anyStale) scheduleRecompose();
 }
 
 async function recomposeStale(): Promise<void> {
@@ -559,32 +590,48 @@ async function recomposeStale(): Promise<void> {
   const worker = segWorker;
   if (worker === null) return;
 
-  // сначала видимые в области просмотра карточки, потом остальные
+  const compareId = store.getState().compareItemId;
+
+  // открытая в просмотре — первой, затем видимые в гриде, потом остальные
   const candidates = store
     .getState()
     .items.filter((i) => i.hasMask && (i.status === 'done' || i.stale))
-    .sort((a, b) => Number(visibleIds.has(b.id)) - Number(visibleIds.has(a.id)));
+    .sort((a, b) => {
+      const score = (id: string) =>
+        (id === compareId ? 2 : 0) + (visibleIds.has(id) ? 1 : 0);
+      return score(b.id) - score(a.id);
+    });
 
   for (const view of candidates) {
     if (generation !== recomposeGeneration) return; // настройки изменились снова
 
     const settings = store.getState().settings;
-    const hash = currentHash(settings);
     const record = await getItem(db, view.id);
     if (record === null || record.mask === null) continue;
+    if (!Array.isArray(record.overrides)) record.overrides = [];
+
+    const { preset, edge } = resolveComposition(
+      activePreset(settings),
+      settings.edge,
+      record.overrides,
+    );
+    const hash = settingsHash(preset, edge);
+
     if (record.result !== null && record.result.settingsHash === hash) {
-      store.getState().patchItem(view.id, { stale: false });
+      store.getState().patchItem(view.id, {
+        stale: false,
+        override: findOverride(record.overrides, settings.activePresetId) ?? null,
+      });
       continue;
     }
 
     try {
-      const preset = activePreset(settings);
       const composed = await worker.compose(
         record.source.blob,
         record.mask.blob,
         record.mask.coverage,
         record.mask.bbox,
-        settings.edge,
+        edge,
         preset,
       );
       if (generation !== recomposeGeneration) return;
@@ -599,7 +646,7 @@ async function recomposeStale(): Promise<void> {
       record.status = 'done';
       record.error = '';
       await putItem(db, record);
-      store.getState().upsertItem(toView(record, hash));
+      store.getState().upsertItem(toView(record, settings));
     } catch (e) {
       if (isQuotaError(e)) {
         store.getState().addToast('error', t('errorQuota'));
@@ -614,7 +661,89 @@ async function recomposeStale(): Promise<void> {
 }
 
 export function resetEdgeSettings(): void {
+  const compareId = store.getState().compareItemId;
+  const item = store.getState().items.find((i) => i.id === compareId);
+  if (compareId !== '' && item !== undefined && item.override !== null) {
+    void patchItemOverride(compareId, (o) => ({
+      ...o,
+      edge: { threshold: 0, erode: 1, feather: 0 },
+    }));
+    return;
+  }
   void updateSettings((s) => ({ ...s, edge: { threshold: 0, erode: 1, feather: 0 } }));
+}
+
+// ---------------------------------------------------------------------------
+// Переопределения настроек для одной картинки
+// ---------------------------------------------------------------------------
+
+export async function overrideCurrentItem(id: string): Promise<void> {
+  const record = await getItem(db, id);
+  if (record === null) return;
+  if (!Array.isArray(record.overrides)) record.overrides = [];
+
+  const settings = store.getState().settings;
+  const preset = activePreset(settings);
+  if (findOverride(record.overrides, preset.id) !== undefined) return;
+
+  record.overrides = putOverride(
+    record.overrides,
+    createOverride(preset, settings.edge),
+  );
+  await putItem(db, record);
+  store.getState().upsertItem(toView(record, settings));
+  // слепок совпадает с текущими значениями — пересчёт не нужен
+}
+
+export async function resetItemOverride(id: string): Promise<void> {
+  const record = await getItem(db, id);
+  if (record === null) return;
+  if (!Array.isArray(record.overrides)) record.overrides = [];
+
+  const settings = store.getState().settings;
+  const next = dropOverride(record.overrides, settings.activePresetId);
+  if (next.length === record.overrides.length) return;
+
+  record.overrides = next;
+  await putItem(db, record);
+  store.getState().upsertItem(toView(record, settings));
+  store.getState().patchItem(id, { stale: true });
+  scheduleRecompose();
+}
+
+export async function patchItemOverride(
+  id: string,
+  mutate: (override: ItemOverride) => ItemOverride,
+): Promise<void> {
+  const record = await getItem(db, id);
+  if (record === null) return;
+  if (!Array.isArray(record.overrides)) record.overrides = [];
+
+  const settings = store.getState().settings;
+  const current = findOverride(record.overrides, settings.activePresetId);
+  if (current === undefined) return;
+
+  const next = mutate(current);
+  record.overrides = putOverride(record.overrides, next);
+  await putItem(db, record);
+  store.getState().upsertItem(toView(record, settings));
+  store.getState().patchItem(id, { stale: true });
+  scheduleRecompose();
+}
+
+// при удалении пресета вычищаем слепки с его id у всех картинок сессии
+export async function purgeOverridesForPreset(presetId: string): Promise<void> {
+  const settings = store.getState().settings;
+  for (const view of store.getState().items) {
+    const record = await getItem(db, view.id);
+    if (record === null) continue;
+    if (!Array.isArray(record.overrides)) continue;
+    const next = dropOverride(record.overrides, presetId);
+    if (next.length === record.overrides.length) continue;
+    record.overrides = next;
+    await putItem(db, record);
+    store.getState().upsertItem(toView(record, settings));
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -742,16 +871,32 @@ async function downloadBlob(blob: Blob, filename: string, saveAs: boolean): Prom
 // Данные для просмотра «до/после» (загружаются по требованию)
 // ---------------------------------------------------------------------------
 
-// «После» — cutout в разрешении оригинала (не холст пресета), иначе
-// слайдер сравнивает кадры разного размера и кромку не видно.
+// Оба кадра слайдера собираем на лету из одного effective preset —
+// иначе «До» по новым настройкам и «После» из устаревшего result.blob
+// расходятся по layout.
 export async function loadCompareUrls(
   id: string,
-): Promise<{ originalUrl: string; resultUrl: string }> {
+): Promise<{ originalUrl: string; resultUrl: string; resultWidth: number; resultHeight: number }> {
   const record = await getItem(db, id);
-  if (record === null) return { originalUrl: '', resultUrl: '' };
+  if (record === null) {
+    return { originalUrl: '', resultUrl: '', resultWidth: 0, resultHeight: 0 };
+  }
 
-  const originalUrl = URL.createObjectURL(record.source.blob);
-  if (record.mask === null) return { originalUrl, resultUrl: '' };
+  if (record.mask === null) {
+    return {
+      originalUrl: URL.createObjectURL(record.source.blob),
+      resultUrl: '',
+      resultWidth: record.source.width,
+      resultHeight: record.source.height,
+    };
+  }
+
+  const settings = store.getState().settings;
+  const { preset, edge } = resolveComposition(
+    activePreset(settings),
+    settings.edge,
+    record.overrides ?? [],
+  );
 
   const source = await decodeImage(record.source.blob);
   const maskBitmap = await createImageBitmap(record.mask.blob);
@@ -762,10 +907,22 @@ export async function loadCompareUrls(
       source.width,
       source.height,
     );
-    const refined = refineMask(expanded, store.getState().settings.edge);
+    const refined = refineMask(expanded, edge);
     const cut = cutout(source, refined);
-    const blob = await cut.convertToBlob({ type: 'image/png' });
-    return { originalUrl, resultUrl: URL.createObjectURL(blob) };
+    const after = composeOnCanvas(cut, record.mask.bbox, preset);
+    const before = composeCompareBefore(source, record.mask.bbox, preset);
+
+    const [beforeBlob, afterBlob] = await Promise.all([
+      before.convertToBlob({ type: 'image/png' }),
+      after.convertToBlob({ type: 'image/png' }),
+    ]);
+
+    return {
+      originalUrl: URL.createObjectURL(beforeBlob),
+      resultUrl: URL.createObjectURL(afterBlob),
+      resultWidth: after.width,
+      resultHeight: after.height,
+    };
   } finally {
     source.close();
     maskBitmap.close();

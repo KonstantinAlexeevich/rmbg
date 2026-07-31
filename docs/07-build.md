@@ -43,11 +43,12 @@ rmbg/
       image/
         decode.ts
         mask.ts               порог, erode, feather, bbox
-        compose.ts            cutout, фон, размещение по пресету
+        compose.ts            cutout, фон, размещение; compare «До»
         encode.ts
       preset/
         types.ts
         layout.ts             расчёт масштаба и позиции
+        override.ts           слепки ItemOverride, resolveComposition
       storage/
         db.ts                 IndexedDB
         settings.ts           chrome.storage.local

@@ -28,9 +28,25 @@ type ItemRecord = {
   createdAt: number;
   status: ItemStatus;
   error: string;              // пустая строка, если ошибки нет
+  selected: boolean;
   source: { blob: Blob; width: number; height: number };
+  thumbnail: Blob;            // длинная сторона 256 px, единственное в памяти грида
   mask: MaskRecord | null;    // null = сегментация ещё не выполнена
   result: ResultRecord | null;// null = композиция ещё не выполнена
+  // слепки настроек пресета + края по presetId; пустой массив = переопределений нет
+  overrides: ItemOverride[];
+};
+
+// Слепок для одной картинки в одном пресете (см. src/core/preset/override.ts).
+// output и name остаются пресетными — формат в папке архива предсказуем.
+type ItemOverride = {
+  presetId: string;
+  sizeMode: 'original' | 'fixed';
+  canvas: { width: number; height: number };
+  fit: Preset['fit'];
+  anchor: 'center' | 'top' | 'bottom';
+  background: Background;
+  edge: EdgeSettings;
 };
 
 type Rect = { x: number; y: number; width: number; height: number };
@@ -44,6 +60,7 @@ type MaskRecord = {
   // bbox субъекта в нормализованных координатах оригинала,
   // пересчитанный по уточнённой маске, если второй проход был
   bbox: Rect;
+  empty: boolean;             // модель ничего не нашла
   backend: 'webgpu' | 'wasm';
   passes: 1 | 2;
   durationMs: number;
@@ -51,10 +68,11 @@ type MaskRecord = {
 
 type ResultRecord = {
   blob: Blob;
+  thumbnail: Blob;
   width: number;
   height: number;
   format: 'png' | 'jpeg' | 'webp';
-  // хэш настроек, по которым посчитан результат; несовпадение с текущими = stale
+  // хэш эффективных настроек (пресет ⊕ edge ⊕ слепок); несовпадение = stale
   settingsHash: string;
 };
 
@@ -70,10 +88,26 @@ type SessionRecord = {
 осмысленное состояние домена («ещё не посчитано»), и оно однозначно. Везде остальное
 используем пустые значения вместо `null`: `error: ''`, пустой массив, а не `undefined`.
 
+`overrides` — слепки для пары «картинка + пресет». Кнопка «Переопределить для этой
+картинки» копирует текущие значения пресета и края в слепок; дальше они живут отдельно
+и на правки глобального пресета/края не реагируют. `output` и `name` остаются пресетными.
+При композиции и экспорте эффективная пара считается через
+`resolveComposition(preset, edge, overrides)`: при наличии слепка для `preset.id` поля
+layout/background/edge берутся из него, иначе — из настроек. Хэш результата
+(`settingsHash`) считается по эффективной паре, поэтому stale работает поэлементно:
+картинка со слепком не становится устаревшей при правке глобального пресета.
+
+При удалении пресета слепки с его `presetId` вычищаются у всех элементов сессии.
+Слепки хранятся в IndexedDB вместе с элементом и переживают перезагрузку вкладки.
+
 ## Схема IndexedDB
+
+Версия схемы: **2**.
 
 - `sessions`: keyPath `id`.
 - `items`: keyPath `id`, индекс `by-session` по `sessionId`, индекс `by-status` по `status`.
+
+Миграция v1 → v2: у существующих элементов дописывается `overrides: []`.
 
 Blob кладём прямо в записи: Chrome хранит их на диске отдельно от структуры записи, лишнего
 копирования при чтении соседних полей не происходит.
@@ -135,7 +169,9 @@ type Settings = {
 
 `settingsHash` считается от той части настроек, которая влияет на пиксели результата:
 поля пресета без `id`/`name` плюс блок `edge`. Локаль, тема и порядок карточек в него
-не входят.
-Сериализуем в стабильном порядке ключей и берём короткий хэш (djb2 или FNV-1a, крипто здесь
+не входят. Для каждой картинки в хэш попадает **эффективная** пара после
+`resolveComposition` (глобальный пресет/край либо слепок).
+
+Сериализуем в стабильном порядке ключей и берём короткий хэш (djb2, крипто здесь
 не нужно). Несовпадение хэша с текущим — признак, что результат устарел и требует
 перекомпозиции.

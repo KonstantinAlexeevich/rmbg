@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Backend, ItemStatus } from '../../core/types';
+import type { Backend, ItemOverride, ItemStatus } from '../../core/types';
 import { defaultSettings, type Settings } from '../../core/storage/settings';
 
 // Проекция ItemRecord для интерфейса: блобы остаются в IndexedDB,
@@ -17,6 +17,8 @@ export type ItemView = {
   hasMask: boolean;
   maskEmpty: boolean;
   stale: boolean;
+  // слепок для текущего активного пресета; null = переопределения нет
+  override: ItemOverride | null;
 };
 
 export type ModelPhase =
