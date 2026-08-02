@@ -186,6 +186,7 @@ export async function newSession(): Promise<void> {
   const session = await createSession(db, store.getState().settings.activePresetId);
   setSessionId(session.id);
   releaseUrls(ids);
+  store.getState().setCompareItemId('');
   store.getState().setItems([]);
   await deleteSession(db, oldSessionId);
 }
