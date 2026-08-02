@@ -14,6 +14,7 @@ export {
   patchItemOverride,
   purgeOverridesForPreset,
   setItemSelected,
+  renameItem,
   selectAll,
   deleteSelected,
   deleteItem,

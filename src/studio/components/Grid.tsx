@@ -33,7 +33,7 @@ export function Grid() {
   return (
     <div
       ref={containerRef}
-      className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 p-4"
+      className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3 p-4"
     >
       {items.map((item) => (
         <ItemCard key={item.id} item={item} />

@@ -4,38 +4,47 @@ import { overrideCurrentItem, resetItemOverride } from '../../state/orchestrator
 export function OverrideBanner({
   itemId,
   itemName,
+  presetName,
   editingOverride,
 }: {
   itemId: string;
   itemName: string;
+  presetName: string;
   editingOverride: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-2 border-b border-zinc-200 bg-zinc-50 px-4 py-3">
-      <span className="truncate text-xs text-zinc-500" title={itemName}>
+    <div
+      className={`flex flex-col gap-2.5 border-b border-zinc-200 border-l-2 py-4 pr-4 pl-3.5 ${
+        editingOverride ? 'border-l-blue-400' : 'border-l-transparent'
+      }`}
+    >
+      <h3 className="truncate text-sm font-medium text-zinc-900" title={itemName}>
         {itemName}
-      </span>
+      </h3>
       {editingOverride ? (
-        <div className="flex flex-col gap-1.5">
-          <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-            {t('overrideActive')}
-          </span>
+        <>
+          <p className="text-xs text-zinc-500">{t('overrideActive')}</p>
           <button
             type="button"
             onClick={() => void resetItemOverride(itemId)}
-            className="self-start text-xs text-blue-600 hover:underline"
+            className="w-full cursor-pointer rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
           >
             {t('overrideReset')}
           </button>
-        </div>
+        </>
       ) : (
-        <button
-          type="button"
-          onClick={() => void overrideCurrentItem(itemId)}
-          className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs text-zinc-700 hover:bg-zinc-50"
-        >
-          {t('overrideCreate')}
-        </button>
+        <>
+          <p className="text-xs text-zinc-500">
+            {t('overrideEditingPreset', { name: presetName })}
+          </p>
+          <button
+            type="button"
+            onClick={() => void overrideCurrentItem(itemId)}
+            className="w-full cursor-pointer rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+          >
+            {t('overrideCreate')}
+          </button>
+        </>
       )}
     </div>
   );

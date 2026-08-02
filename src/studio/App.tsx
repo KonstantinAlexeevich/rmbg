@@ -85,7 +85,7 @@ export function App() {
         <SettingsPanel />
       </div>
 
-      <BottomBar />
+      <BottomBar onAddFiles={() => fileInputRef.current?.click()} />
 
       <input
         ref={fileInputRef}

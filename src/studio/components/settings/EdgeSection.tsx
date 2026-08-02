@@ -6,14 +6,19 @@ import { Section, Slider } from '../controls';
 export function EdgeSection({
   edge,
   highlighted,
+  sharedNote,
   onPatch,
 }: {
   edge: EdgeSettings;
   highlighted: boolean;
+  sharedNote: boolean;
   onPatch: (patch: Partial<EdgeSettings>) => void;
 }) {
   return (
     <Section title={t('settingsEdge')} highlighted={highlighted}>
+      {sharedNote && (
+        <p className="text-xs text-zinc-500">{t('settingsEdgeSharedNote')}</p>
+      )}
       <Slider
         label={t('settingsEdgeThreshold')}
         min={0}
@@ -41,7 +46,7 @@ export function EdgeSection({
       <button
         type="button"
         onClick={resetEdgeSettings}
-        className="self-start text-xs text-blue-600 hover:underline"
+        className="self-start rounded-md border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50"
       >
         {t('settingsEdgeReset')}
       </button>

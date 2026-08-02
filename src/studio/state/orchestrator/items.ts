@@ -143,6 +143,16 @@ export async function setItemSelected(id: string, selected: boolean): Promise<vo
   await putItem(db, record);
 }
 
+export async function renameItem(id: string, name: string): Promise<void> {
+  const trimmed = name.trim();
+  if (trimmed === '') return;
+  const record = await getItem(db, id);
+  if (record === null || record.name === trimmed) return;
+  record.name = trimmed;
+  await putItem(db, record);
+  store.getState().patchItem(id, { name: trimmed });
+}
+
 export async function selectAll(): Promise<void> {
   for (const item of store.getState().items) {
     if (!item.selected) await setItemSelected(item.id, true);

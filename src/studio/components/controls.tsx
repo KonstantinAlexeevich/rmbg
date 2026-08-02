@@ -4,58 +4,47 @@ export function Section({
   title,
   children,
   highlighted,
+  collapsible,
+  defaultOpen = false,
 }: {
   title: string;
   children: ReactNode;
   highlighted?: boolean;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const shown = !collapsible || open;
+
   return (
     <section
-      className={`flex flex-col gap-2.5 border-b border-zinc-200 px-4 py-4 ${
-        highlighted ? 'bg-amber-50/60' : ''
+      className={`flex flex-col gap-2.5 border-b border-b-zinc-200 border-l-2 py-4 pr-4 pl-3.5 ${
+        highlighted ? 'border-l-blue-400' : 'border-l-transparent'
       }`}
     >
-      <h3 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
-        {title}
-      </h3>
-      {children}
-    </section>
-  );
-}
-
-export function CollapsibleSection({
-  title,
-  children,
-  highlighted,
-}: {
-  title: string;
-  children: ReactNode;
-  highlighted?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <section className={`border-b border-zinc-200 ${highlighted ? 'bg-amber-50/60' : ''}`}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-2 px-4 py-4 text-left"
-      >
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="flex w-full items-center justify-between gap-2 text-left"
+        >
+          <h3 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
+            {title}
+          </h3>
+          <span
+            className={`text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
+            aria-hidden
+          >
+            ▾
+          </span>
+        </button>
+      ) : (
         <h3 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
           {title}
         </h3>
-        <svg
-          viewBox="0 0 20 20"
-          className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
-          aria-hidden
-        >
-          <path
-            fill="currentColor"
-            d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.25a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z"
-          />
-        </svg>
-      </button>
-      {open && <div className="flex flex-col gap-2.5 px-4 pb-4">{children}</div>}
+      )}
+      {shown ? children : null}
     </section>
   );
 }

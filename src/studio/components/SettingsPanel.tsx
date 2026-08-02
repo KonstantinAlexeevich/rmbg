@@ -1,15 +1,8 @@
 import { activePreset } from '../../core/storage/settings';
 import type { EdgeSettings, ItemOverride } from '../../core/types';
 import { useStudioStore } from '../state/store';
-import { t } from '../state/i18n';
-import {
-  exportZip,
-  newSession,
-  patchItemOverride,
-  updateSettings,
-} from '../state/orchestrator';
+import { patchItemOverride, updateSettings } from '../state/orchestrator';
 import { EdgeSection } from './settings/EdgeSection';
-import { LayoutSection } from './settings/LayoutSection';
 import { OverrideBanner } from './settings/OverrideBanner';
 import { PresetsSection } from './settings/PresetsSection';
 
@@ -18,8 +11,6 @@ export function SettingsPanel() {
   const settingsLoaded = useStudioStore((s) => s.settingsLoaded);
   const items = useStudioStore((s) => s.items);
   const compareItemId = useStudioStore((s) => s.compareItemId);
-  const exporting = useStudioStore((s) => s.exporting);
-  const setExportPickerOpen = useStudioStore((s) => s.setExportPickerOpen);
 
   if (!settingsLoaded) return <aside className="w-72 border-l border-zinc-200 bg-white" />;
 
@@ -36,16 +27,6 @@ export function SettingsPanel() {
   const anchor = editingOverride ? itemOverride.anchor : preset.anchor;
   const background = editingOverride ? itemOverride.background : preset.background;
   const edge: EdgeSettings = editingOverride ? itemOverride.edge : settings.edge;
-
-  const exportable = items.filter((i) => i.selected && i.status === 'done').length;
-
-  const onDownload = () => {
-    if (settings.presets.length <= 1) {
-      void exportZip();
-      return;
-    }
-    setExportPickerOpen(true);
-  };
 
   // правки layout/edge идут в слепок, если он есть; иначе — в пресет/настройки
   const patchLayout = (mutate: (fields: ItemOverride) => Partial<ItemOverride>): void => {
@@ -90,59 +71,32 @@ export function SettingsPanel() {
   };
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-l border-zinc-200 bg-white">
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        {viewing && (
-          <OverrideBanner
-            itemId={compareItemId}
-            itemName={compareItem.name}
-            editingOverride={editingOverride}
-          />
-        )}
-
-        <EdgeSection
-          edge={edge}
-          highlighted={editingOverride}
-          onPatch={patchEdge}
-        />
-
-        <PresetsSection settings={settings} />
-
-        <LayoutSection
-          preset={preset}
-          sizeMode={sizeMode}
-          canvas={canvas}
-          fit={fit}
-          anchor={anchor}
-          background={background}
+    <aside className="w-72 shrink-0 overflow-y-auto border-l border-zinc-200 bg-white">
+      {viewing && (
+        <OverrideBanner
+          itemId={compareItemId}
+          itemName={compareItem.name}
+          presetName={preset.name}
           editingOverride={editingOverride}
-          highlighted={editingOverride}
-          patchLayout={patchLayout}
         />
-      </div>
-
-      <div className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 p-4">
-        <button
-          type="button"
-          onClick={onDownload}
-          disabled={exportable === 0 || exporting.running}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {t('headerDownloadZip')}
-          {exportable > 0 ? ` (${exportable})` : ''}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (items.length === 0 || window.confirm(t('confirmClear'))) {
-              void newSession();
-            }
-          }}
-          className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
-        >
-          {t('headerClear')}
-        </button>
-      </div>
+      )}
+      <EdgeSection
+        edge={edge}
+        highlighted={editingOverride}
+        sharedNote={!editingOverride}
+        onPatch={patchEdge}
+      />
+      <PresetsSection
+        settings={settings}
+        preset={preset}
+        sizeMode={sizeMode}
+        canvas={canvas}
+        fit={fit}
+        anchor={anchor}
+        background={background}
+        patchLayout={patchLayout}
+        editingOverride={editingOverride}
+      />
     </aside>
   );
 }

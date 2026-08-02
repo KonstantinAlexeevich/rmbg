@@ -4,7 +4,7 @@ import type { Preset } from '../../../core/preset/types';
 import type { ItemOverride } from '../../../core/types';
 import { t } from '../../state/i18n';
 import { updateSettings } from '../../state/orchestrator';
-import { CollapsibleSection, NumberField, Slider } from '../controls';
+import { NumberField, Slider } from '../controls';
 
 const SWATCHES = ['#ffffff', '#f4f4f5', '#000000'];
 
@@ -16,7 +16,6 @@ export function LayoutSection({
   anchor,
   background,
   editingOverride,
-  highlighted,
   patchLayout,
 }: {
   preset: Preset;
@@ -26,7 +25,6 @@ export function LayoutSection({
   anchor: Preset['anchor'];
   background: Preset['background'];
   editingOverride: boolean;
-  highlighted: boolean;
   patchLayout: (mutate: (fields: ItemOverride) => Partial<ItemOverride>) => void;
 }) {
   const [linkedMargins, setLinkedMargins] = useState(true);
@@ -51,7 +49,7 @@ export function LayoutSection({
     Math.round(fit.margin[side] * 100);
 
   return (
-    <CollapsibleSection title={t('settingsPresetEdit')} highlighted={highlighted}>
+    <div className="flex flex-col gap-2.5">
       {!editingOverride && (
         <label className="flex flex-col gap-1 text-sm text-zinc-700">
           {t('settingsPresetName')}
@@ -282,10 +280,10 @@ export function LayoutSection({
                   ),
                 }))
               }
-            />
-          )}
+          />
+        )}
         </>
       )}
-    </CollapsibleSection>
+    </div>
   );
 }

@@ -1,6 +1,13 @@
+import { useEffect, useRef, useState } from 'react';
 import { useStudioStore, type ItemView } from '../state/store';
 import { t } from '../state/i18n';
-import { deleteItem, downloadItem, retryItem, setItemSelected } from '../state/orchestrator';
+import {
+  deleteItem,
+  downloadItem,
+  renameItem,
+  retryItem,
+  setItemSelected,
+} from '../state/orchestrator';
 
 function StatusOverlay({ item }: { item: ItemView }) {
   switch (item.status) {
@@ -26,20 +33,52 @@ function StatusOverlay({ item }: { item: ItemView }) {
 
 export function ItemCard({ item }: { item: ItemView }) {
   const setCompareItemId = useStudioStore((s) => s.setCompareItemId);
+  const [renaming, setRenaming] = useState(false);
+  const [draft, setDraft] = useState(item.name);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const skipCommitRef = useRef(false);
 
   const previewUrl =
     item.status === 'done' && item.resultThumbnailUrl !== ''
       ? item.resultThumbnailUrl
       : item.thumbnailUrl;
 
+  useEffect(() => {
+    if (!renaming) return;
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [renaming]);
+
+  const startRename = () => {
+    skipCommitRef.current = false;
+    setDraft(item.name);
+    setRenaming(true);
+  };
+
+  const commitRename = () => {
+    setRenaming(false);
+    if (skipCommitRef.current) {
+      skipCommitRef.current = false;
+      return;
+    }
+    void renameItem(item.id, draft);
+  };
+
+  const cancelRename = () => {
+    skipCommitRef.current = true;
+    setRenaming(false);
+    setDraft(item.name);
+  };
+
   return (
     <div
       data-item-id={item.id}
       tabIndex={0}
       onKeyDown={(e) => {
+        if (renaming) return;
         if (e.key === 'Enter') setCompareItemId(item.id);
       }}
-      className={`group relative flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-blue-500 ${
+      className={`relative flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-blue-500 ${
         item.status === 'failed' ? 'border-red-400' : 'border-zinc-200'
       } ${item.stale && item.status === 'done' ? 'opacity-70' : ''}`}
     >
@@ -75,7 +114,7 @@ export function ItemCard({ item }: { item: ItemView }) {
           </span>
         )}
 
-        <div className="absolute top-2 right-2 hidden gap-1 group-focus-within:flex group-hover:flex">
+        <div className="absolute top-2 right-2 flex gap-1">
           {item.status === 'done' && (
             <>
               <IconButton
@@ -90,13 +129,11 @@ export function ItemCard({ item }: { item: ItemView }) {
               />
             </>
           )}
-          {(item.status === 'failed' || item.status === 'done') && (
-            <IconButton
-              label={t('cardRetry')}
-              onClick={() => void retryItem(item.id)}
-              icon="M17.65 6.35A8 8 0 1 0 19.73 14h-2.08a6 6 0 1 1-1.42-6.23L13 11h7V4l-2.35 2.35z"
-            />
-          )}
+          <IconButton
+            label={t('cardRename')}
+            onClick={startRename}
+            icon="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+          />
           <IconButton
             label={t('cardDelete')}
             onClick={() => void deleteItem(item.id)}
@@ -106,13 +143,42 @@ export function ItemCard({ item }: { item: ItemView }) {
       </div>
 
       <div className="flex flex-col gap-0.5 px-2 py-1.5">
-        <span className="truncate text-xs text-zinc-700" title={item.name}>
-          {item.name}
-        </span>
-        {item.status === 'failed' && (
-          <span className="truncate text-xs text-red-600" title={item.error}>
-            {item.error}
+        {renaming ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={draft}
+            aria-label={t('cardRename')}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelRename();
+              }
+            }}
+            className="w-full rounded border border-zinc-300 px-1 py-0.5 text-xs text-zinc-700 outline-none focus:border-blue-400"
+          />
+        ) : (
+          <span className="truncate text-xs text-zinc-700" title={item.name}>
+            {item.name}
           </span>
+        )}
+        {item.status === 'failed' && (
+          <>
+            <span className="truncate text-xs text-red-600" title={item.error}>
+              {item.error}
+            </span>
+            <button
+              type="button"
+              onClick={() => void retryItem(item.id)}
+              className="self-start text-xs font-medium text-blue-600 hover:text-blue-500"
+            >
+              {t('cardRetry')}
+            </button>
+          </>
         )}
       </div>
     </div>
