@@ -180,8 +180,10 @@ async function processItem(id: string): Promise<void> {
       store.getState().addToast('error', t('errorQuota'));
       stopProcessing();
     }
+    console.error(`Processing failed for ${record.name}:`, e);
     record.status = 'failed';
-    record.error = e instanceof Error ? e.message : String(e);
+    // На карточке — что случилось и что делать; сырое сообщение только в консоль.
+    record.error = isQuotaError(e) ? t('errorQuota') : t('errorProcessing');
     try {
       await putItem(db, record);
     } catch {

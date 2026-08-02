@@ -1,12 +1,11 @@
+import { ImageUp } from 'lucide-react';
 import { t } from '../state/i18n';
 
 export function EmptyState({ onChooseFiles }: { onChooseFiles: () => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
       <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-zinc-300 px-16 py-14">
-        <svg viewBox="0 0 24 24" className="h-12 w-12 fill-zinc-300">
-          <path d="M19 5v14H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-4.86 8.86-3 3.87L9 13.14 6 17h12l-3.86-5.14z" />
-        </svg>
+        <ImageUp className="h-12 w-12 text-zinc-300" aria-hidden />
         <p className="text-lg font-medium text-zinc-700">{t('emptyTitle')}</p>
         <button
           type="button"

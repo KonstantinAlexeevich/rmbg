@@ -9,7 +9,8 @@ export function createOverride(preset: Preset, edge: EdgeSettings): ItemOverride
     sizeMode: preset.sizeMode,
     canvas: { ...preset.canvas },
     fit: {
-      ...preset.fit,
+      mode: preset.fit.mode,
+      allowUpscale: preset.fit.allowUpscale === true,
       margin: { ...preset.fit.margin },
     },
     anchor: preset.anchor,
@@ -58,7 +59,9 @@ export function resolveComposition(
       sizeMode: override.sizeMode,
       canvas: { ...override.canvas },
       fit: {
-        ...override.fit,
+        mode: override.fit.mode,
+        // Явный boolean: старые слепки / structured clone не должны давать undefined.
+        allowUpscale: override.fit.allowUpscale === true,
         margin: { ...override.fit.margin },
       },
       anchor: override.anchor,

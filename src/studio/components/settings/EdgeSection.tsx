@@ -15,12 +15,13 @@ export function EdgeSection({
   onPatch: (patch: Partial<EdgeSettings>) => void;
 }) {
   return (
-    <Section title={t('settingsEdge')} highlighted={highlighted}>
+    <Section title={t('edgeTitle')} highlighted={highlighted}>
       {sharedNote && (
-        <p className="text-xs text-zinc-500">{t('settingsEdgeSharedNote')}</p>
+        <p className="text-xs text-zinc-500">{t('edgeSharedNote')}</p>
       )}
       <Slider
-        label={t('settingsEdgeThreshold')}
+        label={t('edgeThreshold')}
+        hint={t('edgeThresholdHint')}
         min={0}
         max={1}
         step={0.05}
@@ -28,7 +29,8 @@ export function EdgeSection({
         onChange={(threshold) => onPatch({ threshold })}
       />
       <Slider
-        label={t('settingsEdgeErode')}
+        label={t('edgeContract')}
+        hint={t('edgeContractHint')}
         min={0}
         max={5}
         step={1}
@@ -36,7 +38,8 @@ export function EdgeSection({
         onChange={(erode) => onPatch({ erode })}
       />
       <Slider
-        label={t('settingsEdgeFeather')}
+        label={t('edgeFeather')}
+        hint={t('edgeFeatherHint')}
         min={0}
         max={10}
         step={1}
@@ -48,7 +51,7 @@ export function EdgeSection({
         onClick={resetEdgeSettings}
         className="self-start rounded-md border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50"
       >
-        {t('settingsEdgeReset')}
+        {t('edgeReset')}
       </button>
     </Section>
   );

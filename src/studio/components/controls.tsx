@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
 export function Section({
@@ -32,12 +33,10 @@ export function Section({
           <h3 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
             {title}
           </h3>
-          <span
-            className={`text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          <ChevronDown
+            className={`h-3.5 w-3.5 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
             aria-hidden
-          >
-            ▾
-          </span>
+          />
         </button>
       ) : (
         <h3 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
@@ -51,24 +50,30 @@ export function Section({
 
 export function Slider({
   label,
+  hint,
   min,
   max,
   step,
   value,
   onChange,
+  displayValue,
 }: {
   label: string;
+  hint?: string;
   min: number;
   max: number;
   step: number;
   value: number;
   onChange: (value: number) => void;
+  displayValue?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm text-zinc-700">
-      <span className="flex justify-between">
-        {label}
-        <span className="tabular-nums text-zinc-400">{value}</span>
+    <label className="flex flex-col gap-1 text-sm text-zinc-700" title={hint}>
+      <span className="flex justify-between gap-2">
+        <span>{label}</span>
+        <span className="tabular-nums text-zinc-400">
+          {displayValue ?? String(value)}
+        </span>
       </span>
       <input
         type="range"
@@ -77,6 +82,7 @@ export function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        aria-description={hint}
         className="accent-blue-600"
       />
     </label>
@@ -85,12 +91,14 @@ export function Slider({
 
 export function NumberField({
   label,
+  ariaLabel,
   value,
   min,
   max,
   onChange,
 }: {
-  label: string;
+  label?: string;
+  ariaLabel?: string;
   value: number;
   min?: number;
   max?: number;
@@ -111,22 +119,31 @@ export function NumberField({
     if (next !== value) onChange(next);
   };
 
+  const input = (
+    <input
+      type="number"
+      min={min}
+      max={max}
+      value={shown}
+      aria-label={ariaLabel ?? label}
+      onFocus={() => setDraft(String(value))}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => commit(draft ?? String(value))}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+      }}
+      className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+    />
+  );
+
+  if (label === undefined) {
+    return input;
+  }
+
   return (
     <label className="flex flex-col gap-1 text-sm text-zinc-700">
-      {label}
-      <input
-        type="number"
-        min={min}
-        max={max}
-        value={shown}
-        onFocus={() => setDraft(String(value))}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => commit(draft ?? String(value))}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-        }}
-        className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
-      />
+      <span>{label}</span>
+      {input}
     </label>
   );
 }

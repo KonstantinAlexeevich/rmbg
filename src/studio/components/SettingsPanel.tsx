@@ -31,7 +31,37 @@ export function SettingsPanel() {
   // правки layout/edge идут в слепок, если он есть; иначе — в пресет/настройки
   const patchLayout = (mutate: (fields: ItemOverride) => Partial<ItemOverride>): void => {
     if (editingOverride && viewing) {
-      void patchItemOverride(compareItemId, (o) => ({ ...o, ...mutate(o) }));
+      void patchItemOverride(compareItemId, (o) => {
+        const patch = mutate(o);
+        return {
+          ...o,
+          ...patch,
+          // Глубокое копирование fit/canvas: иначе allowUpscale/margin
+          // могут остаться на старых ссылках из IndexedDB-снимка.
+          canvas: patch.canvas !== undefined ? { ...patch.canvas } : { ...o.canvas },
+          fit:
+            patch.fit !== undefined
+              ? {
+                  ...patch.fit,
+                  margin: { ...patch.fit.margin },
+                  allowUpscale: patch.fit.allowUpscale === true,
+                }
+              : {
+                  ...o.fit,
+                  margin: { ...o.fit.margin },
+                  allowUpscale: o.fit.allowUpscale === true,
+                },
+          background:
+            patch.background !== undefined
+              ? patch.background.kind === 'solid'
+                ? { kind: 'solid', color: patch.background.color }
+                : { kind: 'transparent' }
+              : o.background.kind === 'solid'
+                ? { kind: 'solid', color: o.background.color }
+                : { kind: 'transparent' },
+          edge: patch.edge !== undefined ? { ...patch.edge } : { ...o.edge },
+        };
+      });
       return;
     }
     void updateSettings((s) => ({
@@ -50,8 +80,16 @@ export function SettingsPanel() {
         return {
           ...p,
           ...(patch.sizeMode !== undefined ? { sizeMode: patch.sizeMode } : {}),
-          ...(patch.canvas !== undefined ? { canvas: patch.canvas } : {}),
-          ...(patch.fit !== undefined ? { fit: patch.fit } : {}),
+          ...(patch.canvas !== undefined ? { canvas: { ...patch.canvas } } : {}),
+          ...(patch.fit !== undefined
+            ? {
+                fit: {
+                  ...patch.fit,
+                  margin: { ...patch.fit.margin },
+                  allowUpscale: patch.fit.allowUpscale === true,
+                },
+              }
+            : {}),
           ...(patch.anchor !== undefined ? { anchor: patch.anchor } : {}),
           ...(patch.background !== undefined ? { background: patch.background } : {}),
         };

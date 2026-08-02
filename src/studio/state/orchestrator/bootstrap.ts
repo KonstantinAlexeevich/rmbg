@@ -23,6 +23,7 @@ import { processAll } from './queue';
 export async function bootstrap(): Promise<void> {
   const settings = await loadSettings();
   setLocale(settings.ui.locale);
+  document.documentElement.lang = settings.ui.locale;
   store.getState().setSettings(settings);
 
   setDb(await openDatabase());

@@ -1,3 +1,4 @@
+import { Cpu } from 'lucide-react';
 import { useStudioStore } from '../state/store';
 import { t } from '../state/i18n';
 import { ModelStatus } from './ModelStatus';
@@ -16,12 +17,13 @@ export function Header() {
         type="button"
         onClick={() => setDiagnosticsOpen(true)}
         title={t('diagTitle')}
-        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
           backend === 'webgpu'
             ? 'bg-emerald-100 text-emerald-700'
             : 'bg-amber-100 text-amber-700'
         }`}
       >
+        {backend !== 'webgpu' && <Cpu className="h-3 w-3" aria-hidden />}
         {backend === 'webgpu' ? t('badgeGpu') : t('badgeCpu')}
       </button>
 

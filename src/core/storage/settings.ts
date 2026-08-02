@@ -15,15 +15,24 @@ export type Settings = {
 
 const STORAGE_KEY = 'settings';
 
+function detectDefaultLocale(): 'ru' | 'en' {
+  const lang = typeof navigator !== 'undefined' ? navigator.language : 'en';
+  return lang.toLowerCase().startsWith('ru') ? 'ru' : 'en';
+}
+
+// Core keeps a minimal EN/RU map for names created before the studio i18n layer runs.
+const OUTPUT_DEFAULT_NAME = 'Original' as const;
+
 export function defaultSettings(): Settings {
-  const preset = defaultPreset();
+  const locale = detectDefaultLocale();
+  const preset = defaultPreset(OUTPUT_DEFAULT_NAME);
   return {
     version: 1,
     presets: [preset],
     activePresetId: preset.id,
     exportPresetIds: [preset.id],
     edge: { threshold: 0, erode: 1, feather: 0 },
-    ui: { locale: 'ru' },
+    ui: { locale },
     backendOverride: 'auto',
     modelAssets: [],
   };
@@ -37,7 +46,9 @@ export async function loadSettings(): Promise<Settings> {
 }
 
 function migrateSettings(value: Settings): Settings {
-  const rawPresets = value.presets.length > 0 ? value.presets : [defaultPreset()];
+  const locale = value.ui?.locale === 'en' ? 'en' : value.ui?.locale === 'ru' ? 'ru' : detectDefaultLocale();
+  const rawPresets =
+    value.presets.length > 0 ? value.presets : [defaultPreset(OUTPUT_DEFAULT_NAME)];
   // старые пресеты без sizeMode считаем fixed — сохраняем прежнее поведение
   const presets = rawPresets.map((p) =>
     p.sizeMode === 'original' || p.sizeMode === 'fixed'
@@ -52,7 +63,6 @@ function migrateSettings(value: Settings): Settings {
 
   const rawExport = Array.isArray(value.exportPresetIds) ? value.exportPresetIds : [];
   const exportPresetIds = rawExport.filter((id) => presets.some((p) => p.id === id));
-  const locale = value.ui?.locale === 'en' ? 'en' : 'ru';
   return {
     ...value,
     presets,
@@ -86,11 +96,11 @@ export function resolveExportPresets(settings: Settings): Preset[] {
   return exportPresets(settings);
 }
 
-export function duplicatePreset(preset: Preset): Preset {
+export function duplicatePreset(preset: Preset, copyName?: string): Preset {
   return {
     ...preset,
     id: crypto.randomUUID(),
-    name: `${preset.name} (копия)`,
+    name: copyName ?? `${preset.name} copy`,
     canvas: { ...preset.canvas },
     fit: {
       ...preset.fit,
@@ -104,8 +114,12 @@ export function duplicatePreset(preset: Preset): Preset {
   };
 }
 
-export function addPreset(settings: Settings): Settings {
-  const copy = duplicatePreset(activePreset(settings));
+export function addPreset(settings: Settings, copyName?: string): Settings {
+  const source = activePreset(settings);
+  const copy = duplicatePreset(
+    source,
+    copyName ?? `${source.name} copy`,
+  );
   return {
     ...settings,
     presets: [...settings.presets, copy],

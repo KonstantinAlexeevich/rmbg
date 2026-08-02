@@ -35,7 +35,7 @@ export function OverrideBanner({
       ) : (
         <>
           <p className="text-xs text-zinc-500">
-            {t('overrideEditingPreset', { name: presetName })}
+            {t('overrideEditingOutput', { name: presetName })}
           </p>
           <button
             type="button"

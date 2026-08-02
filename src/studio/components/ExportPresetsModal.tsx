@@ -23,9 +23,10 @@ export function ExportPresetsModal() {
       }}
     >
       <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
-        <h2 className="mb-3 text-base font-semibold text-zinc-900">
+        <h2 className="mb-1 text-base font-semibold text-zinc-900">
           {t('exportPickerTitle')}
         </h2>
+        <p className="mb-3 text-xs text-zinc-500">{t('exportPickerHint')}</p>
 
         <ul className="flex flex-col gap-1.5">
           {settings.presets.map((p) => {

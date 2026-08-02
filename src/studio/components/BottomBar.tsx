@@ -1,3 +1,4 @@
+import { FileArchive, ImagePlus } from 'lucide-react';
 import { useStudioStore } from '../state/store';
 import { formatDuration, t } from '../state/i18n';
 import { exportZip, newSession, stopProcessing } from '../state/orchestrator';
@@ -38,12 +39,14 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
             </div>
             <span className="truncate text-sm text-zinc-700">
               {t('progressProcessed', { done: batch.done, total: batch.total })}
-              {batch.etaMs > 0 && `, ${t('progressEta', { eta: formatDuration(batch.etaMs) })}`}
+              {batch.etaMs > 0 &&
+                `, ${t('progressEta', { eta: formatDuration(batch.etaMs) })}`}
             </span>
             <button
               type="button"
               onClick={stopProcessing}
               disabled={batch.stopRequested}
+              title={t('progressStopHint')}
               className="shrink-0 rounded-lg border border-zinc-300 px-3 py-1 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-40"
             >
               {t('progressStop')}
@@ -55,16 +58,17 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
           </span>
         ) : (
           <span className="truncate text-xs text-zinc-500">
-            {t('selectedCount', { count: `${selected} / ${items.length}` })}
+            {t('selectedCount', { selected, total: items.length })}
           </span>
         )}
 
         <button
           type="button"
           onClick={onAddFiles}
-          className="shrink-0 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
         >
-          {t('footerAddFiles')}
+          <ImagePlus className="h-4 w-4" aria-hidden />
+          {t('addImages')}
         </button>
       </div>
 
@@ -72,22 +76,23 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
         <button
           type="button"
           onClick={() => {
-            if (window.confirm(t('confirmClear'))) {
+            if (window.confirm(t('confirmClearSession'))) {
               void newSession();
             }
           }}
           disabled={busy}
           className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {t('headerClear')}
+          {t('sessionClear')}
         </button>
         <button
           type="button"
           onClick={onDownload}
           disabled={exportable === 0 || exporting.running}
-          className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {t('headerDownloadZip')}
+          <FileArchive className="h-4 w-4" aria-hidden />
+          {t('exportZip')}
           {exportable > 0 ? ` (${exportable})` : ''}
         </button>
       </div>

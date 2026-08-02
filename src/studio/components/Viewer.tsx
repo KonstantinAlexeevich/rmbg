@@ -1,3 +1,4 @@
+import { ArrowLeft, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { activePreset } from '../../core/storage/settings';
 import { useStudioStore } from '../state/store';
@@ -168,9 +169,10 @@ export function Viewer() {
         <button
           type="button"
           onClick={() => setCompareItemId('')}
-          aria-label={t('viewerClose')}
-          className="shrink-0 rounded-md border border-zinc-300 px-2 py-1 text-zinc-700 hover:bg-zinc-100"
+          aria-label={t('viewerBack')}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-zinc-300 px-2 py-1 text-zinc-700 hover:bg-zinc-100"
         >
+          <ArrowLeft className="h-4 w-4" aria-hidden />
           {t('viewerBack')}
         </button>
       </div>
@@ -214,9 +216,14 @@ export function Viewer() {
             />
           )}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_4px_rgba(0,0,0,0.6)]"
+            className="absolute top-0 bottom-0 flex -translate-x-1/2 items-center"
             style={{ left: `${split}%` }}
-          />
+          >
+            <div className="h-full w-0.5 bg-white shadow-[0_0_4px_rgba(0,0,0,0.6)]" />
+            <div className="absolute top-1/2 left-1/2 flex h-7 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md bg-white shadow">
+              <GripVertical className="h-4 w-4 text-zinc-500" aria-hidden />
+            </div>
+          </div>
           <span className="absolute top-2 left-2 rounded bg-zinc-900/70 px-2 py-0.5 text-xs text-white">
             {t('compareBefore')}
           </span>
@@ -231,19 +238,21 @@ export function Viewer() {
           type="button"
           onClick={() => navigate(-1)}
           disabled={index <= 0}
-          aria-label="←"
+          aria-label={t('viewerPrev')}
+          title={t('viewerPrev')}
           className="rounded-lg bg-zinc-800 px-4 py-1.5 text-white hover:bg-zinc-700 disabled:opacity-30"
         >
-          ←
+          <ChevronLeft className="h-5 w-5" aria-hidden />
         </button>
         <button
           type="button"
           onClick={() => navigate(1)}
           disabled={index >= items.length - 1}
-          aria-label="→"
+          aria-label={t('viewerNext')}
+          title={t('viewerNext')}
           className="rounded-lg bg-zinc-800 px-4 py-1.5 text-white hover:bg-zinc-700 disabled:opacity-30"
         >
-          →
+          <ChevronRight className="h-5 w-5" aria-hidden />
         </button>
       </div>
     </div>

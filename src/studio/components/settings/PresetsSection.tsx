@@ -1,5 +1,7 @@
+import { SlidersHorizontal, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
+  activePreset,
   addPreset,
   removePreset,
   setActivePresetId,
@@ -11,12 +13,6 @@ import { t } from '../../state/i18n';
 import { purgeOverridesForPreset, updateSettings } from '../../state/orchestrator';
 import { Section } from '../controls';
 import { LayoutSection } from './LayoutSection';
-
-const PENCIL_ICON =
-  'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z';
-
-const TRASH_ICON =
-  'M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z';
 
 export function PresetsSection({
   settings,
@@ -49,7 +45,7 @@ export function PresetsSection({
   }, [settings.activePresetId, editingOverride]);
 
   return (
-    <Section title={t('settingsPresets')} highlighted={editingOverride}>
+    <Section title={t('outputsTitle')} highlighted={editingOverride}>
       <div className="flex flex-col gap-4">
         <ul className="-mx-3.5 -mr-4 flex flex-col border-y border-zinc-200">
           {settings.presets.map((p, index) => {
@@ -67,12 +63,12 @@ export function PresetsSection({
                   <button
                     type="button"
                     onClick={() => void updateSettings((s) => setActivePresetId(s, p.id))}
+                    aria-current={isActive ? 'true' : undefined}
                     className={`min-w-0 flex-1 cursor-pointer truncate px-3.5 py-2 text-left text-sm ${
                       isActive
                         ? 'font-medium text-zinc-900'
                         : 'text-zinc-600 hover:text-zinc-800'
                     }`}
-                    title={t('settingsPresetActive')}
                   >
                     {p.name}
                   </button>
@@ -85,21 +81,15 @@ export function PresetsSection({
                           setSettingsOpen((v) => !v);
                         }}
                         aria-expanded={panelOpen}
-                        aria-label={t('settingsPresetSettings')}
-                        title={t('settingsPresetSettings')}
+                        aria-label={t('outputSettings')}
+                        title={t('outputSettings')}
                         className={`border-r border-zinc-300 p-1.5 ${
                           panelOpen
                             ? `bg-zinc-100 text-zinc-800 ${editingOverride ? 'cursor-default' : 'cursor-pointer'}`
                             : 'cursor-pointer text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800'
                         }`}
                       >
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="h-3.5 w-3.5 fill-current"
-                          aria-hidden
-                        >
-                          <path d={PENCIL_ICON} />
-                        </svg>
+                        <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
                       </button>
                       <button
                         type="button"
@@ -110,17 +100,11 @@ export function PresetsSection({
                             purgeOverridesForPreset(id),
                           );
                         }}
-                        aria-label={t('settingsPresetDelete')}
-                        title={t('settingsPresetDelete')}
+                        aria-label={t('outputDelete')}
+                        title={t('outputDelete')}
                         className="cursor-pointer p-1.5 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
                       >
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="h-3.5 w-3.5 fill-current"
-                          aria-hidden
-                        >
-                          <path d={TRASH_ICON} />
-                        </svg>
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden />
                       </button>
                     </div>
                   )}
@@ -145,10 +129,15 @@ export function PresetsSection({
         </ul>
         <button
           type="button"
-          onClick={() => void updateSettings((s) => addPreset(s))}
+          onClick={() =>
+            void updateSettings((s) => {
+              const source = activePreset(s);
+              return addPreset(s, t('outputCopySuffix', { name: source.name }));
+            })
+          }
           className="w-full cursor-pointer rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
         >
-          {t('settingsPresetAdd')}
+          {t('outputAdd')}
         </button>
       </div>
     </Section>

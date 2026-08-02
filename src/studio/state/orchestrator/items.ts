@@ -110,10 +110,13 @@ export async function patchItemOverride(
   if (record === null) return;
 
   const settings = store.getState().settings;
-  const current = findOverride(record.overrides, settings.activePresetId);
+  // Сверяем со слепком в сторе: activePresetId мог смениться между кликом и await.
+  const view = store.getState().items.find((i) => i.id === id);
+  const presetId = view?.override?.presetId ?? settings.activePresetId;
+  const current = findOverride(record.overrides, presetId);
   if (current === undefined) return;
 
-  const next = mutate(current);
+  const next = mutate(structuredClone(current));
   record.overrides = putOverride(record.overrides, next);
   await putItem(db, record);
   store.getState().upsertItem(toView(record, settings));
@@ -176,7 +179,7 @@ export async function deleteItem(id: string): Promise<void> {
   store.getState().removeItems([id]);
 }
 
-// «Новая сессия» создаёт новую и удаляет предыдущую вместе с элементами
+// Clear / «Очистить» создаёт новую сессию и удаляет предыдущую вместе с элементами
 export async function newSession(): Promise<void> {
   const oldSessionId = sessionId;
   const ids = store.getState().items.map((i) => i.id);

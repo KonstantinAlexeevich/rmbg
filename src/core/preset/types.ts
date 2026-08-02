@@ -24,10 +24,12 @@ export type Preset = {
   output: { format: OutputFormat; quality: number };
 };
 
-export function defaultPreset(): Preset {
+// Default display name is English (UI source locale). Callers that know the
+// active locale pass a localized name (e.g. t('outputDefaultName')).
+export function defaultPreset(name = 'Original'): Preset {
   return {
     id: crypto.randomUUID(),
-    name: 'Оригинал',
+    name,
     sizeMode: 'original',
     canvas: { width: 1200, height: 1600 },
     fit: {

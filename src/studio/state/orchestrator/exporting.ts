@@ -17,7 +17,7 @@ export async function exportZip(): Promise<void> {
 
   const presets = resolveExportPresets(state.settings);
   if (presets.length === 0) {
-    state.addToast('error', t('errorNoExportPresets'));
+    state.addToast('error', t('errorNoExportOutputs'));
     return;
   }
 

@@ -1,4 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  Download,
+  Maximize2,
+  Pencil,
+  RotateCcw,
+  SlidersHorizontal,
+  Trash2,
+  TriangleAlert,
+} from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useStudioStore, type ItemView } from '../state/store';
 import { t } from '../state/i18n';
 import {
@@ -20,10 +29,21 @@ function StatusOverlay({ item }: { item: ItemView }) {
         </div>
       );
     case 'segmenting':
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/40">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-blue-600" />
+          <span className="rounded bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
+            {t('statusSegmenting')}
+          </span>
+        </div>
+      );
     case 'composing':
       return (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/40">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/40">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-blue-600" />
+          <span className="rounded bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
+            {t('statusComposing')}
+          </span>
         </div>
       );
     default:
@@ -94,12 +114,13 @@ export function ItemCard({ item }: { item: ItemView }) {
           type="checkbox"
           checked={item.selected}
           onChange={(e) => void setItemSelected(item.id, e.target.checked)}
-          aria-label={item.name}
+          aria-label={t('cardSelect', { name: item.name })}
           className="absolute top-2 left-2 h-4 w-4 accent-blue-600"
         />
 
         {item.maskEmpty && (
-          <div className="absolute right-0 bottom-0 left-0 bg-amber-400/90 px-2 py-0.5 text-center text-xs font-medium text-amber-950">
+          <div className="absolute right-0 bottom-0 left-0 flex items-center justify-center gap-1 bg-amber-400/90 px-2 py-0.5 text-center text-xs font-medium text-amber-950">
+            <TriangleAlert className="h-3 w-3 shrink-0" aria-hidden />
             {t('cardEmptyMask')}
           </div>
         )}
@@ -108,9 +129,9 @@ export function ItemCard({ item }: { item: ItemView }) {
           <span
             title={t('cardOverride')}
             aria-label={t('cardOverride')}
-            className="absolute top-2 left-8 rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-medium text-white"
+            className="absolute top-2 left-8 rounded bg-amber-500 p-1 text-white"
           >
-            ✎
+            <SlidersHorizontal className="h-3 w-3" aria-hidden />
           </span>
         )}
 
@@ -118,27 +139,28 @@ export function ItemCard({ item }: { item: ItemView }) {
           {item.status === 'done' && (
             <>
               <IconButton
-                label={t('cardZoom')}
+                label={t('cardOpenPreview')}
                 onClick={() => setCompareItemId(item.id)}
-                icon="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
-              />
+              >
+                <Maximize2 className="h-4 w-4" aria-hidden />
+              </IconButton>
               <IconButton
                 label={t('cardDownload')}
                 onClick={() => void downloadItem(item.id)}
-                icon="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"
-              />
+              >
+                <Download className="h-4 w-4" aria-hidden />
+              </IconButton>
             </>
           )}
-          <IconButton
-            label={t('cardRename')}
-            onClick={startRename}
-            icon="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-          />
+          <IconButton label={t('cardRename')} onClick={startRename}>
+            <Pencil className="h-4 w-4" aria-hidden />
+          </IconButton>
           <IconButton
             label={t('cardDelete')}
             onClick={() => void deleteItem(item.id)}
-            icon="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-          />
+          >
+            <Trash2 className="h-4 w-4" aria-hidden />
+          </IconButton>
         </div>
       </div>
 
@@ -166,16 +188,20 @@ export function ItemCard({ item }: { item: ItemView }) {
             {item.name}
           </span>
         )}
+        {item.status === 'done' && (
+          <span className="text-xs text-zinc-400">{t('statusDone')}</span>
+        )}
         {item.status === 'failed' && (
           <>
             <span className="truncate text-xs text-red-600" title={item.error}>
-              {item.error}
+              {item.error !== '' ? item.error : t('statusFailed')}
             </span>
             <button
               type="button"
               onClick={() => void retryItem(item.id)}
-              className="self-start text-xs font-medium text-blue-600 hover:text-blue-500"
+              className="inline-flex items-center gap-1 self-start text-xs font-medium text-blue-600 hover:text-blue-500"
             >
+              <RotateCcw className="h-3 w-3" aria-hidden />
               {t('cardRetry')}
             </button>
           </>
@@ -188,11 +214,11 @@ export function ItemCard({ item }: { item: ItemView }) {
 function IconButton({
   label,
   onClick,
-  icon,
+  children,
 }: {
   label: string;
   onClick: () => void;
-  icon: string;
+  children: ReactNode;
 }) {
   return (
     <button
@@ -202,9 +228,7 @@ function IconButton({
       title={label}
       className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
     >
-      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-        <path d={icon} />
-      </svg>
+      {children}
     </button>
   );
 }
