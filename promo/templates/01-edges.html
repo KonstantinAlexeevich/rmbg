@@ -5,13 +5,9 @@
     <title>PNG Maker — edges</title>
     <link rel="stylesheet" href="common.css" />
     <style>
-      .shot-scene {
-        margin-top: 16px;
-        height: 580px;
-      }
-      .shot {
-        width: 900px;
-        height: 562px;
+      .win {
+        --k: 0.79;
+        margin-top: 18px;
       }
     </style>
   </head>
@@ -19,10 +15,10 @@
     <div class="stage">
       <div class="stage-head">
         <h1>Clean edges on every cutout</h1>
-        <p>Check the result with a before / after split</p>
+        <p>Drag the before / after split and tune the edge yourself</p>
       </div>
-      <div class="shot-scene">
-        <div class="shot">
+      <div class="win">
+        <div class="win-slice" style="--y: 0; --h: 800">
           <img src="../captures/before-after.png" alt="Before and after viewer" />
         </div>
       </div>

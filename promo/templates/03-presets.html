@@ -5,13 +5,10 @@
     <title>PNG Maker — presets</title>
     <link rel="stylesheet" href="common.css" />
     <style>
-      .shot-scene {
-        margin-top: 16px;
-        height: 580px;
-      }
-      .shot {
-        width: 900px;
-        height: 562px;
+      /* Modal + grid (0–530) and footer bar (745–800); the dimmed idle area is dropped */
+      .win {
+        --k: 0.922;
+        margin-top: 56px;
       }
     </style>
   </head>
@@ -21,9 +18,12 @@
         <h1>Export the whole batch as a ZIP</h1>
         <p>Pick the presets · each one lands in its own folder</p>
       </div>
-      <div class="shot-scene">
-        <div class="shot">
+      <div class="win">
+        <div class="win-slice" style="--y: 0; --h: 530">
           <img src="../captures/bulk-export.png" alt="Export presets" />
+        </div>
+        <div class="win-slice" style="--y: 745; --h: 55">
+          <img src="../captures/bulk-export.png" alt="" />
         </div>
       </div>
     </div>

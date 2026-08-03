@@ -5,13 +5,14 @@
     <title>PNG Maker — privacy</title>
     <link rel="stylesheet" href="common.css" />
     <style>
-      .shot-scene {
-        margin-top: 16px;
-        height: 580px;
+      /* Drop zone + offline note (0–600) and footer bar (745–800) */
+      .win {
+        --k: 0.82;
+        margin-top: 24px;
       }
-      .shot {
-        width: 900px;
-        height: 562px;
+
+      .badges {
+        margin-top: 26px;
       }
     </style>
   </head>
@@ -21,9 +22,55 @@
         <h1>Runs on your device</h1>
         <p>Your photos never leave it · works offline after model download</p>
       </div>
-      <div class="shot-scene">
-        <div class="shot">
+
+      <div class="win">
+        <div class="win-slice" style="--y: 0; --h: 600">
           <img src="../captures/empty.png" alt="Empty studio" />
+        </div>
+        <div class="win-slice" style="--y: 745; --h: 55">
+          <img src="../captures/empty.png" alt="" />
+        </div>
+      </div>
+
+      <div class="badges">
+        <div class="badge">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="M4 10.5l4 4 8-9"
+              fill="none"
+              stroke="#fff"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Nothing is uploaded
+        </div>
+        <div class="badge">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="M4 10.5l4 4 8-9"
+              fill="none"
+              stroke="#fff"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Works offline
+        </div>
+        <div class="badge">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="M4 10.5l4 4 8-9"
+              fill="none"
+              stroke="#fff"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          On-device AI
         </div>
       </div>
     </div>

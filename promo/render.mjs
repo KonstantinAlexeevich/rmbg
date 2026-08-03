@@ -18,12 +18,13 @@ const CHROME =
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 const jobs = [
-  { file: '01-hero.html', out: '01-hero.png', w: 1280, h: 800 },
-  { file: '02-edges.html', out: '02-edges.png', w: 1280, h: 800 },
-  { file: '03-sidebar.html', out: '03-sidebar.png', w: 1280, h: 800 },
-  { file: '04-presets.html', out: '04-presets.png', w: 1280, h: 800 },
+  { file: '01-edges.html', out: '01-edges.png', w: 1280, h: 800 },
+  { file: '02-hero.html', out: '02-hero.png', w: 1280, h: 800 },
+  { file: '03-presets.html', out: '03-presets.png', w: 1280, h: 800 },
+  { file: '04-canvas.html', out: '04-canvas.png', w: 1280, h: 800 },
   { file: '05-privacy.html', out: '05-privacy.png', w: 1280, h: 800 },
   { file: 'tile-440.html', out: 'tile-440.png', w: 440, h: 280 },
+  { file: 'marquee-1400.html', out: 'marquee-1400.png', w: 1400, h: 560 },
 ];
 
 mkdirSync(outDir, { recursive: true });

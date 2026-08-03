@@ -1,5 +1,6 @@
 /* Tokens mirrored from src/studio/styles.css + Tailwind blue/zinc defaults */
 :root {
+  --blue-700: #1d4ed8;
   --blue-600: #2563eb;
   --blue-500: #3b82f6;
   --blue-400: #60a5fa;
@@ -45,7 +46,7 @@ body {
     -8px 0;
 }
 
-/* Shared 1280×800 blue stage used by every screenshot */
+/* Shared blue stage — 1280×800 for screenshots, .marquee for the 1400×560 banner */
 .stage {
   width: 1280px;
   height: 800px;
@@ -53,6 +54,11 @@ body {
   overflow: hidden;
   background: var(--blue-600);
   color: #fff;
+}
+
+.stage.marquee {
+  width: 1400px;
+  height: 560px;
 }
 
 .stage::before {
@@ -67,29 +73,30 @@ body {
   pointer-events: none;
 }
 
+/* Coarse, low-contrast texture: must not compete with the 16px transparency checker */
 .stage::after {
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.06;
+  opacity: 0.045;
   background-image:
     linear-gradient(45deg, #fff 25%, transparent 25%),
     linear-gradient(-45deg, #fff 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #fff 75%),
     linear-gradient(-45deg, transparent 75%, #fff 75%);
-  background-size: 48px 48px;
+  background-size: 64px 64px;
   background-position:
     0 0,
-    0 24px,
-    24px -24px,
-    -24px 0;
+    0 32px,
+    32px -32px,
+    -32px 0;
   pointer-events: none;
 }
 
 .stage-head {
   position: relative;
   z-index: 2;
-  padding: 40px 48px 0;
+  padding: 30px 48px 0;
   text-align: center;
 }
 
@@ -104,59 +111,126 @@ body {
   margin-top: 10px;
   font-size: 20px;
   font-weight: 450;
-  opacity: 0.88;
+  opacity: 0.9;
   letter-spacing: -0.01em;
 }
 
-/* Soft window card — mild tilt, captures already include app chrome */
-.shot-scene {
+/*
+ * Window cropper.
+ * Captures are 2× shots of a --cw × --ch CSS viewport. A .win stacks one or more
+ * vertical slices of that capture, so empty regions can be cut out and the rest
+ * shown at a larger scale. --k is display px per capture CSS px; --x / --w narrow
+ * the visible column.
+ */
+.win {
+  --k: 1;
+  --cw: 1280;
+  --ch: 800;
+  --x: 0;
+  --w: var(--cw);
   position: relative;
   z-index: 2;
-  perspective: 2200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.shot {
+  width: calc(var(--w) * var(--k) * 1px);
+  margin: 0 auto;
   background: #fff;
   border-radius: 14px;
   overflow: hidden;
-  transform: rotateY(-2.5deg) rotateX(1deg);
   box-shadow:
-    0 32px 64px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.28);
+    0 30px 60px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+.win-slice {
+  --y: 0;
+  --h: 800;
   position: relative;
+  overflow: hidden;
+  height: calc(var(--h) * var(--k) * 1px);
 }
 
-.shot::before {
-  content: '';
+.win-slice img {
   position: absolute;
-  inset: 0 auto 0 0;
-  width: 2px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.65),
-    rgba(255, 255, 255, 0.12)
-  );
-  z-index: 3;
-  pointer-events: none;
-}
-
-.shot img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  left: calc(var(--x) * var(--k) * -1px);
+  top: calc(var(--y) * var(--k) * -1px);
+  width: calc(var(--cw) * var(--k) * 1px);
+  height: calc(var(--ch) * var(--k) * 1px);
   display: block;
   /* Captures are RGBA — composite on white so edges aren't translucent */
   background: #fff;
+}
+
+/* Signals that the panel continues past the crop */
+.win.fade-bottom::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 30px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff);
+  z-index: 3;
+}
+
+/* Transparent-background cutout on a checkerboard card */
+.cutout {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.26);
+}
+
+.cutout img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Original photo card */
+.photo {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 3px solid #fff;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+  background: #fff;
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .arrow {
   width: 44px;
   height: 44px;
   flex-shrink: 0;
-  opacity: 0.92;
+  opacity: 0.95;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.18));
+}
+
+.badges {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 18px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+}
+
+.badge svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }

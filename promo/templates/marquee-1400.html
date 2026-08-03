@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PNG Maker — marquee tile</title>
+    <link rel="stylesheet" href="common.css" />
+    <style>
+      .stage.marquee {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        padding: 0 56px;
+      }
+
+      .copy {
+        position: relative;
+        z-index: 2;
+        width: 420px;
+        flex-shrink: 0;
+      }
+
+      .wordmark {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+
+      .wordmark img {
+        width: 40px;
+        height: 40px;
+        border-radius: 9px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+      }
+
+      .wordmark span {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .copy h1 {
+        font-size: 50px;
+        font-weight: 750;
+        letter-spacing: -0.03em;
+        line-height: 1.06;
+      }
+
+      .copy p {
+        margin-top: 14px;
+        font-size: 21px;
+        font-weight: 450;
+        opacity: 0.9;
+        letter-spacing: -0.01em;
+        line-height: 1.35;
+      }
+
+      .points {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+        list-style: none;
+      }
+
+      .points li {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-size: 19px;
+        font-weight: 550;
+        letter-spacing: -0.01em;
+      }
+
+      .points svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+      }
+
+      .visual {
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+      }
+
+      /* Grid column only — the sidebar would shrink the cards below legibility here */
+      .win {
+        --k: 0.8;
+        --w: 1000;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage marquee">
+      <div class="copy">
+        <div class="wordmark">
+          <img src="icon-128.png" alt="" width="40" height="40" />
+          <span>PNG Maker</span>
+        </div>
+        <h1>Remove backgrounds in bulk</h1>
+        <p>Drop a folder of photos, get transparent PNGs on one canvas size.</p>
+        <ul class="points">
+          <li>
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M4 10.5l4 4 8-9"
+                fill="none"
+                stroke="#fff"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            On-device AI — nothing is uploaded
+          </li>
+          <li>
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M4 10.5l4 4 8-9"
+                fill="none"
+                stroke="#fff"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Reusable export presets, one ZIP
+          </li>
+          <li>
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M4 10.5l4 4 8-9"
+                fill="none"
+                stroke="#fff"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Works offline after the model download
+          </li>
+        </ul>
+      </div>
+
+      <div class="visual">
+        <div class="win">
+          <div class="win-slice" style="--y: 0; --h: 355">
+            <img src="../captures/studio.png" alt="PNG Maker studio" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
