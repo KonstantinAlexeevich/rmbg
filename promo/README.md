@@ -6,11 +6,11 @@ HTML templates rendered to exact CWS sizes with headless Chrome.
 
 | File | Size | Slot |
 | --- | --- | --- |
-| `01-edges.png` | 1280×800 | Screenshot 1 — before/after split |
-| `02-hero.png` | 1280×800 | Screenshot 2 — bulk flow |
-| `03-presets.png` | 1280×800 | Screenshot 3 — export ZIP modal |
-| `04-canvas.png` | 1280×800 | Screenshot 4 — canvas size / padding |
-| `05-privacy.png` | 1280×800 | Screenshot 5 — empty studio / on-device |
+| `01-hero.png` | 1280×800 | Screenshot 1 — bulk flow: mixed-format photos → studio → uniform cutouts |
+| `02-edges.png` | 1280×800 | Screenshot 2 — before/after split |
+| `03-canvas.png` | 1280×800 | Screenshot 3 — canvas size / padding / transparent vs solid |
+| `04-presets.png` | 1280×800 | Screenshot 4 — export ZIP modal |
+| `05-privacy.png` | 1280×800 | Screenshot 5 — batch running locally / on-device |
 | `tile-440.png` | 440×280 | Small promo tile (required) |
 | `marquee-1400.png` | 1400×560 | Marquee promo tile (optional) |
 
@@ -29,7 +29,9 @@ Requires Google Chrome at the default macOS path (override with `CHROME_PATH`).
 
 - `samples/in/` — original photos (mixed aspect ratios)
 - `samples/out/` — cutouts exported from the extension (500×500 transparent PNG)
-- `captures/` — studio screenshots at 1280×800 @2× (`studio.png`, `before-after.png`, `bulk-export.png`, `empty.png`) plus tall sidebar crop (`menu.png`)
+- `captures/` — studio screenshots at 1280×800 @2× (`studio.png`, `progress.png`,
+  `before-after.png`, `export.png`) plus a tall sidebar node crop (`menu-solid.png`,
+  287×916). `empty.png` and `menu-exports.png` are kept as spares — no template reads them.
 - Prefer DevTools node / device screenshots (no browser chrome, no macOS window shadow)
 
 To refresh cutouts: load `dist/` unpacked → drop `samples/in/` → Amazon 1:1 preset (500×500, transparent, 10% pad) → Export ZIP → copy PNGs into `samples/out/`.
@@ -42,4 +44,4 @@ vertical slices of a capture instead: each `.win-slice` picks a band (`--y`, `--
 in capture CSS px) and they render as one continuous window, so empty middles get
 dropped and the rest is shown larger. `--k` is display px per capture CSS px —
 above 1 the capture is zoomed past 1:1, which is what keeps the export panel in
-`04-canvas` legible. `--x` / `--w` narrow the visible column the same way.
+`03-canvas` legible. `--x` / `--w` narrow the visible column the same way.

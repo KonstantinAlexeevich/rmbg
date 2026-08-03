@@ -5,14 +5,14 @@
     <title>PNG Maker — privacy</title>
     <link rel="stylesheet" href="common.css" />
     <style>
-      /* Drop zone + offline note (0–600) and footer bar (745–800) */
+      /* Mid-batch capture fills the whole viewport, so no slicing */
       .win {
-        --k: 0.82;
-        margin-top: 24px;
+        --k: 0.7;
+        margin-top: 20px;
       }
 
       .badges {
-        margin-top: 26px;
+        margin-top: 24px;
       }
     </style>
   </head>
@@ -24,11 +24,8 @@
       </div>
 
       <div class="win">
-        <div class="win-slice" style="--y: 0; --h: 600">
-          <img src="../captures/empty.png" alt="Empty studio" />
-        </div>
-        <div class="win-slice" style="--y: 745; --h: 55">
-          <img src="../captures/empty.png" alt="" />
+        <div class="win-slice" style="--y: 0; --h: 800">
+          <img src="../captures/progress.png" alt="PNG Maker processing a batch locally" />
         </div>
       </div>
 

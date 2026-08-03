@@ -111,10 +111,10 @@ Source templates and assets live under [`promo/`](../../promo/). Regenerate with
 | Dashboard field | File | Size |
 | --- | --- | --- |
 | Store icon | [`public/icons/icon-128.png`](../../public/icons/icon-128.png) | 128×128 |
-| Screenshot 1 | `promo/out/01-edges.png` | 1280×800 |
-| Screenshot 2 | `promo/out/02-hero.png` | 1280×800 |
-| Screenshot 3 | `promo/out/03-presets.png` | 1280×800 |
-| Screenshot 4 | `promo/out/04-canvas.png` | 1280×800 |
+| Screenshot 1 | `promo/out/01-hero.png` | 1280×800 |
+| Screenshot 2 | `promo/out/02-edges.png` | 1280×800 |
+| Screenshot 3 | `promo/out/03-canvas.png` | 1280×800 |
+| Screenshot 4 | `promo/out/04-presets.png` | 1280×800 |
 | Screenshot 5 | `promo/out/05-privacy.png` | 1280×800 |
 | Small promo tile | `promo/out/tile-440.png` | 440×280 |
 | Marquee promo tile | `promo/out/marquee-1400.png` | 1400×560 |

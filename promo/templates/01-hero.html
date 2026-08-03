@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PNG Maker — hero</title>
+    <link rel="stylesheet" href="common.css" />
+    <style>
+      .flow {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 84px;
+        padding: 0 30px;
+      }
+
+      .stack {
+        position: relative;
+        flex-shrink: 0;
+        z-index: 3;
+      }
+
+      .stack > div {
+        position: absolute;
+      }
+
+      /* Mixed aspect ratios, scattered — this is what goes in */
+      .stack.in {
+        width: 200px;
+        height: 372px;
+      }
+
+      .stack.in .photo {
+        border-radius: 6px;
+      }
+
+      .stack.in .c1 {
+        width: 156px;
+        height: 104px;
+        left: 4px;
+        top: 16px;
+        transform: rotate(-8deg);
+        z-index: 1;
+      }
+      .stack.in .c2 {
+        width: 112px;
+        height: 168px;
+        left: 86px;
+        top: 0;
+        transform: rotate(6deg);
+        z-index: 2;
+      }
+      .stack.in .c3 {
+        width: 128px;
+        height: 128px;
+        left: 2px;
+        top: 132px;
+        transform: rotate(2deg);
+        z-index: 3;
+      }
+      .stack.in .c4 {
+        width: 160px;
+        height: 107px;
+        left: 30px;
+        top: 248px;
+        transform: rotate(-5deg);
+        z-index: 4;
+      }
+
+      /* One canvas size, no background — this is what comes out */
+      .stack.out {
+        width: 182px;
+        height: 368px;
+      }
+
+      .stack.out > div {
+        width: 104px;
+        height: 104px;
+        border-radius: 8px;
+      }
+
+      .stack.out .o1 {
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+      .stack.out .o2 {
+        top: 88px;
+        left: 26px;
+        z-index: 2;
+      }
+      .stack.out .o3 {
+        top: 176px;
+        left: 52px;
+        z-index: 3;
+      }
+      .stack.out .o4 {
+        top: 264px;
+        left: 78px;
+        z-index: 4;
+      }
+
+      /* Grid column only (0–991) — the sidebar would push the cards below legibility */
+      .win {
+        --k: 0.7366;
+        --w: 991;
+        margin: 0;
+        flex-shrink: 0;
+      }
+
+      .arrow {
+        width: 38px;
+        height: 38px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="stage-head">
+        <h1>Remove backgrounds in bulk</h1>
+        <p>On-device AI · nothing is uploaded · transparent PNG</p>
+      </div>
+
+      <div class="flow">
+        <div class="stack in">
+          <div class="photo c1"><img src="../samples/in/1-sneaker.jpg" alt="" /></div>
+          <div class="photo c2"><img src="../samples/in/5-plant.jpg" alt="" /></div>
+          <div class="photo c3"><img src="../samples/in/4-mug.jpg" alt="" /></div>
+          <div class="photo c4"><img src="../samples/in/3-helmet.jpg" alt="" /></div>
+        </div>
+
+        <svg class="arrow" viewBox="0 0 56 56" aria-hidden="true">
+          <path
+            d="M8 28h32M30 14l16 14-16 14"
+            fill="none"
+            stroke="#fff"
+            stroke-width="5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+
+        <div class="win">
+          <div class="win-slice" style="--y: 0; --h: 640">
+            <img src="../captures/studio.png" alt="PNG Maker studio" />
+          </div>
+          <div class="win-slice" style="--y: 745; --h: 55">
+            <img src="../captures/studio.png" alt="" />
+          </div>
+        </div>
+
+        <svg class="arrow" viewBox="0 0 56 56" aria-hidden="true">
+          <path
+            d="M8 28h32M30 14l16 14-16 14"
+            fill="none"
+            stroke="#fff"
+            stroke-width="5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+
+        <div class="stack out">
+          <div class="cutout checkerboard o1"><img src="../samples/out/sneaker.png" alt="" /></div>
+          <div class="cutout checkerboard o2"><img src="../samples/out/plant.png" alt="" /></div>
+          <div class="cutout checkerboard o3"><img src="../samples/out/mug.png" alt="" /></div>
+          <div class="cutout checkerboard o4"><img src="../samples/out/helmet.png" alt="" /></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
