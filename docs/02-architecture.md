@@ -159,10 +159,13 @@ sequenceDiagram
 
 ## Открытые вопросы
 
-- Проверить на первой сборке, что дочерние воркеры страницы наследуют cross-origin isolation
-  и `crossOriginIsolated === true` внутри воркера; если нет — включать однопоточный WASM.
+- Проверить на распакованной сборке, что дочерние воркеры страницы наследуют cross-origin
+  isolation и `crossOriginIsolated === true` внутри воркера (Diagnostics); если нет —
+  включать однопоточный WASM.
 - Замерить, выгоднее ли композицию делать в отдельном воркере при пачке 50+ кадров.
-- ~~Спайк CORS Hugging Face~~ — закрыт: ACAO есть на resolve и на `us.aws.cdn.hf.co`;
-  `host_permissions` не нужны. `connect-src` включает `*.aws.cdn.hf.co`. Остаётся
-  проверить тот же fetch уже из страницы расширения под реальным `COEP: require-corp`
-  при первой сборке (curl это не эмулирует полностью).
+- ~~Спайк CORS Hugging Face~~ — закрыт и перепроверен (2026-08-03): при
+  `Origin: chrome-extension://…` resolve отражает Origin в ACAO, CDN
+  (`us.aws.cdn.hf.co`) отдаёт `Access-Control-Allow-Origin: *`; `host_permissions` не
+  нужны. `connect-src` включает `*.aws.cdn.hf.co`. Окончательный smoke-тест fetch под
+  реальным `COEP: require-corp` из загруженного `dist` — перед первой подачей в CWS
+  (см. [cws/submission.md](cws/submission.md)).

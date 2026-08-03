@@ -75,7 +75,7 @@ This transparent image generator fits all of those workflows, and nobody needs a
 💡 No. Keep the Original canvas and the cutout matches your source pixel for pixel, so edges stay sharp in print and on screen. It does not upscale or raise photo resolution — nothing is invented, nothing is softened.
 
 📌 Do my pictures get uploaded anywhere?
-💡 Never. That is also why you can make a photo png as often as you like without hitting a daily limit.
+💡 Never. Your photos stay on the device. The only network step is a one-time download of the on-device AI model weights from Hugging Face. After that the extension works offline, which is also why you can make a photo png as often as you like without hitting a daily limit.
 
 📌 Can I make an image a png with a colored backdrop instead?
 💡 Sure. Switch the background from transparent to any solid color and make clear background png files or branded ones from the same shot.

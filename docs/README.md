@@ -16,6 +16,8 @@ ISNet через `onnxruntime-web`, WebGPU как основной путь и W
 - [07-build.md](07-build.md) — стек, структура репозитория, сборка, доставка весов модели
 - [08-decisions.md](08-decisions.md) — журнал принятых решений и известные риски
 - [09-glossary.md](09-glossary.md) — глоссарий терминов интерфейса (EN → RU, расхождения с кодом)
+- [cws/](cws/) — материалы Chrome Web Store: листинг, keywords, [privacy.md](cws/privacy.md),
+  [submission.md](cws/submission.md) (поля дашборда и notes to reviewer)
 
 ## Статус
 
