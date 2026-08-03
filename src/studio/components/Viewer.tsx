@@ -88,7 +88,7 @@ export function Viewer() {
       fit.margin.bottom,
       fit.margin.left,
       fit.mode,
-      fit.allowUpscale ? 1 : 0,
+      fit.allowZoom ? 1 : 0,
       anchor,
       edge.threshold,
       edge.erode,

@@ -49,12 +49,24 @@ function migrateSettings(value: Settings): Settings {
   const locale = value.ui?.locale === 'en' ? 'en' : value.ui?.locale === 'ru' ? 'ru' : detectDefaultLocale();
   const rawPresets =
     value.presets.length > 0 ? value.presets : [defaultPreset(OUTPUT_DEFAULT_NAME)];
-  // старые пресеты без sizeMode считаем fixed — сохраняем прежнее поведение
-  const presets = rawPresets.map((p) =>
-    p.sizeMode === 'original' || p.sizeMode === 'fixed'
-      ? p
-      : { ...p, sizeMode: 'fixed' as const },
-  );
+  // старые пресеты без sizeMode считаем fixed — сохраняем прежнее поведение;
+  // allowUpscale — legacy-ключ до переименования в allowZoom
+  const presets = rawPresets.map((p) => {
+    const sizeMode =
+      p.sizeMode === 'original' || p.sizeMode === 'fixed' ? p.sizeMode : ('fixed' as const);
+    const legacyFit = p.fit as Preset['fit'] & { allowUpscale?: boolean };
+    const allowZoom =
+      legacyFit.allowZoom === true || legacyFit.allowUpscale === true;
+    return {
+      ...p,
+      sizeMode,
+      fit: {
+        mode: legacyFit.mode,
+        allowZoom,
+        margin: { ...legacyFit.margin },
+      },
+    };
+  });
   const [fallback] = presets;
   if (fallback === undefined) throw new Error('Нет пресетов');
   const activePresetId = presets.some((p) => p.id === value.activePresetId)

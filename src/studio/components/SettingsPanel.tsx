@@ -36,7 +36,7 @@ export function SettingsPanel() {
         return {
           ...o,
           ...patch,
-          // Глубокое копирование fit/canvas: иначе allowUpscale/margin
+          // Глубокое копирование fit/canvas: иначе allowZoom/margin
           // могут остаться на старых ссылках из IndexedDB-снимка.
           canvas: patch.canvas !== undefined ? { ...patch.canvas } : { ...o.canvas },
           fit:
@@ -44,12 +44,12 @@ export function SettingsPanel() {
               ? {
                   ...patch.fit,
                   margin: { ...patch.fit.margin },
-                  allowUpscale: patch.fit.allowUpscale === true,
+                  allowZoom: patch.fit.allowZoom === true,
                 }
               : {
                   ...o.fit,
                   margin: { ...o.fit.margin },
-                  allowUpscale: o.fit.allowUpscale === true,
+                  allowZoom: o.fit.allowZoom === true,
                 },
           background:
             patch.background !== undefined
@@ -86,7 +86,7 @@ export function SettingsPanel() {
                 fit: {
                   ...patch.fit,
                   margin: { ...patch.fit.margin },
-                  allowUpscale: patch.fit.allowUpscale === true,
+                  allowZoom: patch.fit.allowZoom === true,
                 },
               }
             : {}),

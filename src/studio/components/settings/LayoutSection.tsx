@@ -55,7 +55,7 @@ export function LayoutSection({
         margin: linkedMargins
           ? { top: value, right: value, bottom: value, left: value }
           : { ...fields.fit.margin, [side]: value },
-        allowUpscale: fields.fit.allowUpscale === true,
+        allowZoom: fields.fit.allowZoom === true,
       },
     }));
   };
@@ -71,7 +71,7 @@ export function LayoutSection({
         fit: {
           ...fields.fit,
           margin: { top: value, right: value, bottom: value, left: value },
-          allowUpscale: fields.fit.allowUpscale === true,
+          allowZoom: fields.fit.allowZoom === true,
         },
       }));
     }
@@ -277,25 +277,25 @@ export function LayoutSection({
 
           <label
             className="flex items-center gap-2 text-sm text-zinc-700"
-            title={t('noUpscaleHint')}
+            title={t('allowZoomHint')}
           >
             <input
               type="checkbox"
-              checked={fit.allowUpscale !== true}
+              checked={fit.allowZoom === true}
               onChange={() =>
                 patchLayout((f) => ({
                   fit: {
                     ...f.fit,
                     margin: { ...f.fit.margin },
-                    // Инверсия от текущего значения в слепке/пресете — не от DOM,
+                    // От текущего значения в слепке/пресете — не от DOM,
                     // чтобы асинхронный patch не терял клик.
-                    allowUpscale: f.fit.allowUpscale === true ? false : true,
+                    allowZoom: f.fit.allowZoom === true ? false : true,
                   },
                 }))
               }
               className="accent-blue-600"
             />
-            {t('noUpscale')}
+            {t('allowZoom')}
           </label>
         </>
       )}

@@ -82,8 +82,8 @@ const en = {
   alignmentTop: 'Top',
   alignmentMiddle: 'Middle',
   alignmentBottom: 'Bottom',
-  noUpscale: "Don't enlarge",
-  noUpscaleHint: 'Never scale the subject above 100%',
+  allowZoom: 'Zoom to fit',
+  allowZoomHint: 'Scale the subject above 100% to fill the padding',
   formatLabel: 'Format',
   qualityLabel: 'Quality',
 
@@ -248,8 +248,8 @@ const ru: Record<MessageKey, string> = {
   alignmentTop: 'По верху',
   alignmentMiddle: 'По центру',
   alignmentBottom: 'По низу',
-  noUpscale: 'Не увеличивать',
-  noUpscaleHint: 'Не масштабировать объект выше 100%',
+  allowZoom: 'Масштабировать по размеру',
+  allowZoomHint: 'Увеличивать объект выше 100%, чтобы заполнить отступы',
   formatLabel: 'Формат',
   qualityLabel: 'Качество',
 

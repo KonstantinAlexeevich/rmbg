@@ -96,8 +96,8 @@ type Preset = {
     margin: { top: number; right: number; bottom: number; left: number };
     // как вписывать: целиком по обеим осям или по ширине с возможным обрезом
     mode: 'contain' | 'cover-width';
-    // запрет увеличения субъекта выше 100% исходного масштаба
-    allowUpscale: boolean;
+    // разрешение увеличивать субъект выше 100% исходного масштаба
+    allowZoom: boolean;
   };
   anchor: 'center' | 'top' | 'bottom';
   background: { kind: 'transparent' } | { kind: 'solid'; color: string };
@@ -114,7 +114,7 @@ type Preset = {
 2. Вычислить доступную область холста: `width - (marginLeft + marginRight) * width`,
    аналогично по высоте.
 3. Масштаб: `min(availW / bboxW, availH / bboxH)` для `contain`, либо `availW / bboxW`
-   для `cover-width`. При `allowUpscale === false` масштаб ограничен единицей.
+   для `cover-width`. При `allowZoom === false` масштаб ограничен единицей.
 4. Позиция по горизонтали — всегда по центру доступной области. По вертикали — согласно
    `anchor`: центр, верхняя граница области или нижняя (важно для товаров, «стоящих» на полу).
 5. Залить фон (для `transparent` не заливать ничего), нарисовать bbox cutout в `dest`.

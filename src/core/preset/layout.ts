@@ -11,7 +11,7 @@ export type Placement = {
 // bboxPx — bbox субъекта в пикселях исходника.
 export function layoutSubject(bboxPx: Rect, preset: Preset): Placement {
   const { width: cw, height: ch } = preset.canvas;
-  const { margin, mode, allowUpscale } = preset.fit;
+  const { margin, mode, allowZoom } = preset.fit;
 
   const availW = cw - (margin.left + margin.right) * cw;
   const availH = ch - (margin.top + margin.bottom) * ch;
@@ -20,7 +20,7 @@ export function layoutSubject(bboxPx: Rect, preset: Preset): Placement {
     mode === 'cover-width'
       ? availW / bboxPx.width
       : Math.min(availW / bboxPx.width, availH / bboxPx.height);
-  if (!allowUpscale) scale = Math.min(scale, 1);
+  if (!allowZoom) scale = Math.min(scale, 1);
 
   const destW = bboxPx.width * scale;
   const destH = bboxPx.height * scale;

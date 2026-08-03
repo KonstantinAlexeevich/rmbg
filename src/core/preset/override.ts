@@ -3,6 +3,13 @@ import type { Preset } from './types';
 
 export type { ItemOverride };
 
+// allowUpscale — legacy-ключ до переименования в allowZoom.
+type FitWithLegacy = Preset['fit'] & { allowUpscale?: boolean };
+
+function resolveAllowZoom(fit: FitWithLegacy): boolean {
+  return fit.allowZoom === true || fit.allowUpscale === true;
+}
+
 export function createOverride(preset: Preset, edge: EdgeSettings): ItemOverride {
   return {
     presetId: preset.id,
@@ -10,7 +17,7 @@ export function createOverride(preset: Preset, edge: EdgeSettings): ItemOverride
     canvas: { ...preset.canvas },
     fit: {
       mode: preset.fit.mode,
-      allowUpscale: preset.fit.allowUpscale === true,
+      allowZoom: preset.fit.allowZoom === true,
       margin: { ...preset.fit.margin },
     },
     anchor: preset.anchor,
@@ -61,7 +68,7 @@ export function resolveComposition(
       fit: {
         mode: override.fit.mode,
         // Явный boolean: старые слепки / structured clone не должны давать undefined.
-        allowUpscale: override.fit.allowUpscale === true,
+        allowZoom: resolveAllowZoom(override.fit),
         margin: { ...override.fit.margin },
       },
       anchor: override.anchor,

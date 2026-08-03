@@ -16,8 +16,8 @@ export type Preset = {
     margin: { top: number; right: number; bottom: number; left: number };
     // как вписывать: целиком по обеим осям или по ширине с возможным обрезом
     mode: 'contain' | 'cover-width';
-    // запрет увеличения субъекта выше 100% исходного масштаба
-    allowUpscale: boolean;
+    // разрешение увеличивать субъект выше 100% исходного масштаба
+    allowZoom: boolean;
   };
   anchor: 'center' | 'top' | 'bottom';
   background: Background;
@@ -35,7 +35,7 @@ export function defaultPreset(name = 'Original'): Preset {
     fit: {
       margin: { top: 0.05, right: 0.05, bottom: 0.05, left: 0.05 },
       mode: 'contain',
-      allowUpscale: false,
+      allowZoom: false,
     },
     anchor: 'center',
     background: { kind: 'transparent' },

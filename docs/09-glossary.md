@@ -63,7 +63,7 @@ UX: по умолчанию одно поле на все стороны; кно
 | Width, px / Height, px | Ширина, px / Высота, px | `canvas.*` |
 | Vertical alignment | Выравнивание по вертикали | `anchor` |
 | Top / Middle / Bottom | По верху / По центру / По низу | `anchor` |
-| Don't enlarge | Не увеличивать | `!fit.allowUpscale` |
+| Zoom to fit | Масштабировать по размеру | `fit.allowZoom` |
 | Background | Фон | `background` |
 | Transparent / Solid color | Прозрачный / Сплошной цвет | `background.kind` |
 | Format / Quality | Формат / Качество | `output.format` / `output.quality` |
