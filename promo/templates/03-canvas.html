@@ -12,21 +12,21 @@
         align-items: center;
         justify-content: center;
         gap: 68px;
-        margin-top: 76px;
+        margin-top: 42px;
       }
 
       /* menu-solid.png is a 2× shot of the 287×916 sidebar — zoomed past 1:1 to stay legible */
       .win {
         --cw: 287;
         --ch: 916;
-        --k: 1.256;
+        --k: 1.1;
         margin: 0;
         flex-shrink: 0;
       }
 
-      /* Crop lands just under the Padding label — keep the fade off the text */
+      /* Crop lands just under the padding fields — keep the fade off the text */
       .win.fade-bottom::after {
-        height: 14px;
+        height: 18px;
       }
 
       .set {
@@ -46,12 +46,13 @@
       }
 
       .set-grid .col-label {
-        font-size: 16px;
+        font-size: 19px;
         font-weight: 600;
         letter-spacing: -0.01em;
-        opacity: 0.88;
+        opacity: 0.95;
         text-align: center;
         margin-bottom: -4px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.28);
       }
 
       .set-grid .solid {
@@ -59,10 +60,11 @@
       }
 
       .set .note {
-        font-size: 17px;
+        font-size: 19px;
         font-weight: 550;
         letter-spacing: -0.01em;
-        opacity: 0.9;
+        opacity: 0.92;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.28);
       }
     </style>
   </head>
@@ -74,7 +76,7 @@
       </div>
       <div class="row">
         <div class="win fade-bottom">
-          <div class="win-slice" style="--y: 115; --h: 409">
+          <div class="win-slice" style="--y: 115; --h: 552">
             <img src="../captures/menu-solid.png" alt="Export canvas and background settings" />
           </div>
         </div>

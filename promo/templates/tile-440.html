@@ -14,7 +14,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 20px 24px;
+        padding: 18px 24px;
         color: #fff;
       }
 
@@ -57,47 +57,112 @@
         gap: 14px;
       }
 
+      /* Crisp contact shadow + a tight ambient one — narrow spread keeps it from bleeding onto the text */
       .wordmark img {
         width: 50px;
         height: 50px;
         border-radius: 11px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        box-shadow:
+          0 2px 0 rgba(0, 0, 0, 0.32),
+          0 8px 12px rgba(0, 0, 0, 0.4);
       }
 
       .wordmark h1 {
-        font-size: 36px;
+        font-size: 40px;
         font-weight: 750;
         letter-spacing: -0.03em;
         line-height: 1;
+        text-shadow:
+          0 2px 0 rgba(0, 0, 0, 0.2),
+          0 4px 7px rgba(0, 0, 0, 0.28);
       }
 
       .tagline {
         position: relative;
         z-index: 1;
-        margin-top: 8px;
-        font-size: 18px;
+        margin-top: 10px;
+        font-size: 22px;
         font-weight: 550;
-        opacity: 0.92;
+        opacity: 0.95;
         letter-spacing: -0.01em;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.28);
       }
 
       .pair {
         position: relative;
         z-index: 1;
-        margin-top: 16px;
+        margin-top: 30px;
         display: flex;
         align-items: center;
         gap: 20px;
       }
 
-      .pair > div:not(.arrow-wrap) {
-        width: 122px;
-        height: 122px;
+      /*
+       * Compact stack: only the front card reads fully — the two behind it peek out
+       * a bare 10px sliver on one corner, like a small deck rather than a fan.
+       */
+      .stack {
+        position: relative;
+        width: 104px;
+        height: 104px;
+        flex-shrink: 0;
+      }
+
+      .stack .card {
+        position: absolute;
+        width: 92px;
+        height: 92px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .stack .back {
+        top: 0;
+        left: 0;
+        z-index: 1;
+        opacity: 0.92;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+      .stack .mid {
+        top: 5px;
+        left: 5px;
+        z-index: 2;
+        box-shadow: 0 5px 9px rgba(0, 0, 0, 0.32);
+      }
+      .stack .front {
+        top: 10px;
+        left: 10px;
+        z-index: 3;
+        box-shadow:
+          0 2px 0 rgba(0, 0, 0, 0.24),
+          0 8px 14px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Mirror the output stack so both decks peek away from the arrow, toward the edges */
+      .stack.out .back {
+        left: auto;
+        right: 0;
+      }
+      .stack.out .mid {
+        left: auto;
+        right: 5px;
+      }
+      .stack.out .front {
+        left: auto;
+        right: 10px;
+      }
+
+      .stack .photo,
+      .stack .cutout {
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
       }
 
       .arrow {
         width: 32px;
         height: 32px;
+        flex-shrink: 0;
       }
     </style>
   </head>
@@ -109,7 +174,12 @@
       </div>
       <div class="tagline">Bulk background remover</div>
       <div class="pair">
-        <div class="photo"><img src="../samples/in/1-sneaker.jpg" alt="" /></div>
+        <div class="stack in">
+          <div class="card back photo"><img src="../samples/in/3-helmet.jpg" alt="" /></div>
+          <div class="card mid photo"><img src="../samples/in/4-mug.jpg" alt="" /></div>
+          <div class="card front photo"><img src="../samples/in/1-sneaker.jpg" alt="" /></div>
+        </div>
+
         <svg class="arrow" viewBox="0 0 56 56" aria-hidden="true">
           <path
             d="M8 28h32M30 14l16 14-16 14"
@@ -120,7 +190,12 @@
             stroke-linejoin="round"
           />
         </svg>
-        <div class="cutout checkerboard"><img src="../samples/out/sneaker.png" alt="" /></div>
+
+        <div class="stack out">
+          <div class="card back cutout checkerboard"><img src="../samples/out/helmet.png" alt="" /></div>
+          <div class="card mid cutout checkerboard"><img src="../samples/out/mug.png" alt="" /></div>
+          <div class="card front cutout checkerboard"><img src="../samples/out/sneaker.png" alt="" /></div>
+        </div>
       </div>
     </div>
   </body>
