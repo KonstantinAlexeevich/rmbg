@@ -47,5 +47,4 @@ If data-handling practices change, this page will be updated and users will be i
 
 ## Contact
 
-Questions about this policy: open an issue in the public repository  
-https://github.com/KonstantinAlexeevich/rmbg
+Questions about this policy, open an issue: klxshus@gmail.com

@@ -28,13 +28,13 @@ export function Section({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="flex w-full items-center justify-between gap-2 text-left"
+          className="flex w-full cursor-pointer items-center justify-between gap-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
         >
           <h3 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
             {title}
           </h3>
           <ChevronDown
-            className={`h-3.5 w-3.5 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
+            className={`h-4 w-4 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
             aria-hidden
           />
         </button>
@@ -132,7 +132,7 @@ export function NumberField({
       onKeyDown={(e) => {
         if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
       }}
-      className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+      className="field"
     />
   );
 

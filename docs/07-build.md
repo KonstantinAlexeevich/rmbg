@@ -34,6 +34,10 @@ rmbg/
       App.tsx
       components/
       state/
+    legal/
+      about.html              экран «О расширении»
+      AboutPage.tsx
+      licenseEntries.ts
     core/
       inference/
         backend.ts            детект и выбор EP

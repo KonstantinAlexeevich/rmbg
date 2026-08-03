@@ -100,35 +100,35 @@ export function LayoutSection({
                 ),
               );
             }}
-            className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+            className="field"
           />
         </label>
       )}
 
       <span className="mt-1 text-sm font-medium text-zinc-700">{t('canvasLabel')}</span>
-      <div className="flex rounded-lg bg-zinc-100 p-0.5 text-sm">
+      <div className="flex rounded-(--radius-control) bg-zinc-100 p-0.5 text-sm">
         <button
           type="button"
           onClick={() => patchLayout(() => ({ sizeMode: 'original' }))}
-          className={`flex-1 rounded-md px-2 py-1 ${!isFixed ? 'bg-white shadow' : 'text-zinc-500'}`}
+          className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${!isFixed ? 'bg-white shadow' : 'text-zinc-500'}`}
         >
           {t('canvasOriginal')}
         </button>
         <button
           type="button"
           onClick={() => patchLayout(() => ({ sizeMode: 'fixed' }))}
-          className={`flex-1 rounded-md px-2 py-1 ${isFixed ? 'bg-white shadow' : 'text-zinc-500'}`}
+          className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${isFixed ? 'bg-white shadow' : 'text-zinc-500'}`}
         >
           {t('canvasCustom')}
         </button>
       </div>
 
       <span className="mt-1 text-sm font-medium text-zinc-700">{t('backgroundLabel')}</span>
-      <div className="flex rounded-lg bg-zinc-100 p-0.5 text-sm">
+      <div className="flex rounded-(--radius-control) bg-zinc-100 p-0.5 text-sm">
         <button
           type="button"
           onClick={() => patchLayout(() => ({ background: { kind: 'transparent' } }))}
-          className={`flex-1 rounded-md px-2 py-1 ${isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
+          className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
         >
           {t('bgTransparent')}
         </button>
@@ -137,7 +137,7 @@ export function LayoutSection({
           onClick={() =>
             patchLayout(() => ({ background: { kind: 'solid', color: solidColor } }))
           }
-          className={`flex-1 rounded-md px-2 py-1 ${!isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
+          className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${!isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
         >
           {t('bgSolid')}
         </button>
@@ -151,7 +151,7 @@ export function LayoutSection({
               aria-label={t(labelKey)}
               title={t(labelKey)}
               onClick={() => patchLayout(() => ({ background: { kind: 'solid', color } }))}
-              className={`h-7 w-7 rounded-full border ${
+              className={`h-7 w-7 cursor-pointer rounded-full border ${
                 solidColor === color
                   ? 'border-blue-600 ring-2 ring-blue-200'
                   : 'border-zinc-300'
@@ -169,7 +169,7 @@ export function LayoutSection({
             }
             aria-label={t('bgCustomColor')}
             title={t('bgCustomColor')}
-            className="h-7 w-9 cursor-pointer rounded border border-zinc-300"
+            className="h-7 w-9 cursor-pointer rounded-(--radius-control) border border-zinc-300"
           />
         </div>
       )}
@@ -204,16 +204,16 @@ export function LayoutSection({
               aria-pressed={linkedMargins}
               aria-label={linkedMargins ? t('paddingUnlink') : t('paddingLink')}
               title={linkedMargins ? t('paddingUnlink') : t('paddingLink')}
-              className={`rounded-md border p-1.5 ${
+              className={`cursor-pointer rounded-(--radius-control) border p-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
                 linkedMargins
                   ? 'border-blue-300 bg-blue-50 text-blue-700'
                   : 'border-zinc-300 text-zinc-500 hover:bg-zinc-50'
               }`}
             >
               {linkedMargins ? (
-                <Link2 className="h-3.5 w-3.5" aria-hidden />
+                <Link2 className="h-4 w-4" aria-hidden />
               ) : (
-                <Link2Off className="h-3.5 w-3.5" aria-hidden />
+                <Link2Off className="h-4 w-4" aria-hidden />
               )}
             </button>
           </div>
@@ -267,7 +267,7 @@ export function LayoutSection({
                   anchor: e.target.value as Preset['anchor'],
                 }))
               }
-              className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+              className="field"
             >
               <option value="center">{t('alignmentMiddle')}</option>
               <option value="top">{t('alignmentTop')}</option>
@@ -322,7 +322,7 @@ export function LayoutSection({
                   ),
                 }))
               }
-              className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
+              className="field"
             >
               <option value="png">PNG</option>
               <option value="jpeg">JPEG</option>

@@ -1,4 +1,4 @@
-import { SlidersHorizontal, Trash2 } from 'lucide-react';
+import { Plus, SlidersHorizontal, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   activePreset,
@@ -64,7 +64,7 @@ export function PresetsSection({
                     type="button"
                     onClick={() => void updateSettings((s) => setActivePresetId(s, p.id))}
                     aria-current={isActive ? 'true' : undefined}
-                    className={`min-w-0 flex-1 cursor-pointer truncate px-3.5 py-2 text-left text-sm ${
+                    className={`min-w-0 flex-1 cursor-pointer truncate px-3.5 py-2 text-left text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
                       isActive
                         ? 'font-medium text-zinc-900'
                         : 'text-zinc-600 hover:text-zinc-800'
@@ -73,7 +73,7 @@ export function PresetsSection({
                     {p.name}
                   </button>
                   {isActive && (
-                    <div className="flex shrink-0 overflow-hidden rounded-md border border-zinc-300 bg-white">
+                    <div className="flex shrink-0 overflow-hidden rounded-(--radius-control) border border-zinc-300 bg-white">
                       <button
                         type="button"
                         onClick={() => {
@@ -83,13 +83,13 @@ export function PresetsSection({
                         aria-expanded={panelOpen}
                         aria-label={t('outputSettings')}
                         title={t('outputSettings')}
-                        className={`border-r border-zinc-300 p-1.5 ${
+                        className={`border-r border-zinc-300 p-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
                           panelOpen
                             ? `bg-zinc-100 text-zinc-800 ${editingOverride ? 'cursor-default' : 'cursor-pointer'}`
                             : 'cursor-pointer text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800'
                         }`}
                       >
-                        <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
+                        <SlidersHorizontal className="h-4 w-4" aria-hidden />
                       </button>
                       <button
                         type="button"
@@ -102,9 +102,9 @@ export function PresetsSection({
                         }}
                         aria-label={t('outputDelete')}
                         title={t('outputDelete')}
-                        className="cursor-pointer p-1.5 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                        className="btn-icon disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
                       >
-                        <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                        <Trash2 className="h-4 w-4" aria-hidden />
                       </button>
                     </div>
                   )}
@@ -135,8 +135,9 @@ export function PresetsSection({
               return addPreset(s, t('outputCopySuffix', { name: source.name }));
             })
           }
-          className="w-full cursor-pointer rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+          className="btn-secondary w-full"
         >
+          <Plus className="h-4 w-4" aria-hidden />
           {t('outputAdd')}
         </button>
       </div>

@@ -31,7 +31,7 @@ function ToastView({ toast }: { toast: Toast }) {
 
   return (
     <div
-      className={`pointer-events-auto flex items-start gap-2 rounded-xl border px-4 py-2.5 text-sm shadow-lg ${COLORS[toast.kind]}`}
+      className={`pointer-events-auto flex items-start gap-2 rounded-(--radius-surface) border px-4 py-2.5 text-sm shadow-lg ${COLORS[toast.kind]}`}
     >
       <ToastIcon kind={toast.kind} />
       <span className="max-w-sm">{toast.text}</span>
@@ -39,7 +39,7 @@ function ToastView({ toast }: { toast: Toast }) {
         type="button"
         onClick={() => dismiss(toast.id)}
         aria-label={t('toastDismiss')}
-        className="opacity-60 hover:opacity-100"
+        className="cursor-pointer opacity-60 hover:opacity-100"
       >
         <X className="h-4 w-4" aria-hidden />
       </button>

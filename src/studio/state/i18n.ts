@@ -2,7 +2,7 @@
 // Components never hardcode UI copy — only MessageKey via t().
 
 const en = {
-  appName: 'rmbg',
+  appName: 'PNG Maker',
 
   sessionClear: 'Clear',
   exportZip: 'Export ZIP',
@@ -160,15 +160,20 @@ const en = {
   confirmDeleteSelected: 'Delete the selected images?',
   confirmEraseAll:
     'Erase all data? This removes the session, settings, and the cached model.',
+  confirmCancel: 'Cancel',
+  confirmOk: 'Confirm',
 
   close: 'Close',
   toastDismiss: 'Dismiss',
+
+  // About page itself is English-only; only the studio chrome link is localized.
+  aboutLinkLabel: 'About',
 } as const;
 
 export type MessageKey = keyof typeof en;
 
 const ru: Record<MessageKey, string> = {
-  appName: 'rmbg',
+  appName: 'PNG Maker',
 
   sessionClear: 'Очистить',
   exportZip: 'Экспорт ZIP',
@@ -327,9 +332,13 @@ const ru: Record<MessageKey, string> = {
   confirmDeleteSelected: 'Удалить выбранные изображения?',
   confirmEraseAll:
     'Стереть все данные? Будут удалены сессия, настройки и кэш модели.',
+  confirmCancel: 'Отмена',
+  confirmOk: 'Подтвердить',
 
   close: 'Закрыть',
   toastDismiss: 'Закрыть',
+
+  aboutLinkLabel: 'About',
 };
 
 const dictionaries = { en, ru };

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useStudioStore } from '../state/store';
 import { t, type MessageKey } from '../state/i18n';
 import { clearAllData, setBackendOverride } from '../state/orchestrator';
+import { ConfirmDialog } from './ConfirmDialog';
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -35,83 +37,92 @@ export function DiagnosticsPanel() {
   const model = useStudioStore((s) => s.model);
   const diag = useStudioStore((s) => s.diagnostics);
   const settings = useStudioStore((s) => s.settings);
+  const [confirmErase, setConfirmErase] = useState(false);
 
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-zinc-950/50 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) setOpen(false);
-      }}
-    >
-      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
-        <h2 className="mb-3 text-base font-semibold text-zinc-900">{t('diagTitle')}</h2>
+    <>
+      <div
+        className="fixed inset-0 z-40 flex items-center justify-center bg-zinc-950/50 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setOpen(false);
+        }}
+      >
+        <div className="surface w-full max-w-md p-5">
+          <h2 className="mb-3 text-base font-semibold text-zinc-900">{t('diagTitle')}</h2>
 
-        <Row
-          label={t('diagBackend')}
-          value={backend === 'webgpu' ? t('diagBackendWebgpu') : t('diagBackendWasm')}
-        />
-        <Row label={t('diagFallbackReason')} value={diag.fallbackReason} />
-        <Row label={t('diagAdapter')} value={diag.adapterName} />
-        <Row
-          label={t('diagIsolated')}
-          value={diag.crossOriginIsolated ? t('diagYes') : t('diagNo')}
-        />
-        <Row
-          label={t('diagThreads')}
-          value={diag.wasmThreads ? t('diagYes') : t('diagNo')}
-        />
-        <Row label={t('diagModelState')} value={modelPhaseText(model.phase)} />
-        <Row label={t('diagModelUrl')} value={diag.modelUrl} />
-        <Row
-          label={t('diagModelLoadMs')}
-          value={diag.downloadMs > 0 ? t('unitMs', { value: diag.downloadMs }) : ''}
-        />
-        <Row
-          label={t('diagWarmupMs')}
-          value={diag.warmupMs > 0 ? t('unitMs', { value: diag.warmupMs }) : ''}
-        />
-        <Row
-          label={t('diagLastRunMs')}
-          value={diag.lastRunMs > 0 ? t('unitMs', { value: diag.lastRunMs }) : ''}
-        />
+          <Row
+            label={t('diagBackend')}
+            value={backend === 'webgpu' ? t('diagBackendWebgpu') : t('diagBackendWasm')}
+          />
+          <Row label={t('diagFallbackReason')} value={diag.fallbackReason} />
+          <Row label={t('diagAdapter')} value={diag.adapterName} />
+          <Row
+            label={t('diagIsolated')}
+            value={diag.crossOriginIsolated ? t('diagYes') : t('diagNo')}
+          />
+          <Row
+            label={t('diagThreads')}
+            value={diag.wasmThreads ? t('diagYes') : t('diagNo')}
+          />
+          <Row label={t('diagModelState')} value={modelPhaseText(model.phase)} />
+          <Row label={t('diagModelUrl')} value={diag.modelUrl} />
+          <Row
+            label={t('diagModelLoadMs')}
+            value={diag.downloadMs > 0 ? t('unitMs', { value: diag.downloadMs }) : ''}
+          />
+          <Row
+            label={t('diagWarmupMs')}
+            value={diag.warmupMs > 0 ? t('unitMs', { value: diag.warmupMs }) : ''}
+          />
+          <Row
+            label={t('diagLastRunMs')}
+            value={diag.lastRunMs > 0 ? t('unitMs', { value: diag.lastRunMs }) : ''}
+          />
 
-        <label className="mt-4 flex flex-col gap-1 text-sm text-zinc-700">
-          {t('diagBackendOverride')}
-          <select
-            value={settings.backendOverride}
-            onChange={(e) =>
-              void setBackendOverride(e.target.value as 'auto' | 'webgpu' | 'wasm')
-            }
-            className="rounded-md border border-zinc-300 px-2 py-1 text-sm"
-          >
-            <option value="auto">auto</option>
-            <option value="webgpu">webgpu</option>
-            <option value="wasm">wasm</option>
-          </select>
-          <span className="text-xs text-zinc-500">{t('diagBackendOverrideHint')}</span>
-        </label>
+          <label className="mt-4 flex flex-col gap-1 text-sm text-zinc-700">
+            {t('diagBackendOverride')}
+            <select
+              value={settings.backendOverride}
+              onChange={(e) =>
+                void setBackendOverride(e.target.value as 'auto' | 'webgpu' | 'wasm')
+              }
+              className="field"
+            >
+              <option value="auto">auto</option>
+              <option value="webgpu">webgpu</option>
+              <option value="wasm">wasm</option>
+            </select>
+            <span className="text-xs text-zinc-500">{t('diagBackendOverrideHint')}</span>
+          </label>
 
-        <div className="mt-5 flex justify-between">
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm(t('confirmEraseAll'))) void clearAllData();
-            }}
-            className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
-          >
-            {t('diagClearAll')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="rounded-lg bg-zinc-900 px-4 py-1.5 text-sm text-white hover:bg-zinc-700"
-          >
-            {t('diagClose')}
-          </button>
+          <div className="mt-5 flex justify-between">
+            <button
+              type="button"
+              onClick={() => setConfirmErase(true)}
+              className="rounded-(--radius-control) border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            >
+              {t('diagClearAll')}
+            </button>
+            <button type="button" onClick={() => setOpen(false)} className="btn-secondary">
+              {t('diagClose')}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <ConfirmDialog
+        open={confirmErase}
+        message={t('confirmEraseAll')}
+        confirmLabel={t('diagClearAll')}
+        danger
+        onCancel={() => setConfirmErase(false)}
+        onConfirm={() => {
+          setConfirmErase(false);
+          void clearAllData();
+        }}
+      />
+    </>
   );
 }

@@ -55,6 +55,7 @@ export function sanitizeFolderName(name: string): string {
   const cleaned = name
     .trim()
     .replace(/[/\\?%*:|"<>]/g, '_')
+    // eslint-disable-next-line no-control-regex -- намеренно вырезаем управляющие символы из имени папки
     .replace(/[\u0000-\u001f]/g, '_')
     .replace(/\.+$/g, '')
     .trim();

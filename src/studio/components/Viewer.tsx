@@ -170,7 +170,7 @@ export function Viewer() {
           type="button"
           onClick={() => setCompareItemId('')}
           aria-label={t('viewerBack')}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-zinc-300 px-2 py-1 text-zinc-700 hover:bg-zinc-100"
+          className="btn-secondary shrink-0"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           {t('viewerBack')}
@@ -180,7 +180,7 @@ export function Viewer() {
       <div ref={frameRef} className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
         <div
           ref={stageRef}
-          className="checkerboard relative cursor-ew-resize touch-none overflow-hidden rounded-lg select-none"
+          className="checkerboard relative cursor-ew-resize touch-none overflow-hidden rounded-(--radius-surface) select-none"
           style={{
             width: stageSize.width > 0 ? stageSize.width : undefined,
             height: stageSize.height > 0 ? stageSize.height : undefined,
@@ -220,14 +220,14 @@ export function Viewer() {
             style={{ left: `${split}%` }}
           >
             <div className="h-full w-0.5 bg-white shadow-[0_0_4px_rgba(0,0,0,0.6)]" />
-            <div className="absolute top-1/2 left-1/2 flex h-7 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md bg-white shadow">
+            <div className="absolute top-1/2 left-1/2 flex h-7 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-(--radius-control) bg-white shadow">
               <GripVertical className="h-4 w-4 text-zinc-500" aria-hidden />
             </div>
           </div>
-          <span className="absolute top-2 left-2 rounded bg-zinc-900/70 px-2 py-0.5 text-xs text-white">
+          <span className="absolute top-2 left-2 rounded-(--radius-control) bg-zinc-900/70 px-2 py-0.5 text-xs text-white">
             {t('compareBefore')}
           </span>
-          <span className="absolute top-2 right-2 rounded bg-zinc-900/70 px-2 py-0.5 text-xs text-white">
+          <span className="absolute top-2 right-2 rounded-(--radius-control) bg-zinc-900/70 px-2 py-0.5 text-xs text-white">
             {t('compareAfter')}
           </span>
         </div>
@@ -240,7 +240,7 @@ export function Viewer() {
           disabled={index <= 0}
           aria-label={t('viewerPrev')}
           title={t('viewerPrev')}
-          className="rounded-lg bg-zinc-800 px-4 py-1.5 text-white hover:bg-zinc-700 disabled:opacity-30"
+          className="btn-secondary"
         >
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </button>
@@ -250,7 +250,7 @@ export function Viewer() {
           disabled={index >= items.length - 1}
           aria-label={t('viewerNext')}
           title={t('viewerNext')}
-          className="rounded-lg bg-zinc-800 px-4 py-1.5 text-white hover:bg-zinc-700 disabled:opacity-30"
+          className="btn-secondary"
         >
           <ChevronRight className="h-5 w-5" aria-hidden />
         </button>

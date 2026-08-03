@@ -4,18 +4,22 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-// Vite кладёт HTML по пути исходника (dist/src/studio/index.html).
-// Расширению удобнее плоский dist: переносим в dist/studio.html.
+// Vite кладёт HTML по пути исходника (dist/src/studio/index.html, dist/src/legal/about.html).
+// Расширению удобнее плоский dist: переносим в dist/studio.html и dist/about.html.
 // Ссылки на ассеты в HTML абсолютные (base '/'), перенос их не ломает.
-function flattenStudioHtml(): Plugin {
+function flattenPages(): Plugin {
   return {
-    name: 'rmbg:flatten-studio-html',
+    name: 'rmbg:flatten-pages',
     apply: 'build',
     async closeBundle() {
       const dist = resolve(import.meta.dirname, 'dist');
       await rename(
         resolve(dist, 'src/studio/index.html'),
         resolve(dist, 'studio.html'),
+      );
+      await rename(
+        resolve(dist, 'src/legal/about.html'),
+        resolve(dist, 'about.html'),
       );
       await rm(resolve(dist, 'src'), { recursive: true, force: true });
     },
@@ -24,13 +28,14 @@ function flattenStudioHtml(): Plugin {
 
 export default defineConfig({
   base: '/',
-  plugins: [react(), tailwindcss(), flattenStudioHtml()],
+  plugins: [react(), tailwindcss(), flattenPages()],
   build: {
     target: 'es2022',
     // Blob-URL-воркер не пройдёт CSP расширения — только отдельные файлы.
     rollupOptions: {
       input: {
         studio: resolve(import.meta.dirname, 'src/studio/index.html'),
+        about: resolve(import.meta.dirname, 'src/legal/about.html'),
         'service-worker': resolve(
           import.meta.dirname,
           'src/background/service-worker.ts',

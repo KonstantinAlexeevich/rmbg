@@ -2,11 +2,7 @@
 
 Working draft for the Developer Dashboard fields. Listing marketing text lives in [description.md](description.md). Privacy policy: [privacy.md](privacy.md).
 
-Privacy policy URL (after the repo is public / this file is on `main`):
-
-```
-https://github.com/KonstantinAlexeevich/rmbg/blob/main/docs/cws/privacy.md
-```
+Privacy policy URL (after the repo is public / this file is on `main`)
 
 ---
 
@@ -92,4 +88,16 @@ Happy to clarify any path in the ZIP package.
 | Manifest COEP / COOP | `require-corp` + `same-origin` (enables `crossOriginIsolated` for SharedArrayBuffer / threaded WASM) |
 | `fetch` uses `mode: 'cors'` | Yes (`src/core/inference/model-loader.ts`) |
 
-**Manual smoke test still recommended before first CWS upload:** load `dist` as an unpacked extension, open the studio, confirm Diagnostics shows `crossOriginIsolated: yes`, and complete a first-run model download under DevTools Network (only HF / HF CDN; no image uploads).
+**Manual smoke test — done (2026-08-03):** loaded `dist` as an unpacked extension in a clean profile, opened the studio via the toolbar icon.
+
+| Check | Result |
+| --- | --- |
+| `crossOriginIsolated` on the studio page | `true` |
+| `navigator.gpu` / backend badge | WebGPU detected, badge shows GPU |
+| First-run model download | Single request to `huggingface.co/SacredNoir/isnet-general-use-onnx/resolve/<pinned-commit>/isnet-general-use.onnx` (fp32 variant, matches WebGPU path) |
+| Downloaded file SHA-256 / size | `4c56bbc21588459dda11efba5a4a8ee163969da109ae170fb1988c1c2ea4a90a`, 176 213 804 bytes — matches the pinned reference in [07-build.md](../07-build.md) |
+| Cache Storage after download | `rmbg-models` cache holds exactly the one weight file; no other origins touched |
+| Storage quota | `navigator.storage.estimate()` — 176 MB used of ~10.9 GB quota |
+| UI render | Empty state, header (logo + GPU badge), Edge refinement / Exports panel all render as specified in [06-ui.md](../06-ui.md) |
+
+Not re-verified in this pass: `crossOriginIsolated` inside the segmentation worker itself (CDP session to the nested ORT thread-pool workers stalled; the main-thread isolation being `true` combined with a successful WebGPU warm-up is strong indirect evidence, but worth a direct check with real DevTools before submission if time allows).

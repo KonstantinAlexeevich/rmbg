@@ -11,13 +11,44 @@ import { BottomBar } from './components/BottomBar';
 import { Viewer } from './components/Viewer';
 import { DiagnosticsPanel } from './components/DiagnosticsPanel';
 import { ExportPresetsModal } from './components/ExportPresetsModal';
+import { ConfirmDialog } from './components/ConfirmDialog';
 import { Toasts } from './components/Toasts';
 
 export function App() {
   const items = useStudioStore((s) => s.items);
   const compareItemId = useStudioStore((s) => s.compareItemId);
+  const setCompareItemId = useStudioStore((s) => s.setCompareItemId);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const viewerPushedRef = useRef(false);
+  const viewerPoppedByBrowserRef = useRef(false);
   const [dragOver, setDragOver] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Back браузера закрывает просмотр, а не уходит со страницы
+  useEffect(() => {
+    const onPopState = () => {
+      if (useStudioStore.getState().compareItemId !== '') {
+        viewerPoppedByBrowserRef.current = true;
+        setCompareItemId('');
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [setCompareItemId]);
+
+  useEffect(() => {
+    if (compareItemId !== '' && !viewerPushedRef.current) {
+      window.history.pushState({ viewer: true }, '');
+      viewerPushedRef.current = true;
+    } else if (compareItemId === '' && viewerPushedRef.current) {
+      viewerPushedRef.current = false;
+      if (viewerPoppedByBrowserRef.current) {
+        viewerPoppedByBrowserRef.current = false;
+      } else {
+        window.history.back();
+      }
+    }
+  }, [compareItemId]);
 
   // вставка из буфера и клавиатура — на уровне документа
   useEffect(() => {
@@ -34,9 +65,7 @@ export function App() {
       }
       if (e.key === 'Delete' && !inField && compareItemId === '') {
         const selected = useStudioStore.getState().items.filter((i) => i.selected);
-        if (selected.length > 0 && window.confirm(t('confirmDeleteSelected'))) {
-          void deleteSelected();
-        }
+        if (selected.length > 0) setConfirmDelete(true);
       }
     };
     document.addEventListener('paste', onPaste);
@@ -76,7 +105,7 @@ export function App() {
           )}
           {dragOver && compareItemId === '' && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-4 border-dashed border-blue-400 bg-blue-100/60">
-              <span className="rounded-xl bg-white px-6 py-3 text-lg font-medium text-blue-700 shadow">
+              <span className="rounded-(--radius-surface) bg-white px-6 py-3 text-lg font-medium text-blue-700 shadow">
                 {t('emptyTitle')}
               </span>
             </div>
@@ -102,6 +131,17 @@ export function App() {
       <DiagnosticsPanel />
       <ExportPresetsModal />
       <Toasts />
+      <ConfirmDialog
+        open={confirmDelete}
+        message={t('confirmDeleteSelected')}
+        confirmLabel={t('cardDelete')}
+        danger
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          setConfirmDelete(false);
+          void deleteSelected();
+        }}
+      />
     </div>
   );
 }

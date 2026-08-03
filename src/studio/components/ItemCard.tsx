@@ -1,11 +1,11 @@
 import {
   Download,
-  Maximize2,
+  Expand,
   Pencil,
   RotateCcw,
-  SlidersHorizontal,
   Trash2,
   TriangleAlert,
+  Wand2,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useStudioStore, type ItemView } from '../state/store';
@@ -23,7 +23,7 @@ function StatusOverlay({ item }: { item: ItemView }) {
     case 'queued':
       return (
         <div className="absolute inset-0 flex items-center justify-center bg-white/60">
-          <span className="rounded bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
+          <span className="rounded-(--radius-control) bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
             {t('statusQueued')}
           </span>
         </div>
@@ -32,7 +32,7 @@ function StatusOverlay({ item }: { item: ItemView }) {
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/40">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-blue-600" />
-          <span className="rounded bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
+          <span className="rounded-(--radius-control) bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
             {t('statusSegmenting')}
           </span>
         </div>
@@ -41,7 +41,7 @@ function StatusOverlay({ item }: { item: ItemView }) {
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/40">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-blue-600" />
-          <span className="rounded bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
+          <span className="rounded-(--radius-control) bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
             {t('statusComposing')}
           </span>
         </div>
@@ -98,7 +98,7 @@ export function ItemCard({ item }: { item: ItemView }) {
         if (renaming) return;
         if (e.key === 'Enter') setCompareItemId(item.id);
       }}
-      className={`relative flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-blue-500 ${
+      className={`relative flex flex-col overflow-hidden rounded-(--radius-surface) border bg-white shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-blue-500 ${
         item.status === 'failed' ? 'border-red-400' : 'border-zinc-200'
       } ${item.stale && item.status === 'done' ? 'opacity-70' : ''}`}
     >
@@ -110,17 +110,19 @@ export function ItemCard({ item }: { item: ItemView }) {
         />
         <StatusOverlay item={item} />
 
-        <input
-          type="checkbox"
-          checked={item.selected}
-          onChange={(e) => void setItemSelected(item.id, e.target.checked)}
-          aria-label={t('cardSelect', { name: item.name })}
-          className="absolute top-2 left-2 h-4 w-4 accent-blue-600"
-        />
+        <label className="absolute top-2 left-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-(--radius-control) bg-white/80 shadow-sm">
+          <input
+            type="checkbox"
+            checked={item.selected}
+            onChange={(e) => void setItemSelected(item.id, e.target.checked)}
+            aria-label={t('cardSelect', { name: item.name })}
+            className="h-4 w-4 accent-blue-600"
+          />
+        </label>
 
         {item.maskEmpty && (
           <div className="absolute right-0 bottom-0 left-0 flex items-center justify-center gap-1 bg-amber-400/90 px-2 py-0.5 text-center text-xs font-medium text-amber-950">
-            <TriangleAlert className="h-3 w-3 shrink-0" aria-hidden />
+            <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
             {t('cardEmptyMask')}
           </div>
         )}
@@ -129,9 +131,9 @@ export function ItemCard({ item }: { item: ItemView }) {
           <span
             title={t('cardOverride')}
             aria-label={t('cardOverride')}
-            className="absolute top-2 left-8 rounded bg-amber-500 p-1 text-white"
+            className="absolute top-2 left-10 rounded-(--radius-control) bg-blue-600 p-1 text-white"
           >
-            <SlidersHorizontal className="h-3 w-3" aria-hidden />
+            <Wand2 className="h-4 w-4" aria-hidden />
           </span>
         )}
 
@@ -142,7 +144,7 @@ export function ItemCard({ item }: { item: ItemView }) {
                 label={t('cardOpenPreview')}
                 onClick={() => setCompareItemId(item.id)}
               >
-                <Maximize2 className="h-4 w-4" aria-hidden />
+                <Expand className="h-4 w-4" aria-hidden />
               </IconButton>
               <IconButton
                 label={t('cardDownload')}
@@ -181,7 +183,7 @@ export function ItemCard({ item }: { item: ItemView }) {
                 cancelRename();
               }
             }}
-            className="w-full rounded border border-zinc-300 px-1 py-0.5 text-xs text-zinc-700 outline-none focus:border-blue-400"
+            className="field w-full text-xs text-zinc-700"
           />
         ) : (
           <span className="truncate text-xs text-zinc-700" title={item.name}>
@@ -199,9 +201,9 @@ export function ItemCard({ item }: { item: ItemView }) {
             <button
               type="button"
               onClick={() => void retryItem(item.id)}
-              className="inline-flex items-center gap-1 self-start text-xs font-medium text-blue-600 hover:text-blue-500"
+              className="inline-flex cursor-pointer items-center gap-1 self-start text-xs font-medium text-blue-600 hover:text-blue-500"
             >
-              <RotateCcw className="h-3 w-3" aria-hidden />
+              <RotateCcw className="h-4 w-4" aria-hidden />
               {t('cardRetry')}
             </button>
           </>
@@ -226,7 +228,7 @@ function IconButton({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+      className="cursor-pointer rounded-(--radius-control) bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
     >
       {children}
     </button>

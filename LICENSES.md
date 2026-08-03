@@ -14,8 +14,9 @@ Hugging Face (пин на коммит) с проверкой SHA-256 и кэш�
 ## Рантайм
 
 - onnxruntime-web — MIT, © Microsoft Corporation
-- React — MIT, © Meta Platforms
+- React / React DOM — MIT, © Meta Platforms
 - fflate — MIT
 - idb — ISC
 - zustand — MIT
+- lucide-react — ISC
 - Tailwind CSS — MIT

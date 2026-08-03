@@ -46,11 +46,7 @@ export function EdgeSection({
         value={edge.feather}
         onChange={(feather) => onPatch({ feather })}
       />
-      <button
-        type="button"
-        onClick={resetEdgeSettings}
-        className="self-start rounded-md border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50"
-      >
+      <button type="button" onClick={resetEdgeSettings} className="btn-secondary self-start text-xs">
         {t('edgeReset')}
       </button>
     </Section>

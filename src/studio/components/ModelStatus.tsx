@@ -1,3 +1,4 @@
+import { Download } from 'lucide-react';
 import { useStudioStore } from '../state/store';
 import { formatBytes, t } from '../state/i18n';
 import { cancelModelDownload, retryModelDownload } from '../state/orchestrator';
@@ -32,7 +33,7 @@ export function ModelStatus() {
           <button
             type="button"
             onClick={cancelModelDownload}
-            className="text-zinc-500 underline hover:text-zinc-700"
+            className="cursor-pointer text-zinc-500 underline hover:text-zinc-700"
           >
             {t('modelCancel')}
           </button>
@@ -47,22 +48,16 @@ export function ModelStatus() {
       return (
         <div className="flex items-center gap-2 text-xs text-amber-700">
           <span>{t('modelEvicted')}</span>
-          <button
-            type="button"
-            onClick={retryModelDownload}
-            className="rounded border border-amber-300 px-2 py-0.5 font-medium hover:bg-amber-50"
-          >
+          <button type="button" onClick={retryModelDownload} className="btn-secondary text-xs">
+            <Download className="h-4 w-4" aria-hidden />
             {t('modelDownload')}
           </button>
         </div>
       );
     case 'canceled':
       return (
-        <button
-          type="button"
-          onClick={retryModelDownload}
-          className="rounded border border-zinc-300 px-2 py-0.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
-        >
+        <button type="button" onClick={retryModelDownload} className="btn-secondary text-xs">
+          <Download className="h-4 w-4" aria-hidden />
           {t('modelDownload')}
         </button>
       );
@@ -73,7 +68,7 @@ export function ModelStatus() {
           <button
             type="button"
             onClick={retryModelDownload}
-            className="rounded border border-red-300 px-2 py-0.5 font-medium hover:bg-red-50"
+            className="cursor-pointer rounded-(--radius-control) border border-red-300 px-2 py-0.5 font-medium hover:bg-red-50"
           >
             {t('modelRetry')}
           </button>

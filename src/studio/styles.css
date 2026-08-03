@@ -1,17 +1,58 @@
 @import 'tailwindcss';
 
-/* шахматка под прозрачностью превью */
+@theme {
+  --radius-control: 0.5rem;
+  --radius-surface: 0.75rem;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-(--radius-control) bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500;
+  }
+
+  .btn-secondary {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-(--radius-control) border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500;
+  }
+
+  .btn-ghost {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-(--radius-control) px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500;
+  }
+
+  .btn-danger {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-(--radius-control) bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500;
+  }
+
+  .btn-icon {
+    @apply inline-flex cursor-pointer items-center justify-center rounded-(--radius-control) p-1.5 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500;
+  }
+
+  .field {
+    @apply rounded-(--radius-control) border border-zinc-300 px-2 py-1 text-sm;
+    @apply focus:border-blue-400 focus:outline-none;
+  }
+
+  .surface {
+    @apply rounded-(--radius-surface) bg-white shadow-xl;
+  }
+}
+
+/* шахматка под прозрачностью превью — чуть контрастнее, чем zinc-100 на zinc-50 */
 .checkerboard {
   background-image:
-    linear-gradient(45deg, #d4d4d8 25%, transparent 25%),
-    linear-gradient(-45deg, #d4d4d8 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #d4d4d8 75%),
-    linear-gradient(-45deg, transparent 75%, #d4d4d8 75%);
+    linear-gradient(45deg, #c4c4c8 25%, transparent 25%),
+    linear-gradient(-45deg, #c4c4c8 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #c4c4c8 75%),
+    linear-gradient(-45deg, transparent 75%, #c4c4c8 75%);
   background-size: 16px 16px;
   background-position:
     0 0,
     0 8px,
     8px -8px,
     -8px 0;
-  background-color: #f4f4f5;
+  background-color: #ececef;
 }

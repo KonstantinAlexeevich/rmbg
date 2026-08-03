@@ -1,7 +1,9 @@
-import { FileArchive, ImagePlus } from 'lucide-react';
+import { CircleStop, FileArchive, ImagePlus } from 'lucide-react';
+import { useState } from 'react';
 import { useStudioStore } from '../state/store';
 import { formatDuration, t } from '../state/i18n';
 import { exportZip, newSession, stopProcessing } from '../state/orchestrator';
+import { ConfirmDialog } from './ConfirmDialog';
 
 export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
   const batch = useStudioStore((s) => s.batch);
@@ -9,6 +11,7 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
   const items = useStudioStore((s) => s.items);
   const settings = useStudioStore((s) => s.settings);
   const setExportPickerOpen = useStudioStore((s) => s.setExportPickerOpen);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   if (items.length === 0) return null;
 
@@ -25,77 +28,93 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
   };
 
   return (
-    <footer className="flex items-center gap-3 border-t border-zinc-200 bg-white px-4 py-2">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        {batch.running ? (
-          <>
-            <div className="h-1.5 w-40 shrink-0 overflow-hidden rounded-full bg-zinc-200">
-              <div
-                className="h-full rounded-full bg-blue-500 transition-[width]"
-                style={{
-                  width: `${batch.total > 0 ? (batch.done / batch.total) * 100 : 0}%`,
-                }}
-              />
-            </div>
+    <>
+      <footer className="relative flex items-center gap-3 border-t border-zinc-200 bg-white px-4 py-2">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          {batch.running ? (
+            <>
+              <div className="h-1.5 w-40 shrink-0 overflow-hidden rounded-full bg-zinc-200">
+                <div
+                  className="h-full rounded-full bg-blue-500 transition-[width]"
+                  style={{
+                    width: `${batch.total > 0 ? (batch.done / batch.total) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+              <span className="truncate text-sm text-zinc-700">
+                {t('progressProcessed', { done: batch.done, total: batch.total })}
+                {batch.etaMs > 0 &&
+                  `, ${t('progressEta', { eta: formatDuration(batch.etaMs) })}`}
+              </span>
+              <button
+                type="button"
+                onClick={stopProcessing}
+                disabled={batch.stopRequested}
+                title={t('progressStopHint')}
+                className="btn-secondary shrink-0"
+              >
+                <CircleStop className="h-4 w-4" aria-hidden />
+                {t('progressStop')}
+              </button>
+            </>
+          ) : exporting.running ? (
             <span className="truncate text-sm text-zinc-700">
-              {t('progressProcessed', { done: batch.done, total: batch.total })}
-              {batch.etaMs > 0 &&
-                `, ${t('progressEta', { eta: formatDuration(batch.etaMs) })}`}
+              {t('exportPreparing', { done: exporting.done, total: exporting.total })}
             </span>
-            <button
-              type="button"
-              onClick={stopProcessing}
-              disabled={batch.stopRequested}
-              title={t('progressStopHint')}
-              className="shrink-0 rounded-lg border border-zinc-300 px-3 py-1 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-40"
-            >
-              {t('progressStop')}
-            </button>
-          </>
-        ) : exporting.running ? (
-          <span className="truncate text-sm text-zinc-700">
-            {t('exportPreparing', { done: exporting.done, total: exporting.total })}
-          </span>
-        ) : (
-          <span className="truncate text-xs text-zinc-500">
-            {t('selectedCount', { selected, total: items.length })}
-          </span>
-        )}
+          ) : (
+            <span className="truncate text-xs text-zinc-500">
+              {t('selectedCount', { selected, total: items.length })}
+            </span>
+          )}
 
-        <button
-          type="button"
-          onClick={onAddFiles}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
-        >
-          <ImagePlus className="h-4 w-4" aria-hidden />
-          {t('addImages')}
-        </button>
-      </div>
+          <button type="button" onClick={onAddFiles} className="btn-secondary shrink-0">
+            <ImagePlus className="h-4 w-4" aria-hidden />
+            {t('addImages')}
+          </button>
+        </div>
 
-      <div className="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            if (window.confirm(t('confirmClearSession'))) {
-              void newSession();
-            }
-          }}
-          disabled={busy}
-          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+        <a
+          href={chrome.runtime.getURL('about.html')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute left-1/2 -translate-x-1/2 text-xs text-zinc-400 hover:text-zinc-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
         >
-          {t('sessionClear')}
-        </button>
-        <button
-          type="button"
-          onClick={onDownload}
-          disabled={exportable === 0 || exporting.running}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <FileArchive className="h-4 w-4" aria-hidden />
-          {t('exportZip')}
-          {exportable > 0 ? ` (${exportable})` : ''}
-        </button>
-      </div>
-    </footer>
+          {t('aboutLinkLabel')}
+        </a>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setConfirmClear(true)}
+            disabled={busy}
+            className="btn-secondary"
+          >
+            {t('sessionClear')}
+          </button>
+          <button
+            type="button"
+            onClick={onDownload}
+            disabled={exportable === 0 || exporting.running}
+            className="btn-primary"
+          >
+            <FileArchive className="h-4 w-4" aria-hidden />
+            {t('exportZip')}
+            {exportable > 0 ? ` (${exportable})` : ''}
+          </button>
+        </div>
+      </footer>
+
+      <ConfirmDialog
+        open={confirmClear}
+        message={t('confirmClearSession')}
+        confirmLabel={t('sessionClear')}
+        danger
+        onCancel={() => setConfirmClear(false)}
+        onConfirm={() => {
+          setConfirmClear(false);
+          void newSession();
+        }}
+      />
+    </>
   );
 }

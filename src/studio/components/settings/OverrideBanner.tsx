@@ -27,7 +27,7 @@ export function OverrideBanner({
           <button
             type="button"
             onClick={() => void resetItemOverride(itemId)}
-            className="w-full cursor-pointer rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+            className="btn-secondary w-full"
           >
             {t('overrideReset')}
           </button>
@@ -40,7 +40,7 @@ export function OverrideBanner({
           <button
             type="button"
             onClick={() => void overrideCurrentItem(itemId)}
-            className="w-full cursor-pointer rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+            className="btn-secondary w-full"
           >
             {t('overrideCreate')}
           </button>

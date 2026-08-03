@@ -22,7 +22,7 @@ export function ExportPresetsModal() {
         if (e.target === e.currentTarget) setOpen(false);
       }}
     >
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
+      <div className="surface w-full max-w-sm p-5">
         <h2 className="mb-1 text-base font-semibold text-zinc-900">
           {t('exportPickerTitle')}
         </h2>
@@ -33,7 +33,7 @@ export function ExportPresetsModal() {
             const checked = settings.exportPresetIds.includes(p.id);
             return (
               <li key={p.id}>
-                <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-zinc-50">
+                <label className="flex cursor-pointer items-center gap-2 rounded-(--radius-control) px-2 py-1.5 hover:bg-zinc-50">
                   <input
                     type="checkbox"
                     checked={checked}
@@ -48,11 +48,7 @@ export function ExportPresetsModal() {
         </ul>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
-          >
+          <button type="button" onClick={() => setOpen(false)} className="btn-secondary">
             {t('exportPickerCancel')}
           </button>
           <button
@@ -62,7 +58,7 @@ export function ExportPresetsModal() {
               setOpen(false);
               void exportZip();
             }}
-            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-primary"
           >
             {t('exportPickerConfirm')}
           </button>

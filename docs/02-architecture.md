@@ -159,9 +159,6 @@ sequenceDiagram
 
 ## Открытые вопросы
 
-- Проверить на распакованной сборке, что дочерние воркеры страницы наследуют cross-origin
-  isolation и `crossOriginIsolated === true` внутри воркера (Diagnostics); если нет —
-  включать однопоточный WASM.
 - Замерить, выгоднее ли композицию делать в отдельном воркере при пачке 50+ кадров.
 - ~~Спайк CORS Hugging Face~~ — закрыт и перепроверен (2026-08-03): при
   `Origin: chrome-extension://…` resolve отражает Origin в ACAO, CDN
