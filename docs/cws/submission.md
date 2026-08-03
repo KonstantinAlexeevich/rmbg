@@ -101,3 +101,22 @@ Happy to clarify any path in the ZIP package.
 | UI render | Empty state, header (logo + GPU badge), Edge refinement / Exports panel all render as specified in [06-ui.md](../06-ui.md) |
 
 Not re-verified in this pass: `crossOriginIsolated` inside the segmentation worker itself (CDP session to the nested ORT thread-pool workers stalled; the main-thread isolation being `true` combined with a successful WebGPU warm-up is strong indirect evidence, but worth a direct check with real DevTools before submission if time allows).
+
+---
+
+## Store listing graphics
+
+Source templates and assets live under [`promo/`](../../promo/). Regenerate with `node promo/render.mjs` (headless Chrome + `sips`). Upload the files from `promo/out/`.
+
+| Dashboard field | File | Size |
+| --- | --- | --- |
+| Store icon | [`public/icons/icon-128.png`](../../public/icons/icon-128.png) | 128×128 |
+| Screenshot 1 | `promo/out/01-hero.png` | 1280×800 |
+| Screenshot 2 | `promo/out/02-edges.png` | 1280×800 |
+| Screenshot 3 | `promo/out/03-sidebar.png` | 1280×800 |
+| Screenshot 4 | `promo/out/04-presets.png` | 1280×800 |
+| Screenshot 5 | `promo/out/05-privacy.png` | 1280×800 |
+| Small promo tile | `promo/out/tile-440.png` | 440×280 |
+| Marquee promo tile | — (optional; not produced yet) | 1400×560 |
+
+All rendered PNGs are opaque (no alpha), square-corner full-bleed, matching CWS image rules.

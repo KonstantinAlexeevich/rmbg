@@ -1,0 +1,162 @@
+/* Tokens mirrored from src/studio/styles.css + Tailwind blue/zinc defaults */
+:root {
+  --blue-600: #2563eb;
+  --blue-500: #3b82f6;
+  --blue-400: #60a5fa;
+  --zinc-50: #fafafa;
+  --zinc-200: #e4e4e7;
+  --zinc-300: #d4d4d8;
+  --zinc-500: #71717a;
+  --zinc-700: #3f3f46;
+  --zinc-900: #18181b;
+  --checker-base: #ececef;
+  --checker-tile: #c4c4c8;
+  --radius-control: 8px;
+  --radius-surface: 12px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    'Noto Sans', Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  background: #000;
+}
+
+.checkerboard {
+  background-color: var(--checker-base);
+  background-image:
+    linear-gradient(45deg, var(--checker-tile) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--checker-tile) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--checker-tile) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--checker-tile) 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+}
+
+/* Shared 1280×800 blue stage used by every screenshot */
+.stage {
+  width: 1280px;
+  height: 800px;
+  position: relative;
+  overflow: hidden;
+  background: var(--blue-600);
+  color: #fff;
+}
+
+.stage::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(
+    ellipse 75% 55% at 50% 42%,
+    rgba(255, 255, 255, 0.18) 0%,
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image:
+    linear-gradient(45deg, #fff 25%, transparent 25%),
+    linear-gradient(-45deg, #fff 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #fff 75%),
+    linear-gradient(-45deg, transparent 75%, #fff 75%);
+  background-size: 48px 48px;
+  background-position:
+    0 0,
+    0 24px,
+    24px -24px,
+    -24px 0;
+  pointer-events: none;
+}
+
+.stage-head {
+  position: relative;
+  z-index: 2;
+  padding: 40px 48px 0;
+  text-align: center;
+}
+
+.stage-head h1 {
+  font-size: 48px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.stage-head p {
+  margin-top: 10px;
+  font-size: 20px;
+  font-weight: 450;
+  opacity: 0.88;
+  letter-spacing: -0.01em;
+}
+
+/* Soft window card — mild tilt, captures already include app chrome */
+.shot-scene {
+  position: relative;
+  z-index: 2;
+  perspective: 2200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shot {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  transform: rotateY(-2.5deg) rotateX(1deg);
+  box-shadow:
+    0 32px 64px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.28);
+  position: relative;
+}
+
+.shot::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.65),
+    rgba(255, 255, 255, 0.12)
+  );
+  z-index: 3;
+  pointer-events: none;
+}
+
+.shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  /* Captures are RGBA — composite on white so edges aren't translucent */
+  background: #fff;
+}
+
+.arrow {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  opacity: 0.92;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.18));
+}

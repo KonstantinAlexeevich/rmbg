@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PNG Maker — small promo tile</title>
+    <link rel="stylesheet" href="common.css" />
+    <style>
+      .tile {
+        width: 440px;
+        height: 280px;
+        background: var(--blue-600);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 0 36px;
+        color: #fff;
+      }
+
+      .tile::before {
+        content: '';
+        position: absolute;
+        inset: -30%;
+        background: radial-gradient(
+          ellipse 60% 50% at 30% 40%,
+          rgba(255, 255, 255, 0.18) 0%,
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+
+      .tile::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.08;
+        background-image:
+          linear-gradient(45deg, #fff 25%, transparent 25%),
+          linear-gradient(-45deg, #fff 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #fff 75%),
+          linear-gradient(-45deg, transparent 75%, #fff 75%);
+        background-size: 32px 32px;
+        background-position:
+          0 0,
+          0 16px,
+          16px -16px,
+          -16px 0;
+        pointer-events: none;
+      }
+
+      .icon {
+        position: relative;
+        z-index: 1;
+        width: 112px;
+        height: 112px;
+        border-radius: 24px;
+        flex-shrink: 0;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+      }
+
+      .copy {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .copy h1 {
+        font-size: 40px;
+        font-weight: 750;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+
+      .copy p {
+        font-size: 18px;
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: -0.01em;
+        line-height: 1.25;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tile">
+      <img class="icon" src="icon-128.png" alt="" width="112" height="112" />
+      <div class="copy">
+        <h1>PNG Maker</h1>
+        <p>Bulk background remover</p>
+      </div>
+    </div>
+  </body>
+</html>
