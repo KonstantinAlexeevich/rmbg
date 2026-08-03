@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "rmbg",
+  "name": "PNG Maker",
   "version": "0.1.0",
-  "description": "Удаление фона с изображений локально в браузере. Изображения никуда не отправляются.",
-  "minimum_chrome_version": "121",
-  "action": { "default_title": "Открыть студию удаления фона" },
+  "description": "Try PNG Maker - a simple background remover. Create a transparent PNG with a clear background and save multiple images easily.",
+  "homepage_url": "https://github.com/KonstantinAlexeevich/rmbg",
+"minimum_chrome_version": "121",
+  "action": { "default_title": "Open PNG Maker" },
   "background": { "service_worker": "service-worker.js", "type": "module" },
   "permissions": ["storage", "downloads"],
   "content_security_policy": {
