@@ -9,4 +9,5 @@ rmbg.zip
 .env.local
 .env.*.local
 .env.store
+promo/.pw-profile/
 

@@ -16,7 +16,10 @@
     "package:store": "npm run build:store && cd dist && zip -r ../rmbg.zip . -x '.*'",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"scripts/**/*.mjs\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"scripts/**/*.mjs\"",
+    "promo:capture": "node promo/capture.mjs",
+    "promo:render": "node promo/render.mjs",
+    "promo": "npm run promo:capture && npm run promo:render"
   },
   "dependencies": {
     "fflate": "^0.8.2",
@@ -35,6 +38,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.0",
     "eslint": "^9.0.0",
+    "playwright": "^1.62.1",
     "prettier": "^3.3.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.6.0",

@@ -15,18 +15,18 @@
         margin-top: 42px;
       }
 
-      /* menu-solid.png is a 2× shot of the 287×916 sidebar — zoomed past 1:1 to stay legible */
+      /* menu-solid.png is a 2× shot of the 288×867 sidebar — zoomed past 1:1 to stay legible */
       .win {
-        --cw: 287;
-        --ch: 916;
+        --cw: 288;
+        --ch: 867;
         --k: 1.1;
         margin: 0;
         flex-shrink: 0;
       }
 
-      /* Crop lands just under the padding fields — keep the fade off the text */
+      /* No bottom fade — need the color swatches fully visible */
       .win.fade-bottom::after {
-        height: 18px;
+        display: none;
       }
 
       .set {
@@ -76,7 +76,7 @@
       </div>
       <div class="row">
         <div class="win fade-bottom">
-          <div class="win-slice" style="--y: 115; --h: 552">
+          <div class="win-slice" style="--y: 282; --h: 548">
             <img src="../captures/menu-solid.png" alt="Export canvas and background settings" />
           </div>
         </div>

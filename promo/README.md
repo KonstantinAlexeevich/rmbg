@@ -1,6 +1,7 @@
 # Chrome Web Store promo graphics
 
 HTML templates rendered to exact CWS sizes with headless Chrome.
+Studio UI frames in `captures/` are refreshed automatically from the live web studio.
 
 ## Outputs (`promo/out/`)
 
@@ -10,7 +11,7 @@ HTML templates rendered to exact CWS sizes with headless Chrome.
 | `02-edges.png` | 1280×800 | Screenshot 2 — before/after split |
 | `03-canvas.png` | 1280×800 | Screenshot 3 — canvas size / padding / transparent vs solid |
 | `04-presets.png` | 1280×800 | Screenshot 4 — export ZIP modal |
-| `05-privacy.png` | 1280×800 | Screenshot 5 — batch running locally / on-device |
+| `05-context.png` | 1280×800 | Screenshot 5 — right-click Save without background |
 | `tile-440.png` | 440×280 | Small promo tile (required) |
 | `marquee-1400.png` | 1400×560 | Marquee promo tile (optional) |
 
@@ -19,22 +20,29 @@ renderer writes a `.jpg` alongside it — upload that one instead, CWS rejects a
 
 ## Regenerate
 
+Prerequisites: Chromium for Playwright once (`npx playwright install chromium`), and a
+warm model cache (first capture downloads ONNX into `promo/.pw-profile/`).
+
 ```bash
-node promo/render.mjs
+# Studio must be reachable (script reuses http://localhost:5173/ or starts dev:web)
+npm run promo          # capture UI + cutouts, then render templates → promo/out/
+npm run promo:capture  # only refresh promo/captures/ and promo/samples/out/
+npm run promo:render   # only HTML templates → promo/out/
 ```
 
-Requires Google Chrome at the default macOS path (override with `CHROME_PATH`).
+Override studio URL with `STUDIO_URL`. Set `SKIP_SERVER=1` to fail if the studio is down
+instead of spawning Vite. Chrome for the HTML renderer: `CHROME_PATH` (default macOS app).
 
 ## Source assets
 
-- `samples/in/` — original photos (mixed aspect ratios)
-- `samples/out/` — cutouts exported from the extension (500×500 transparent PNG)
-- `captures/` — studio screenshots at 1280×800 @2× (`studio.png`, `progress.png`,
-  `before-after.png`, `export.png`) plus a tall sidebar node crop (`menu-solid.png`,
-  287×916). `empty.png` and `menu-exports.png` are kept as spares — no template reads them.
-- Prefer DevTools node / device screenshots (no browser chrome, no macOS window shadow)
+- `samples/in/` — original photos (mixed aspect ratios); checked in
+- `samples/out/` — cutouts (500×500 transparent PNG); refreshed by `promo:capture`
+- `captures/` — studio screenshots at 1280×800 @2× (`studio.png`, `before-after.png`,
+  `export.png`) plus sidebar crop (`menu-solid.png`); refreshed by `promo:capture`
+- `promo/.pw-profile/` — Playwright profile (gitignored) so the model stays cached
 
-To refresh cutouts: load `dist/` unpacked → drop `samples/in/` → Amazon 1:1 preset (500×500, transparent, 10% pad) → Export ZIP → copy PNGs into `samples/out/`.
+Capture seeds four export presets (`500px 1:1`, `Original`, `720p`, `Shop white`) and
+injects a slightly denser grid (`minmax(200px)`) so cards read better at CWS scale.
 
 ## Cropping a capture
 
@@ -45,3 +53,6 @@ in capture CSS px) and they render as one continuous window, so empty middles ge
 dropped and the rest is shown larger. `--k` is display px per capture CSS px —
 above 1 the capture is zoomed past 1:1, which is what keeps the export panel in
 `03-canvas` legible. `--x` / `--w` narrow the visible column the same way.
+
+Retune those CSS variables only when the studio layout changes enough that a slice
+misses its target (sidebar width, export settings height, etc.).

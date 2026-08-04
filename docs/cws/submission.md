@@ -141,11 +141,12 @@ Reference only — package layout changed (Р-27). Full table of that day is pre
 
 ## Store listing graphics
 
-Source under [`promo/`](../../promo/). Regenerate with `node promo/render.mjs`.
+Source under [`promo/`](../../promo/). Regenerate with `npm run promo`
+(Playwright captures from the live studio, then `promo/render.mjs` builds store assets).
 
 | Dashboard field | File | Size |
 | --- | --- | --- |
 | Store icon | [`public/icons/icon-128.png`](../../public/icons/icon-128.png) | 128×128 |
-| Screenshots | `promo/out/01-hero.png` … `05-privacy.png` | 1280×800 |
+| Screenshots | `promo/out/01-hero.png` … `04-presets.png`, `05-context.png` | 1280×800 |
 | Small tile | `promo/out/tile-440.png` | 440×280 |
 | Marquee | `promo/out/marquee-1400.png` | 1400×560 |
