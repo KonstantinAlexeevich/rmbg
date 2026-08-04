@@ -25,6 +25,36 @@ const resultThumbUrls = new Map<string, string>();
 
 export let visibleIds = new Set<string>();
 
+/** itemId → presetId: после compose скачать результат этого экспорта (ПКМ «Save with export»). */
+const autoDownloadPresetByItem = new Map<string, string>();
+
+/** Тихий импорт: не показывать в UI, удалить после download/fail. */
+const ephemeralItemIds = new Set<string>();
+
+export function setAutoDownloadPreset(itemId: string, presetId: string): void {
+  autoDownloadPresetByItem.set(itemId, presetId);
+}
+
+export function peekAutoDownloadPreset(itemId: string): string | undefined {
+  return autoDownloadPresetByItem.get(itemId);
+}
+
+export function clearAutoDownloadPreset(itemId: string): void {
+  autoDownloadPresetByItem.delete(itemId);
+}
+
+export function markEphemeral(itemId: string): void {
+  ephemeralItemIds.add(itemId);
+}
+
+export function isEphemeral(itemId: string): boolean {
+  return ephemeralItemIds.has(itemId);
+}
+
+export function clearEphemeral(itemId: string): void {
+  ephemeralItemIds.delete(itemId);
+}
+
 export function setDb(value: Database): void {
   db = value;
 }
@@ -103,11 +133,14 @@ export function toView(item: ItemRecord, settings: Settings): ItemView {
     maskEmpty: item.mask !== null && item.mask.empty,
     stale: item.result !== null && item.result.settingsHash !== hash,
     override: override ?? null,
+    ephemeral: ephemeralItemIds.has(item.id),
   };
 }
 
 export function releaseUrls(ids: string[]): void {
   for (const id of ids) {
+    ephemeralItemIds.delete(id);
+    autoDownloadPresetByItem.delete(id);
     const thumb = thumbUrls.get(id);
     if (thumb !== undefined) URL.revokeObjectURL(thumb);
     thumbUrls.delete(id);

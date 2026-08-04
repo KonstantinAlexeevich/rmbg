@@ -3,134 +3,113 @@
 ## Стек
 
 - TypeScript, strict.
-- Vite — сборка, multi-entry (страница студии, service worker, воркеры).
-- React + Tailwind CSS — интерфейс.
-- Zustand — состояние студии (простой стор без бойлерплейта, легко читается из воркер-колбэков).
-- `onnxruntime-web` 1.27.x — инференс.
-- `idb` — тонкая обёртка над IndexedDB с промисами.
-- `fflate` — ZIP.
+- **Две цели Vite:** web-студия и Chrome-расширение (отдельные конфиги, один `package.json`).
+- React + Tailwind CSS — UI студии.
+- Zustand — стор студии.
+- `onnxruntime-web` 1.27.x — инференс (только web-артефакт / origin студии).
+- `idb`, `fflate`.
 
-Плагины Vite для расширений (CRXJS и подобные) не берём: они дают HMR, но добавляют
-непредсказуемость в обработке манифеста и больших статических ассетов. Манифест держим
-статическим файлом, копирование ассетов делаем явным шагом.
+CRXJS и подобные не используем. Манифест статический в `public/`.
 
 ## Структура репозитория
 
 ```
 rmbg/
-  docs/                       спецификация
+  docs/
   public/
-    manifest.json             копируется в dist как есть
-    icons/
+    manifest.json             → dist/ (extension)
+    icons/                    → dist/ и dist-web/
   scripts/
-    fetch-models.mjs          dev-утилита: сверка SHA-256 зеркал HF
-    copy-ort-assets.mjs       копирование .wasm/.mjs из node_modules
+    fetch-models.mjs
+    copy-ort-assets.mjs       arg: dist | dist-web
   src/
+    platform/                 env, assets, storage, download, studio-url, base64
     background/
-      service-worker.ts
-    studio/
-      index.html
-      main.tsx
-      App.tsx
-      components/
-      state/
-    legal/
-      about.html              экран «О расширении»
-      AboutPage.tsx
-      licenseEntries.ts
+      service-worker.ts       opens studio, context menus, jobs
+      context-menu.ts
+      jobs.ts
+    content/
+      studio-bridge.ts        CS on studio origin only
+      bridge-protocol.ts
+    studio/                   React studio (web entry)
+      ext-bridge.ts           page side of CS bridge
+    legal/                    about (web + extension entries)
     core/
       inference/
-        backend.ts            детект и выбор EP
-        session.ts            создание и прогрев сессии
-        isnet.ts              препроцесс и постпроцесс
-        model-loader.ts       скачивание, хэш, Cache Storage
       image/
-        decode.ts
-        mask.ts               порог, erode, feather, bbox
-        compose.ts            cutout, фон, размещение; compare «До»
-        encode.ts
       preset/
-        types.ts
-        layout.ts             расчёт масштаба и позиции
-        override.ts           слепки ItemOverride, resolveComposition
-      storage/
-        db.ts                 IndexedDB
-        settings.ts           chrome.storage.local
-        model-cache.ts        Cache Storage весов
+      storage/                settings via platform storage
       zip/
-        archive.ts
     workers/
-      segmentation.worker.ts
-      export.worker.ts
-  vite.config.ts
+  vite.config.ts              extension → dist/
+  vite.config.web.ts          web → dist-web/
 ```
 
-## Особенности сборки
+## Две сборки
 
-- Воркеры создаются как `new Worker(new URL('../workers/segmentation.worker.ts',
-  import.meta.url), { type: 'module' })`. В конфиге обязательно `worker: { format: 'es' }`
-  и запрет инлайна: воркер, встроенный в blob URL, не пройдёт CSP расширения.
-- Никаких динамических `import()` с удалённых адресов и никаких `eval`. Отдельно проверяем,
-  что в собранном бандле нет `new Function(` и `URL.createObjectURL(new Blob([...script]))`,
-  созданных сборщиком, — это типовая причина отказа при публикации.
-- Ассеты ORT (`ort-wasm-simd-threaded.jsep.wasm`, соответствующий `.mjs` и родственные)
-  копируются в `dist/ort/`. Конкретный список файлов зависит от версии пакета и сверяется
-  при первой сборке, поэтому копируем скриптом по маске, а не перечислением.
-- Веса модели в `dist` не копируются: они скачиваются в рантайме (см. ниже).
-- В dev-режиме Vite-сервер не используется как источник для расширения: собираем в `dist`
-  и грузим распакованным. Watch-режим (`vite build --watch`) плюс кнопка перезагрузки
-  расширения покрывают цикл разработки.
+### Web (`vite.config.web.ts`)
+
+| Script | Назначение |
+| --- | --- |
+| `dev:web` | Vite dev server, port **5173**, HMR |
+| `build:web` | production → `dist-web/` + `copy-ort-assets.mjs dist-web` |
+| `preview:web` | preview port **4173** (не URL по умолчанию для SW) |
+
+- Entries: `src/studio/index.html`, `src/legal/about.html` → плоские `index.html` / `about.html`.
+- `define`: `VITE_APP_TARGET=web`, `VITE_APP_VERSION` из `package.json`.
+- Headers COOP + COEP на `server` и `preview`.
+- Dev: middleware `/ort/*` из `node_modules/onnxruntime-web/dist`; pretty routes `/` → studio, `/about.html` → about.
+- `public/manifest.json` из `dist-web` удаляется post-build (нужен только расширению).
+- Workers: `worker.format: 'es'`.
+
+### Extension (`vite.config.ts`)
+
+| Script | Назначение |
+| --- | --- |
+| `dev` | `vite build --watch` → `dist/` |
+| `build` | `tsc` + vite build (без ORT copy — студии/ORT в пакете нет) |
+| `package` | zip `dist/` → `rmbg.zip` |
+
+- Entries: service-worker, studio-bridge, about.
+- `define`: `VITE_APP_TARGET=extension`.
+- Пакет: `service-worker.js`, `studio-bridge.js`, `about.html`, assets about, icons, manifest. **Без** React-студии и `ort/`.
+
+## Особенности
+
+- Workers: `new Worker(new URL('…', import.meta.url), { type: 'module' })`.
+- `assetUrl('ort/')` на web — **absolute** URL (`http://localhost:5173/ort/`), иначе dynamic import ORT в Vite dev ломается.
+- На web `ort.env.wasm.numThreads = 1` (см. [02-architecture.md](02-architecture.md), [08-decisions.md](08-decisions.md) Р-27).
+- Post-build для web: `scripts/copy-ort-assets.mjs dist-web` — копирует referenced `.wasm`/`.mjs`, чистит дубликаты, предупреждает о `new Function(` / blob patterns (CWS-risks; на web не блокируют publish extension).
+- Веса `.onnx` не в git и не в dist: runtime HF fetch.
 
 ## Доставка весов
 
-Файлы весов в пакет расширения не входят и в git не попадают. В рантайме расширение
-скачивает нужный вариант с Hugging Face (пин на коммит) — см. [03-inference.md](03-inference.md)
-и Р-16 в [08-decisions.md](08-decisions.md).
-
-Основное зеркало: `SacredNoir/isnet-general-use-onnx`, коммит
-`ff56cb825ee2637d4726f8a739fb7bf1bf4bea04`, лицензия Apache-2.0. Оба файла
-(`isnet-general-use.onnx` и `isnet-general-use-q8.onnx`) с эталонными SHA-256:
-
-- fp32: `4c56bbc21588459dda11efba5a4a8ee163969da109ae170fb1988c1c2ea4a90a`, 176 213 804 байта;
-- q8: `feed6f32a5e707ca7e939576b2d891b23fb9eb4114749657a5efc64e8651e43a`, 44 436 071 байт.
-
-Запасное зеркало для fp32: `x-Liola-x/isnet-general-use-onnx` (тот же хэш).
-
-`scripts/fetch-models.mjs` остаётся как dev-утилита: скачивает оба файла, сверяет хэши
-с эталонами, печатает результат. В `npm run build` и `postinstall` не входит — веса на
-машине разработчика для сборки не нужны.
-
-Лицензия модели (Apache-2.0) и ссылка на первоисточник (репозиторий DIS Синь Цюя и др.)
-кладутся в `LICENSES.md` и упоминаются на экране «О расширении».
+Без изменений по URL/SHA: [03-inference.md](03-inference.md), Р-16. Зеркала и хэши — как в `model-manifest.ts` / `fetch-models.mjs`.
 
 ## Скрипты npm
 
-- `dev` — `vite build --watch`
-- `build` — типы + продакшен-сборка + копирование ассетов ORT
-- `models` — dev-утилита: сверка хэшей зеркал HF
-- `package` — сборка и упаковка `dist` в ZIP для Chrome Web Store
-- `typecheck`, `lint`, `format`
+- `dev` / `build` / `package` — extension
+- `dev:web` / `build:web` / `preview:web` — studio site
+- `models`, `typecheck`, `lint`, `format`
 
 ## Установка для разработки
 
+Нужны **оба** процесса:
+
 1. `npm install`
-2. `npm run build`
-3. `chrome://extensions` → включить режим разработчика → «Загрузить распакованное» →
-   выбрать `dist`.
-4. При первом открытии студии расширение само скачает нужный вариант весов (нужен интернет).
+2. Терминал A: `npm run dev:web` → http://localhost:5173/
+3. Терминал B: `npm run build` (или `npm run dev` для watch)
+4. `chrome://extensions` → Load unpacked → **`dist/`**
+5. Клик по иконке → вкладка студии на localhost. Первый раз — скачивание `.onnx`.
 
-Опционально: `npm run models` — сверить хэши зеркал без запуска расширения.
+Если порт 5173 занят — остановить прежний `dev:web` (`lsof -ti :5173 | xargs kill`).
 
-## Публикация
+Preview web (`preview:web` на 4173) SW **по умолчанию не открывает**: поменять
+`STUDIO_WEB_URL` и пересобрать extension.
 
-- Пакет без весов — порядка 24 МБ (почти всё — `ort-wasm-simd-threaded.asyncify.wasm`;
-  JS/CSS — сотни КБ). Лимит Chrome Web Store — 2 ГБ, запас огромный; долгая проверка
-  из-за размера не актуальна.
-- Тексты для дашборда (single purpose, remote code, permissions, notes to reviewer) и
-  чеклист аудита бандла — в [cws/submission.md](cws/submission.md).
-- В описании и в поле обоснования разрешений явно указываем: исполняемый код (JS, WASM)
-  целиком в пакете; единственный сетевой запрос — разовая загрузка файла данных модели
-  (`.onnx`) с фиксированного адреса Hugging Face с проверкой SHA-256; пользовательские
-  изображения никуда не передаются; разрешения минимальны (`storage`, `downloads`).
-- Политика конфиденциальности: [cws/privacy.md](cws/privacy.md) (в дашборде — URL на
-  этот файл в публичном репозитории).
+## Публикация (состояние после split)
+
+- Extension ZIP сейчас **тонкий** (без ORT ~24 МБ эпохи «всё в пакете»). CWS-тексты в
+  [cws/](cws/) требуют обновления перед подачей.
+- Web-студию деплоить отдельно (`dist-web`) с COOP/COEP на edge.
+- Лицензии: `LICENSES.md`, about page.

@@ -10,10 +10,10 @@ export function decodeImage(blob: Blob): Promise<ImageBitmap> {
   return createImageBitmap(blob, { colorSpaceConversion: 'none' });
 }
 
-// Миниатюра для грида: длинная сторона 256 px.
+// Миниатюра для грида: длинная сторона 512 px.
 export async function makeThumbnail(
   source: ImageBitmap | OffscreenCanvas,
-  longSide = 256,
+  longSide = 512,
 ): Promise<Blob> {
   const scale = Math.min(1, longSide / Math.max(source.width, source.height));
   const w = Math.max(1, Math.round(source.width * scale));

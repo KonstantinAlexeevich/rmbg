@@ -21,6 +21,8 @@ import {
   isQuotaError,
   releaseUrls,
   sessionId,
+  setAutoDownloadPreset,
+  markEphemeral,
   setSessionId,
   store,
   toView,
@@ -28,13 +30,21 @@ import {
 import { processAll } from './queue';
 import { scheduleRecompose, updateSettings } from './recompose';
 
-export async function addFiles(files: File[]): Promise<void> {
+export async function addFiles(
+  files: File[],
+  options?: { autoDownloadPresetId?: string; ephemeral?: boolean },
+): Promise<string[]> {
   const state = store.getState();
   const settings = state.settings;
+  const createdIds: string[] = [];
+  const autoPresetId = options?.autoDownloadPresetId;
+  const ephemeral = options?.ephemeral === true;
 
   for (const file of files) {
     if (!isAcceptedType(file.type)) {
-      state.addToast('warning', t('errorUnsupportedFile', { name: file.name }));
+      if (!ephemeral) {
+        state.addToast('warning', t('errorUnsupportedFile', { name: file.name }));
+      }
       continue;
     }
     try {
@@ -48,7 +58,7 @@ export async function addFiles(files: File[]): Promise<void> {
         createdAt: Date.now(),
         status: 'queued',
         error: '',
-        selected: true,
+        selected: !ephemeral,
         source: { blob: file, width: bitmap.width, height: bitmap.height },
         thumbnail,
         mask: null,
@@ -56,18 +66,26 @@ export async function addFiles(files: File[]): Promise<void> {
         overrides: [],
       };
       bitmap.close();
+      if (ephemeral) markEphemeral(item.id);
       await putItem(db, item);
       store.getState().upsertItem(toView(item, settings));
+      createdIds.push(item.id);
+      if (autoPresetId !== undefined) {
+        setAutoDownloadPreset(item.id, autoPresetId);
+      }
     } catch (e) {
       if (isQuotaError(e)) {
-        state.addToast('error', t('errorQuota'));
-        return;
+        if (!ephemeral) state.addToast('error', t('errorQuota'));
+        return createdIds;
       }
-      state.addToast('warning', `${file.name}: ${t('errorDecode')}`);
+      if (!ephemeral) {
+        state.addToast('warning', `${file.name}: ${t('errorDecode')}`);
+      }
     }
   }
   await touchSession(db, sessionId);
   void processAll();
+  return createdIds;
 }
 
 export async function overrideCurrentItem(id: string): Promise<void> {

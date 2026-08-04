@@ -3,11 +3,14 @@
 ## Где что лежит
 
 - IndexedDB — тяжёлые бинарные данные: оригиналы, маски, результаты. База одна,
-  `rmbg`, версия схемы отслеживается через `onupgradeneeded`.
+  `rmbg`, версия схемы отслеживается через `onupgradeneeded`. Origin = origin
+  **web-студии** (не `chrome-extension://`).
 - Cache Storage (`caches.open('rmbg-models')`) — байты весов модели. Делит квоту origin
   с IndexedDB.
-- `chrome.storage.local` — настройки, варианты вывода (`presets`) и метаданные скачанного ассета модели.
-  Малый объём, удобно читать из любого контекста, переживает очистку данных сайта.
+- Настройки (presets, meta `modelAssets`, locale…) — через `src/platform/storage.ts`:
+  - web: `localStorage` с префиксом `rmbg:`;
+  - extension target (about / legacy paths): `chrome.storage.local`.
+  API в core — `loadSettings` / `saveSettings` без прямого вызова chrome.
 - Память вкладки — состояние UI и миниатюры. Ничего, что нельзя восстановить.
 
 ## Типы
@@ -132,7 +135,7 @@ Blob кладём прямо в записи: Chrome хранит их на ди
 
 ## Ассет модели
 
-Байты лежат в Cache Storage; в `chrome.storage.local` — только метаданные:
+Байты лежат в Cache Storage; в настройках (platform storage) — только метаданные:
 
 ```ts
 type ModelAsset = {
@@ -148,7 +151,9 @@ type ModelAsset = {
 проверен; повторный digest не делаем. Если байты в кэше есть, а метаданных нет (или
 наоборот — кэш вытеснен) — считаем промахом и качаем заново.
 
-## Настройки в chrome.storage.local
+## Настройки (platform storage)
+
+Хранилище см. выше: web → `localStorage`, extension → `chrome.storage.local`. Схема:
 
 ```ts
 type Settings = {
@@ -157,7 +162,7 @@ type Settings = {
   activePresetId: string;
   exportPresetIds: string[]; // экспорты (Preset), по которым собирается ZIP
   edge: { threshold: number; erode: number; feather: number };
-  ui: { locale: 'ru' | 'en'; theme: 'system' | 'light' | 'dark' };
+  ui: { locale: 'ru' | 'en' };
   backendOverride: 'auto' | 'webgpu' | 'wasm';  // для диагностики
   modelAssets: ModelAsset[]; // скачанные варианты; пустой массив = ещё ничего нет
 };

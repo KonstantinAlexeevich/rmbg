@@ -16,6 +16,7 @@ import {
   toView,
   visibleIds,
 } from './context';
+import { syncExportsToExtension } from '../../ext-sync';
 
 let recomposeTimer = 0;
 let recomposeGeneration = 0;
@@ -47,6 +48,7 @@ export async function updateSettings(mutate: (settings: Settings) => Settings): 
   const after = mutate(store.getState().settings);
   store.getState().setSettings(after);
   await saveSettings(after);
+  syncExportsToExtension(after);
 
   // поэлементный хэш: слепки не реагируют на правку глобального пресета/края
   const anyStale = await refreshStaleFlags(after);

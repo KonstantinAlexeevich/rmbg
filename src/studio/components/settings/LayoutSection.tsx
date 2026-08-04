@@ -123,60 +123,6 @@ export function LayoutSection({
         </button>
       </div>
 
-      <span className="mt-1 text-sm font-medium text-zinc-700">{t('backgroundLabel')}</span>
-      <div className="flex rounded-(--radius-control) bg-zinc-100 p-0.5 text-sm">
-        <button
-          type="button"
-          onClick={() => patchLayout(() => ({ background: { kind: 'transparent' } }))}
-          className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
-        >
-          {t('bgTransparent')}
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            patchLayout(() => ({ background: { kind: 'solid', color: solidColor } }))
-          }
-          className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${!isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
-        >
-          {t('bgSolid')}
-        </button>
-      </div>
-      {!isTransparent && (
-        <div className="flex items-center gap-2">
-          {SWATCHES.map(({ color, labelKey }) => (
-            <button
-              key={color}
-              type="button"
-              aria-label={t(labelKey)}
-              title={t(labelKey)}
-              onClick={() => patchLayout(() => ({ background: { kind: 'solid', color } }))}
-              className={`h-7 w-7 cursor-pointer rounded-full border ${
-                solidColor === color
-                  ? 'border-blue-600 ring-2 ring-blue-200'
-                  : 'border-zinc-300'
-              }`}
-              style={{ backgroundColor: color }}
-            />
-          ))}
-          <input
-            type="color"
-            value={solidColor}
-            onChange={(e) =>
-              patchLayout(() => ({
-                background: { kind: 'solid', color: e.target.value },
-              }))
-            }
-            aria-label={t('bgCustomColor')}
-            title={t('bgCustomColor')}
-            className="h-7 w-9 cursor-pointer rounded-(--radius-control) border border-zinc-300"
-          />
-        </div>
-      )}
-      {isTransparent && preset.output.format === 'jpeg' && (
-        <p className="text-xs text-amber-600">{t('bgJpegNote')}</p>
-      )}
-
       {isFixed && (
         <>
           <div className="mt-1 grid grid-cols-2 gap-2">
@@ -298,6 +244,60 @@ export function LayoutSection({
             {t('allowZoom')}
           </label>
         </>
+      )}
+
+      <span className="mt-1 text-sm font-medium text-zinc-700">{t('backgroundLabel')}</span>
+      <div className="flex rounded-(--radius-control) bg-zinc-100 p-0.5 text-sm">
+        <button
+          type="button"
+          onClick={() => patchLayout(() => ({ background: { kind: 'transparent' } }))}
+          className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
+        >
+          {t('bgTransparent')}
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            patchLayout(() => ({ background: { kind: 'solid', color: solidColor } }))
+          }
+          className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${!isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
+        >
+          {t('bgSolid')}
+        </button>
+      </div>
+      {!isTransparent && (
+        <div className="flex items-center gap-2">
+          {SWATCHES.map(({ color, labelKey }) => (
+            <button
+              key={color}
+              type="button"
+              aria-label={t(labelKey)}
+              title={t(labelKey)}
+              onClick={() => patchLayout(() => ({ background: { kind: 'solid', color } }))}
+              className={`h-7 w-7 cursor-pointer rounded-full border ${
+                solidColor === color
+                  ? 'border-blue-600 ring-2 ring-blue-200'
+                  : 'border-zinc-300'
+              }`}
+              style={{ backgroundColor: color }}
+            />
+          ))}
+          <input
+            type="color"
+            value={solidColor}
+            onChange={(e) =>
+              patchLayout(() => ({
+                background: { kind: 'solid', color: e.target.value },
+              }))
+            }
+            aria-label={t('bgCustomColor')}
+            title={t('bgCustomColor')}
+            className="h-7 w-9 cursor-pointer rounded-(--radius-control) border border-zinc-300"
+          />
+        </div>
+      )}
+      {isTransparent && preset.output.format === 'jpeg' && (
+        <p className="text-xs text-amber-600">{t('bgJpegNote')}</p>
       )}
 
       {!editingOverride && (

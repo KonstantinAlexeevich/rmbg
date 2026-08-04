@@ -1,3 +1,4 @@
+import { storageGet, storageSet } from '../../platform/storage';
 import type { EdgeSettings, ModelAsset } from '../types';
 import { defaultPreset, type Preset } from '../preset/types';
 
@@ -39,8 +40,7 @@ export function defaultSettings(): Settings {
 }
 
 export async function loadSettings(): Promise<Settings> {
-  const stored = await chrome.storage.local.get(STORAGE_KEY);
-  const value = stored[STORAGE_KEY] as Settings | undefined;
+  const value = (await storageGet(STORAGE_KEY)) as Settings | undefined;
   if (value === undefined || value.version !== 1) return defaultSettings();
   return migrateSettings(value);
 }
@@ -85,7 +85,7 @@ function migrateSettings(value: Settings): Settings {
 }
 
 export async function saveSettings(settings: Settings): Promise<void> {
-  await chrome.storage.local.set({ [STORAGE_KEY]: settings });
+  await storageSet(STORAGE_KEY, settings);
 }
 
 export function activePreset(settings: Settings): Preset {

@@ -8,7 +8,8 @@ import { ConfirmDialog } from './ConfirmDialog';
 export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
   const batch = useStudioStore((s) => s.batch);
   const exporting = useStudioStore((s) => s.exporting);
-  const items = useStudioStore((s) => s.items);
+  const allItems = useStudioStore((s) => s.items);
+  const items = allItems.filter((i) => !i.ephemeral);
   const settings = useStudioStore((s) => s.settings);
   const setExportPickerOpen = useStudioStore((s) => s.setExportPickerOpen);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -29,7 +30,7 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
 
   return (
     <>
-      <footer className="relative flex items-center gap-3 border-t border-zinc-200 bg-white px-4 py-2">
+      <footer className="flex h-12 shrink-0 items-center gap-3 border-t border-zinc-200 bg-white px-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {batch.running ? (
             <>
@@ -66,23 +67,13 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
               {t('selectedCount', { selected, total: items.length })}
             </span>
           )}
+        </div>
 
-          <button type="button" onClick={onAddFiles} className="btn-secondary shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
+          <button type="button" onClick={onAddFiles} className="btn-secondary">
             <ImagePlus className="h-4 w-4" aria-hidden />
             {t('addImages')}
           </button>
-        </div>
-
-        <a
-          href={chrome.runtime.getURL('about.html')}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute left-1/2 -translate-x-1/2 text-xs text-zinc-400 hover:text-zinc-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-        >
-          {t('aboutLinkLabel')}
-        </a>
-
-        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setConfirmClear(true)}

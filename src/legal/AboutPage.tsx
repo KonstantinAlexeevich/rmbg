@@ -1,13 +1,17 @@
 import { ArrowLeft } from 'lucide-react';
+import { assetUrl } from '../platform/assets';
+import { appVersion, isExtension } from '../platform/env';
+import { studioPageUrl } from '../platform/studio-url';
 import { modelLicense, runtimeLicenses } from './licenseEntries';
 
 const linkClass =
   'text-blue-600 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500';
 
 export function AboutPage() {
-  const version = chrome.runtime.getManifest().version;
-  const studioUrl = chrome.runtime.getURL('studio.html');
-  const iconUrl = chrome.runtime.getURL('icons/icon-32.png');
+  const version = appVersion();
+  // в extension-сборке about остаётся локальной страницей, студия уже на localhost
+  const studioUrl = isExtension ? studioPageUrl() : '/';
+  const iconUrl = assetUrl('icons/icon-32.png');
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900" lang="en">

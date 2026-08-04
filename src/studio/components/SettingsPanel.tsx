@@ -1,6 +1,8 @@
 import { activePreset } from '../../core/storage/settings';
 import type { EdgeSettings, ItemOverride } from '../../core/types';
+import { assetUrl } from '../../platform/assets';
 import { useStudioStore } from '../state/store';
+import { t } from '../state/i18n';
 import { patchItemOverride, updateSettings } from '../state/orchestrator';
 import { EdgeSection } from './settings/EdgeSection';
 import { OverrideBanner } from './settings/OverrideBanner';
@@ -12,7 +14,8 @@ export function SettingsPanel() {
   const items = useStudioStore((s) => s.items);
   const compareItemId = useStudioStore((s) => s.compareItemId);
 
-  if (!settingsLoaded) return <aside className="w-72 border-l border-zinc-200 bg-white" />;
+  if (!settingsLoaded)
+    return <aside className="flex w-72 shrink-0 flex-col border-l border-zinc-200 bg-white" />;
 
   const preset = activePreset(settings);
   const compareItem = items.find((i) => i.id === compareItemId);
@@ -109,32 +112,44 @@ export function SettingsPanel() {
   };
 
   return (
-    <aside className="w-72 shrink-0 overflow-y-auto border-l border-zinc-200 bg-white">
-      {viewing && (
-        <OverrideBanner
-          itemId={compareItemId}
-          itemName={compareItem.name}
-          presetName={preset.name}
+    <aside className="flex w-72 shrink-0 flex-col border-l border-zinc-200 bg-white">
+      <div className="flex-1 overflow-y-auto">
+        {viewing && (
+          <OverrideBanner
+            itemId={compareItemId}
+            itemName={compareItem.name}
+            presetName={preset.name}
+            editingOverride={editingOverride}
+          />
+        )}
+        <EdgeSection
+          edge={edge}
+          highlighted={editingOverride}
+          sharedNote={!editingOverride}
+          onPatch={patchEdge}
+        />
+        <PresetsSection
+          settings={settings}
+          preset={preset}
+          sizeMode={sizeMode}
+          canvas={canvas}
+          fit={fit}
+          anchor={anchor}
+          background={background}
+          patchLayout={patchLayout}
           editingOverride={editingOverride}
         />
-      )}
-      <EdgeSection
-        edge={edge}
-        highlighted={editingOverride}
-        sharedNote={!editingOverride}
-        onPatch={patchEdge}
-      />
-      <PresetsSection
-        settings={settings}
-        preset={preset}
-        sizeMode={sizeMode}
-        canvas={canvas}
-        fit={fit}
-        anchor={anchor}
-        background={background}
-        patchLayout={patchLayout}
-        editingOverride={editingOverride}
-      />
+      </div>
+      <div className="flex h-12 shrink-0 items-center justify-center border-t border-zinc-200 bg-white px-4">
+        <a
+          href={assetUrl('about.html')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-zinc-400 hover:text-zinc-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+        >
+          {t('aboutLinkLabel')}
+        </a>
+      </div>
     </aside>
   );
 }

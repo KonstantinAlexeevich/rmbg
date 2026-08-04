@@ -7,8 +7,10 @@
 
 Popup закрывается при потере фокуса и ограничен по размеру, side panel узкая. Пакетная
 работа с гридом превью, встроенным просмотром «до/после» и панелью настроек требует
-полноценной страницы. Иконка расширения открывает вкладку `studio.html` (или фокусирует
+полноценной страницы. Иконка расширения открывает вкладку студии (или фокусирует
 уже открытую).
+
+Уточнено Р-27: студия — web URL, не `chrome-extension://…/studio.html`.
 
 ## Р-02. Модель — isnet-general-use, а не RMBG-1.4
 
@@ -47,10 +49,12 @@ WebGPU-бэкенд ORT не покрывает операторы динами�
 Разделяем дорогую сегментацию и дешёвую композицию. Смена фона, пресета или настроек края
 не запускает модель. Это же определяет структуру кода: два независимых модуля.
 
-## Р-08. Cross-origin isolation через манифест
+## Р-08. Cross-origin isolation (COOP/COEP)
 
-Ключи `cross_origin_embedder_policy` и `cross_origin_opener_policy` дают `SharedArrayBuffer`
-и многопоточный WASM. Ограничение на внешние подресурсы нас не задевает: всё локальное.
+Ключи `cross_origin_embedder_policy` и `cross_origin_opener_policy` в **manifest**
+дают isolation для extension pages (about). Для **web-студии** те же политики —
+HTTP-заголовки Vite `server`/`preview` и позже reverse-proxy на проде. Isolation
+нужна для `SharedArrayBuffer`; на web target threads ORT всё равно 1 (Р-27).
 
 ## Р-09. Фон в v1 — только прозрачный и однотонный
 
@@ -119,7 +123,8 @@ WebGPU-бэкенд ORT не покрывает операторы динами�
 
 ## Р-17. Кэш в Cache Storage, обязательный SHA-256, список зеркал
 
-Байты весов живут в `caches.open('rmbg-models')`, метаданные — в `chrome.storage.local`.
+Байты весов живут в `caches.open('rmbg-models')`, метаданные — в platform storage
+(web: `localStorage`; extension paths: `chrome.storage.local`).
 Перед первым использованием обязательна проверка `crypto.subtle.digest('SHA-256', bytes)`
 по зафиксированному эталону: мы грузим граф вычислений с чужого сервера, без хэша это
 дыра. Зеркало можно не доверять — доверие даёт хэш, а не репутация репозитория. Поэтому
@@ -196,15 +201,47 @@ Link2Off переключает режим «все стороны одинак�
 Пространство внутри холста вокруг объекта подписано Padding / «Отступы». Поле в коде
 остаётся `fit.margin` до отдельного рефакторинга. Зафиксировано в глоссарии.
 
-## Р-26. Экран «О расширении» — страница расширения, не внешний хостинг
+## Р-26. Экран About — в web-сборке и (опционально) в extension
 
-Нужно показать версию, политику конфиденциальности и лицензии (модель + рантайм).
-Внешний сайт или GitHub Pages потребовали бы отдельный деплой и сеть; ссылка на blob в
-репозитории годится для URL в дашборде CWS, но не как экран внутри продукта. Решение:
-статическая страница `about.html` в пакете расширения (как `studio.html`), открывается
-офлайн. Полный текст политики встроен в страницу (синхронизируется с
-`docs/cws/privacy.md`, который остаётся источником URL для дашборда). Страница только на
-английском — без русской локали. Точка входа — мелкая ссылка About по центру нижней панели.
+Нужны версия, политика и лицензии. About входит в `dist-web` (`about.html`) и по-прежнему
+может собираться в пакет расширения. Ссылка «назад» ведёт на URL web-студии, не на
+`studio.html` extension origin. Текст политики для дашборда CWS — [cws/privacy.md](cws/privacy.md).
+
+Частично сужает прежнюю формулировку «только extension page как studio.html» — студия
+вынесена (Р-27).
+
+## Р-27. Web-студия + thin extension (2026-08)
+
+Цель: хостить студию на домене, из расширения открывать URL; позже — мост «добавить
+изображение / сохранить с пресетом». На первом шаге:
+
+- отдельная Vite-сборка `dist-web` (`dev:web` / `build:web`), COOP/COEP headers;
+- extension `dist` без React/ORT — только SW + about + icons;
+- SW открывает `STUDIO_WEB_URL` (`http://localhost:5173/`);
+- `src/platform/*` — storage / download / assets / env (`VITE_APP_TARGET`);
+- monorepo-пакеты не вводим: один repo, две цели сборки;
+- web: `numThreads = 1` — pthread ORT зависает в Vite-dev на nested workers;
+- absolute URL для `ort/` — иначе dynamic import в dev ломается.
+
+Не в этом шаге: ~~messaging extension↔site~~ (сделано в Р-28), popup-экспорт, прод-деплой,
+npm-библиотека studio.
+
+Открытые риски split: тексты CWS/privacy устарели относительно thin package; квоты
+IndexedDB/Cache — на origin **сайта**, не extension; настройки web не в
+`chrome.storage` (в меню уходит только список id/name экспортов — Р-28).
+
+## Р-28. Контекстное меню + studio-only bridge (2026-08)
+
+ПКМ по картинке: «Add to PNG Maker» / «Save with export» (submenu имён экспортов).
+
+- `contextMenus` + `activeTab`/`scripting`: картинка читается во вкладке клика (не SW-fetch
+  на весь интернет). Optional host permissions — точечный запрос origin CDN при необходимости.
+  Job → студия через sendMessage.
+- Content script `studio-bridge.js` **только** на origin студии: `postMessage` jobs
+  странице; страница синкает `{id,name}` экспортов в `chrome.storage.local` для меню.
+- Обработка и скачивание — в web-студии (тот же queue/compose); «Save with export»
+  помечает item для compose выбранного экспорта и автоскачивания после `done`.
+- Локаль пунктов меню — `chrome.i18n.getUILanguage()`, не `settings.ui.locale` студии.
 
 ## Риски
 

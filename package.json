@@ -6,7 +6,10 @@
   "description": "Chrome-расширение: удаление фона с изображений локально в браузере (ISNet, onnxruntime-web)",
   "scripts": {
     "dev": "vite build --watch",
-    "build": "tsc --noEmit && vite build && node scripts/copy-ort-assets.mjs",
+    "build": "tsc --noEmit && vite build",
+    "dev:web": "vite --config vite.config.web.ts",
+    "build:web": "tsc --noEmit && vite build --config vite.config.web.ts && node scripts/copy-ort-assets.mjs dist-web",
+    "preview:web": "vite preview --config vite.config.web.ts",
     "models": "node scripts/fetch-models.mjs",
     "package": "npm run build && cd dist && zip -r ../rmbg.zip . -x '.*'",
     "typecheck": "tsc --noEmit",

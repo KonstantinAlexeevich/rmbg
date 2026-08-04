@@ -1,17 +1,19 @@
 // Пост-обработка dist после vite build:
-// 1. Копирует в dist/ort/ ровно те рантайм-ассеты onnxruntime-web (.wasm/.mjs),
+// 1. Копирует в <dist>/ort/ ровно те рантайм-ассеты onnxruntime-web (.wasm/.mjs),
 //    на которые ссылается собранный бандл (список зависит от версии пакета).
-// 2. Удаляет из dist/assets дубликат .wasm, заинлайненный Vite: рантайм грузит
-//    его из dist/ort/ по ort.env.wasm.wasmPaths.
+// 2. Удаляет из <dist>/assets дубликат .wasm, заинлайненный Vite: рантайм грузит
+//    его из <dist>/ort/ по ort.env.wasm.wasmPaths.
 // 3. Проверяет бандл на конструкции, из-за которых Chrome Web Store отклоняет
-//    расширения (remotely hosted code через blob/eval).
+//    расширения (remotely hosted code через blob/eval) — для web только warning.
 import { cp, mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 
-const dist = resolve(import.meta.dirname, '../dist');
+const distName = process.argv[2] ?? 'dist';
+const dist = resolve(import.meta.dirname, '..', distName);
 const distAssets = join(dist, 'assets');
 const ortDist = resolve(import.meta.dirname, '../node_modules/onnxruntime-web/dist');
 const ortOut = join(dist, 'ort');
+const isExtensionDist = distName === 'dist';
 
 // --- какие файлы ORT нужны: смотрим по ссылкам в собранных бандлах ---
 const available = new Set(await readdir(ortDist));
@@ -31,7 +33,7 @@ for (const name of [...referenced]) {
   referenced.add(name.replace(/\.(wasm|mjs)$/, '.mjs'));
 }
 if (referenced.size === 0) {
-  console.error('В бандле не найдено ссылок на ассеты ORT — проверьте сборку');
+  console.error(`В бандле (${distName}) не найдено ссылок на ассеты ORT — проверьте сборку`);
   process.exit(1);
 }
 
@@ -39,13 +41,13 @@ await mkdir(ortOut, { recursive: true });
 for (const name of [...referenced].sort()) {
   await cp(join(ortDist, name), join(ortOut, name));
 }
-console.log(`Скопировано в dist/ort: ${[...referenced].sort().join(', ')}`);
+console.log(`Скопировано в ${distName}/ort: ${[...referenced].sort().join(', ')}`);
 
 // --- дубликаты .wasm в dist/assets не нужны ---
 for (const file of await readdir(distAssets)) {
   if (file.endsWith('.wasm')) {
     await rm(join(distAssets, file));
-    console.log(`Удалён дубликат: assets/${file}`);
+    console.log(`Удалён дубликат: ${distName}/assets/${file}`);
   }
 }
 
@@ -62,9 +64,15 @@ for (const file of await readdir(distAssets)) {
   const source = await readFile(join(distAssets, file), 'utf8');
   for (const pattern of forbidden) {
     if (pattern.test(source)) {
-      console.warn(`ВНИМАНИЕ: ${pattern} найден в assets/${file} — сверьте с известными исключениями выше`);
+      console.warn(
+        `ВНИМАНИЕ: ${pattern} найден в ${distName}/assets/${file} — сверьте с известными исключениями выше`,
+      );
       found = true;
     }
   }
 }
-if (!found) console.log('Проверка бандла: запрещённых конструкций не найдено');
+if (!found) {
+  console.log(`Проверка бандла (${distName}): запрещённых конструкций не найдено`);
+} else if (!isExtensionDist) {
+  console.log(`(web-сборка: предупреждения CWS не блокируют)`);
+}

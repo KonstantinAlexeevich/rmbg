@@ -1,4 +1,5 @@
 import { Cpu, Gauge, Zap } from 'lucide-react';
+import { assetUrl } from '../../platform/assets';
 import { useStudioStore } from '../state/store';
 import { t } from '../state/i18n';
 import { ModelStatus } from './ModelStatus';
@@ -11,7 +12,7 @@ export function Header() {
     <header className="flex items-center gap-3 border-b border-zinc-200 bg-white px-4 py-2.5 shadow-sm">
       <span className="inline-flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900">
         <img
-          src={chrome.runtime.getURL('icons/icon-32.png')}
+          src={assetUrl('icons/icon-32.png')}
           alt=""
           width={24}
           height={24}

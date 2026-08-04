@@ -4,7 +4,8 @@ import { setVisibleIds } from '../state/orchestrator';
 import { ItemCard } from './ItemCard';
 
 export function Grid() {
-  const items = useStudioStore((s) => s.items);
+  const allItems = useStudioStore((s) => s.items);
+  const items = allItems.filter((i) => !i.ephemeral);
   const containerRef = useRef<HTMLDivElement>(null);
   const visibleRef = useRef(new Set<string>());
 
@@ -33,7 +34,7 @@ export function Grid() {
   return (
     <div
       ref={containerRef}
-      className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3 p-4"
+      className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3 p-4"
     >
       {items.map((item) => (
         <ItemCard key={item.id} item={item} />

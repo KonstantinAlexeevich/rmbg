@@ -15,7 +15,8 @@ import { ConfirmDialog } from './components/ConfirmDialog';
 import { Toasts } from './components/Toasts';
 
 export function App() {
-  const items = useStudioStore((s) => s.items);
+  const allItems = useStudioStore((s) => s.items);
+  const items = allItems.filter((i) => !i.ephemeral);
   const compareItemId = useStudioStore((s) => s.compareItemId);
   const setCompareItemId = useStudioStore((s) => s.setCompareItemId);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,26 +96,27 @@ export function App() {
       <Header />
 
       <div className="flex min-h-0 flex-1">
-        <main className="relative min-w-0 flex-1 overflow-y-auto">
-          {compareItemId !== '' ? (
-            <Viewer />
-          ) : items.length === 0 ? (
-            <EmptyState onChooseFiles={() => fileInputRef.current?.click()} />
-          ) : (
-            <Grid />
-          )}
-          {dragOver && compareItemId === '' && (
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-4 border-dashed border-blue-400 bg-blue-100/60">
-              <span className="rounded-(--radius-surface) bg-white px-6 py-3 text-lg font-medium text-blue-700 shadow">
-                {t('emptyTitle')}
-              </span>
-            </div>
-          )}
-        </main>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <main className="relative min-w-0 flex-1 overflow-y-auto">
+            {compareItemId !== '' ? (
+              <Viewer />
+            ) : items.length === 0 ? (
+              <EmptyState onChooseFiles={() => fileInputRef.current?.click()} />
+            ) : (
+              <Grid />
+            )}
+            {dragOver && compareItemId === '' && (
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-4 border-dashed border-blue-400 bg-blue-100/60">
+                <span className="rounded-(--radius-surface) bg-white px-6 py-3 text-lg font-medium text-blue-700 shadow">
+                  {t('emptyTitle')}
+                </span>
+              </div>
+            )}
+          </main>
+          <BottomBar onAddFiles={() => fileInputRef.current?.click()} />
+        </div>
         <SettingsPanel />
       </div>
-
-      <BottomBar onAddFiles={() => fileInputRef.current?.click()} />
 
       <input
         ref={fileInputRef}

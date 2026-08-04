@@ -68,7 +68,7 @@ export type ItemRecord = {
   error: string; // пустая строка, если ошибки нет
   selected: boolean;
   source: { blob: Blob; width: number; height: number };
-  thumbnail: Blob; // длинная сторона 256 px, единственное, что живёт в памяти грида
+  thumbnail: Blob; // длинная сторона 512 px, единственное, что живёт в памяти грида
   mask: MaskRecord | null; // null = сегментация ещё не выполнена
   result: ResultRecord | null; // null = композиция ещё не выполнена
   // слепки настроек по presetId; пустой массив = переопределений нет

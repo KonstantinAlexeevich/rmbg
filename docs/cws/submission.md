@@ -2,6 +2,12 @@
 
 Working draft for the Developer Dashboard fields. Listing marketing text lives in [description.md](description.md). Privacy policy: [privacy.md](privacy.md).
 
+> **Sync note (2026-08):** architecture moved to a **hosted web studio** + thin MV3
+> extension ([02-architecture.md](../02-architecture.md), Р-27 in
+> [08-decisions.md](../08-decisions.md)). Much of the copy below was written for
+> “studio + ORT inside the ZIP”. **Rewrite before the next store submission**
+> (package layout, remote-code story, host permissions for the studio origin, privacy).
+
 Privacy policy URL (after the repo is public / this file is on `main`)
 
 ---
@@ -16,13 +22,15 @@ Removes image backgrounds locally in the browser using an on-device AI model, th
 
 **Answer in the dashboard:** No, I am not using remote code.
 
-**Justification if a reviewer asks / if the form requires a note:**
+**Draft justification (align with final hosting before submit):**
 
-All executable logic (JavaScript and the ONNX Runtime WebAssembly files) is bundled inside the extension package. The extension does **not** fetch or evaluate remote scripts.
+Application JavaScript and ONNX Runtime WebAssembly ship either from the **first-party studio deploy** (`dist-web`, same origin as the studio page) or from the **extension package** (service worker / about). They are **not** evaluated from a third-party code CDN. The extension does not `eval` network scripts.
 
-The only network fetch is a data file: ONNX model weights (`.onnx`) from a pinned Hugging Face URL. Weights are verified with a fixed SHA-256 digest before use and are interpreted only by the bundled ONNX Runtime. Per Chrome Web Store MV3 guidance, fetching remote resources that are not used to evaluate logic (for example images or similar data) is allowed; `.onnx` here is treated as model data, not remotely hosted code. The same pattern is used by published Transformers.js-based extensions that keep the runtime local and download model assets at runtime.
+The only **third-party** network class of request is a data file: ONNX model weights (`.onnx`) from a pinned Hugging Face URL, SHA-256 verified, used only by the local runtime.
 
-`connect-src` in the extension CSP is limited to `'self'`, `https://huggingface.co`, `https://*.hf.co`, and `https://*.aws.cdn.hf.co`.
+Extension CSP `connect-src` (extension pages / SW): `'self'`, `http:`, `https:` (+ HF).
+Needed so the SW can fetch an image after the user grants optional access to that image
+origin. CSP is not an install-time host permission.
 
 ---
 
@@ -30,93 +38,82 @@ The only network fetch is a data file: ONNX model weights (`.onnx`) from a pinne
 
 ### `storage`
 
-Stores user preferences, export presets, model-cache metadata, and (via IndexedDB / Cache Storage APIs used from the studio page) local session artefacts so the studio can restore work and avoid re-downloading the model.
+Extension-side menu export list and short-lived import jobs (`chrome.storage.session`).
+Studio settings on the web target use site `localStorage` (platform layer).
 
 ### `downloads`
 
-Saves exported images and ZIP archives when the user explicitly exports. No automatic downloads of unrelated content.
+File save when export runs in an extension context. Pure web studio uses browser download / File System Access.
+
+### `contextMenus`
+
+Right-click on images: add to studio or save with a chosen export.
+
+### `activeTab` + `scripting`
+
+Context-menu user gesture; `scripting` used for tab-scoped `blob:` images.
 
 ### Host permissions
 
-None. Model weights are fetched with `fetch(..., { mode: 'cors' })` without `host_permissions`. Keep it that way: host permissions push items into deeper review.
+**Required:** studio origin only (dev: `http://localhost:5173/*`) — focus tab + studio bridge CS.
 
+**Optional:** `http://*/*` / `https://*/*` — on import, Chrome prompts for the **specific
+image origin** (e.g. a photo CDN). Not granted for all sites at install.
+
+**Prod:** replace localhost studio matches with the public studio origin.
 ---
 
 ## Data usage (Privacy practices tab)
 
-- **Data collected from users:** none of the dashboard categories for PII / browsing history / website content / etc. User images never leave the device.
-- **Certifications:** not sold; not used for unrelated purposes; Limited Use compliance.
-- **Disclosure to keep consistent with the privacy policy:** the one-time model download can expose the user’s IP to Hugging Face / its CDN. That is connection metadata for a weight file, not collection of image content by the developer.
+- **Data collected from users:** none of the dashboard categories for PII / browsing history / website content. User images never leave the device.
+- **Certifications:** not sold; not used for unrelated purposes; Limited Use.
+- **Disclosure:** one-time model download can expose IP to Hugging Face / its CDN as connection metadata, not image content.
 
 ---
 
 ## Notes to reviewer
 
-PNG Maker (package `rmbg`) is a Manifest V3 studio that removes backgrounds **on-device**.
+PNG Maker (`rmbg`) is a Manifest V3 toolbar entry that opens the first-party studio page. Background removal runs **on-device** there (Web Workers + ONNX Runtime).
 
-1. **No remotely hosted code.** JS and ORT `.wasm` / `.mjs` ship in the package under `assets/` and `ort/`. Workers are separate module files created with `new Worker(new URL(..., import.meta.url), { type: 'module' })`, not blob-URL workers.
-2. **Single network class of request:** one-time download of `.onnx` weights from a commit-pinned Hugging Face URL, then SHA-256 check, then Cache Storage. User images are never uploaded.
-3. **Minimal permissions:** only `storage` and `downloads`. No `tabs`, no content scripts, no broad host access.
-4. **CSP:** `script-src 'self' 'wasm-unsafe-eval'` (required for WebAssembly); `connect-src` narrowed to Hugging Face / HF CDN hosts used for the weight file.
-5. **Known `new Function(` string in the built worker / ORT glue:** comes from the official `onnxruntime-web` embind helper inside the bundled runtime. It is not used to load remote code; under the extension CSP such dynamic evaluation cannot pull network scripts. See the post-build check in `scripts/copy-ort-assets.mjs`.
-
-Happy to clarify any path in the ZIP package.
-
+1. No third-party remotely hosted app code; ORT comes from our studio origin (or historically from a full in-ZIP layout — update listing when packaging is final).
+2. Single third-party data fetch: commit-pinned `.onnx` + SHA-256.
+3. Content script only on the first-party studio origin (job bridge). Image import uses `activeTab`/`scripting`; optional host access is requested per image CDN origin when needed.
 ---
 
-## Pre-submit technical checklist (2026-08-03)
+## Pre-submit technical checklist (after Р-27)
 
-### Bundle audit (`npm run build` → `dist/`)
+### Extension (`npm run build` → `dist/`)
 
-| Check | Result |
+| Check | Expected |
 | --- | --- |
-| `eval(` in JS bundles | Not found |
-| `createObjectURL(new Blob([` worker pattern | Not found |
-| Workers as separate hashed files | Yes (`assets/segmentation.worker-*.js`, `assets/export.worker-*.js`) |
-| ORT loaded from package via `chrome.runtime.getURL('ort/')` | Yes |
-| `new Function(` | Present only in ORT embind glue (segmentation worker + `ort/*.mjs`) — documented exception |
-| External script / CDN imports for runtime | Not found |
-| Manifest permissions | `storage`, `downloads` only |
-| Package size (without `.onnx` weights) | ~24 MB (dominated by `ort-wasm-simd-threaded.asyncify.wasm`) |
+| Studio React / ORT in ZIP | No |
+| SW opens `STUDIO_WEB_URL` | Yes |
+| `host_permissions` for studio origin | Yes (required) |
+| Permissions | `storage`, `downloads`, `contextMenus`, `activeTab`, `scripting` + optional http(s) |
+| Content script | `studio-bridge.js` on studio origin only |
 
-### Network / isolation (as far as automatable without loading unpacked Chrome)
+### Web studio (`npm run build:web` → `dist-web/`)
 
-| Check | Result |
+| Check | Expected |
 | --- | --- |
-| HF resolve with `Origin: chrome-extension://…` | HTTP 302, `Access-Control-Allow-Origin` reflects the extension Origin |
-| HF CDN (`us.aws.cdn.hf.co`) after redirect | `Access-Control-Allow-Origin: *` on ranged GET |
-| Manifest COEP / COOP | `require-corp` + `same-origin` (enables `crossOriginIsolated` for SharedArrayBuffer / threaded WASM) |
-| `fetch` uses `mode: 'cors'` | Yes (`src/core/inference/model-loader.ts`) |
+| COOP/COEP at host | Yes |
+| ORT under `/ort/` | Yes |
+| Workers as separate module files | Yes |
+| Web `numThreads` | 1 |
 
-**Manual smoke test — done (2026-08-03):** loaded `dist` as an unpacked extension in a clean profile, opened the studio via the toolbar icon.
+### Historical audit (studio-in-package era, 2026-08-03)
 
-| Check | Result |
-| --- | --- |
-| `crossOriginIsolated` on the studio page | `true` |
-| `navigator.gpu` / backend badge | WebGPU detected, badge shows GPU |
-| First-run model download | Single request to `huggingface.co/SacredNoir/isnet-general-use-onnx/resolve/<pinned-commit>/isnet-general-use.onnx` (fp32 variant, matches WebGPU path) |
-| Downloaded file SHA-256 / size | `4c56bbc21588459dda11efba5a4a8ee163969da109ae170fb1988c1c2ea4a90a`, 176 213 804 bytes — matches the pinned reference in [07-build.md](../07-build.md) |
-| Cache Storage after download | `rmbg-models` cache holds exactly the one weight file; no other origins touched |
-| Storage quota | `navigator.storage.estimate()` — 176 MB used of ~10.9 GB quota |
-| UI render | Empty state, header (logo + GPU badge), Edge refinement / Exports panel all render as specified in [06-ui.md](../06-ui.md) |
-
-Not re-verified in this pass: `crossOriginIsolated` inside the segmentation worker itself (CDP session to the nested ORT thread-pool workers stalled; the main-thread isolation being `true` combined with a successful WebGPU warm-up is strong indirect evidence, but worth a direct check with real DevTools before submission if time allows).
+Reference only — package layout changed (Р-27). Full table of that day is preserved in git history of this file; results included successful COEP isolation, HF download, and GPU path smoke on unpacked `dist`.
 
 ---
 
 ## Store listing graphics
 
-Source templates and assets live under [`promo/`](../../promo/). Regenerate with `node promo/render.mjs` (headless Chrome + `sips`). Upload the files from `promo/out/`.
+Source under [`promo/`](../../promo/). Regenerate with `node promo/render.mjs`.
 
 | Dashboard field | File | Size |
 | --- | --- | --- |
 | Store icon | [`public/icons/icon-128.png`](../../public/icons/icon-128.png) | 128×128 |
-| Screenshot 1 | `promo/out/01-hero.png` | 1280×800 |
-| Screenshot 2 | `promo/out/02-edges.png` | 1280×800 |
-| Screenshot 3 | `promo/out/03-canvas.png` | 1280×800 |
-| Screenshot 4 | `promo/out/04-presets.png` | 1280×800 |
-| Screenshot 5 | `promo/out/05-privacy.png` | 1280×800 |
-| Small promo tile | `promo/out/tile-440.png` | 440×280 |
-| Marquee promo tile | `promo/out/marquee-1400.png` | 1400×560 |
-
-All rendered PNGs are opaque (no alpha), square-corner full-bleed, matching CWS image rules.
+| Screenshots | `promo/out/01-hero.png` … `05-privacy.png` | 1280×800 |
+| Small tile | `promo/out/tile-440.png` | 440×280 |
+| Marquee | `promo/out/marquee-1400.png` | 1400×560 |

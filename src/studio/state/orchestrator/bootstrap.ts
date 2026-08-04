@@ -19,6 +19,7 @@ import {
 } from './context';
 import { startModelPipeline } from './model';
 import { processAll } from './queue';
+import { notifyExtBridgeReady } from '../../ext-bridge';
 
 export async function bootstrap(): Promise<void> {
   const settings = await loadSettings();
@@ -68,4 +69,5 @@ export async function bootstrap(): Promise<void> {
   await startModelPipeline();
   // восстановленная очередь / stale — без кнопки «Обработать»
   void processAll();
+  notifyExtBridgeReady();
 }

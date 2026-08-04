@@ -1,4 +1,5 @@
 import * as ort from 'onnxruntime-web/webgpu';
+import { isWeb } from '../../platform/env';
 import type { Backend } from '../types';
 
 export type IsnetSession = {
@@ -12,9 +13,12 @@ export async function createSession(
   ortWasmDir: string,
 ): Promise<IsnetSession> {
   ort.env.wasm.wasmPaths = ortWasmDir;
-  ort.env.wasm.numThreads = self.crossOriginIsolated
-    ? Math.min(4, navigator.hardwareConcurrency || 1)
-    : 1;
+  // На web (особенно Vite dev) вложенные pthread-воркеры ORT часто зависают
+  // на dynamic import .mjs — один поток надёжнее. В extension threads ок.
+  ort.env.wasm.numThreads =
+    isWeb || !self.crossOriginIsolated
+      ? 1
+      : Math.min(4, navigator.hardwareConcurrency || 1);
 
   // ровно один провайдер: список ['webgpu','wasm'] дал бы неявный фолбэк,
   // при котором мы не узнаем о деградации и останемся на неподходящих весах

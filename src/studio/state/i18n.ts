@@ -152,6 +152,7 @@ const en = {
   errorCritical:
     'Could not start processing on GPU or CPU. This extension cannot run on this device.',
   errorProcessing: 'Processing failed. Retry this image or try again later.',
+  errorExtJob: 'Could not import the image from the page: {message}',
   warnQuota: 'Storage is nearly full. Export what is ready and start a new session.',
   warnNoPersist:
     'The browser denied persistent storage: the model may need to be downloaded again.',
@@ -324,6 +325,7 @@ const ru: Record<MessageKey, string> = {
   errorCritical:
     'Не удалось запустить обработку ни на GPU, ни на процессоре. Расширение не может работать на этом устройстве.',
   errorProcessing: 'Обработка не удалась. Повторите для этого изображения или позже.',
+  errorExtJob: 'Не удалось импортировать изображение со страницы: {message}',
   warnQuota: 'Хранилище почти заполнено. Экспортируйте готовое и начните новую сессию.',
   warnNoPersist:
     'Браузер не дал разрешения на постоянное хранение: модель может потребовать повторной загрузки.',

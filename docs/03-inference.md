@@ -25,13 +25,16 @@
 поэтому на квантованной модели значительная часть графа упадёт обратно на CPU и выигрыш от
 GPU потеряется. Обратно, fp32 на WASM работает, но в разы медленнее q8.
 
-Веса не входят в пакет расширения: скачиваются в рантайме с Hugging Face и кэшируются
-локально — см. раздел «Загрузка весов» ниже и Р-16 в [08-decisions.md](08-decisions.md).
+Веса не входят в пакет **расширения** и не лежат в git: скачиваются в рантайме
+**web-студии** с Hugging Face и кэшируются в Cache Storage origin студии —
+см. раздел «Загрузка весов» ниже и Р-16 / Р-27 в [08-decisions.md](08-decisions.md).
+ORT (`.wasm` / `.mjs`) отдаётся с origin студии (`dist-web/ort/`), не с HF.
 
 ## Выбор execution provider
 
 ```ts
 import * as ort from 'onnxruntime-web/webgpu';
+import { isWeb } from '../../platform/env';
 
 export type Backend = 'webgpu' | 'wasm';
 
@@ -51,9 +54,12 @@ export async function createSession(
   ortWasmDir: string,
 ) {
   ort.env.wasm.wasmPaths = ortWasmDir;
-  ort.env.wasm.numThreads = self.crossOriginIsolated
-    ? Math.min(4, navigator.hardwareConcurrency || 1)
-    : 1;
+  // web-target: always 1 thread (Vite nested pthread workers hang);
+  // extension + crossOriginIsolated: up to 4
+  ort.env.wasm.numThreads =
+    isWeb || !self.crossOriginIsolated
+      ? 1
+      : Math.min(4, navigator.hardwareConcurrency || 1);
 
   return ort.InferenceSession.create(modelBytes, {
     executionProviders: [backend],
@@ -122,8 +128,8 @@ https://huggingface.co/SacredNoir/isnet-general-use-onnx/resolve/<commit>/isnet-
 4. Проверить `crypto.subtle.digest('SHA-256', bytes)` против эталона. Потокового API нет —
    буфер держим целиком. При несовпадении — следующее зеркало; при исчерпании списка —
    состояние `Failed`.
-5. Записать в Cache Storage (`cache.put(url, new Response(bytes))`) и метаданные в
-   `chrome.storage.local` (см. [05-data-model.md](05-data-model.md)).
+5. Записать в Cache Storage (`cache.put(url, new Response(bytes))`) и метаданные
+   ассета в настройки через platform storage (см. [05-data-model.md](05-data-model.md)).
 6. Отдать байты в `createSession`.
 
 Отмена: `AbortController` на текущий `fetch`; кнопка в UI. Повтор при обрыве или офлайне —

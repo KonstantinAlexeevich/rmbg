@@ -1,6 +1,7 @@
 import { resolveExportPresets } from '../../../core/storage/settings';
 import { getItem } from '../../../core/storage/db';
 import { extensionForFormat } from '../../../core/image/encode';
+import { downloadBlob as platformDownloadBlob } from '../../../platform/download';
 import { t } from '../i18n';
 import { ExportWorkerClient } from '../workers';
 import { db, exportWorker, setExportWorker, store } from './context';
@@ -58,21 +59,9 @@ export async function downloadItem(id: string): Promise<void> {
 }
 
 async function downloadBlob(blob: Blob, filename: string, saveAs: boolean): Promise<void> {
-  const url = URL.createObjectURL(blob);
   try {
-    const downloadId = await chrome.downloads.download({ url, filename, saveAs });
-    // ранний revoke ломает скачивание больших архивов — ждём завершения
-    const listener = (delta: chrome.downloads.DownloadDelta) => {
-      if (delta.id !== downloadId) return;
-      const state = delta.state?.current;
-      if (state === 'complete' || state === 'interrupted') {
-        URL.revokeObjectURL(url);
-        chrome.downloads.onChanged.removeListener(listener);
-      }
-    };
-    chrome.downloads.onChanged.addListener(listener);
+    await platformDownloadBlob(blob, filename, saveAs);
   } catch (e) {
-    URL.revokeObjectURL(url);
     // отмена диалога сохранения не ошибка
     if (e instanceof Error && !e.message.includes('canceled')) {
       store.getState().addToast('error', e.message);

@@ -4,6 +4,7 @@ import { ensureModel } from '../../../core/inference/model-loader';
 import { canonicalUrl, variantForBackend } from '../../../core/inference/model-manifest';
 import { hasCachedModel } from '../../../core/storage/model-cache';
 import { saveSettings, type Settings } from '../../../core/storage/settings';
+import { assetUrl } from '../../../platform/assets';
 import { t } from '../i18n';
 import { SegmentationWorkerClient } from '../workers';
 import {
@@ -115,7 +116,7 @@ async function loadModelAndInit(
     const initResult = await worker.init(
       backend,
       outcome.asset.url,
-      chrome.runtime.getURL('ort/'),
+      assetUrl('ort/'),
       backend === 'webgpu',
     );
     setWorkerInited(true);

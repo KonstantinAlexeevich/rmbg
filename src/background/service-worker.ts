@@ -1,21 +1,54 @@
-// Единственная задача service worker в MV3: по клику на иконку открыть
-// или сфокусировать вкладку студии. Никакой обработки изображений здесь:
-// SW засыпает, и WebGPU в нём недоступен.
-const STUDIO_URL = chrome.runtime.getURL('studio.html');
+// Service worker MV3: открытие студии, контекстное меню, доставка jobs.
+// Обработки изображений здесь нет: SW засыпает, WebGPU недоступен.
+import {
+  deliverPendingJobsToStudio,
+  onContextMenuClicked,
+  openStudioTab,
+  rebuildContextMenus,
+  watchMenuExports,
+} from './context-menu';
+import { saveStudioOrigin } from './studio-origin';
+
+async function initSessionAccess(): Promise<void> {
+  // По умолчанию session storage недоступен content scripts.
+  try {
+    await chrome.storage.session.setAccessLevel({
+      accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS',
+    });
+  } catch {
+    // ignore — основной путь доставки: sendMessage с payload
+  }
+}
 
 chrome.action.onClicked.addListener(() => {
-  void openStudio();
+  void openStudioTab();
 });
 
-async function openStudio(): Promise<void> {
-  const tabs = await chrome.tabs.query({ url: STUDIO_URL });
-  const existing = tabs[0];
-  if (existing !== undefined && existing.id !== undefined) {
-    await chrome.tabs.update(existing.id, { active: true });
-    if (existing.windowId !== undefined) {
-      await chrome.windows.update(existing.windowId, { focused: true });
-    }
+chrome.runtime.onInstalled.addListener(() => {
+  void initSessionAccess();
+  void rebuildContextMenus();
+});
+
+void initSessionAccess();
+watchMenuExports();
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  void onContextMenuClicked(info, tab);
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type === 'png-maker:ping') {
+    sendResponse({ ok: true });
     return;
   }
-  await chrome.tabs.create({ url: STUDIO_URL });
-}
+  if (message?.type === 'png-maker:studio-ready' && typeof message.origin === 'string') {
+    void saveStudioOrigin(message.origin);
+    sendResponse({ ok: true });
+    return;
+  }
+  if (message?.type === 'png-maker:pull-jobs') {
+    const tabId = sender.tab?.id;
+    void deliverPendingJobsToStudio(tabId).then(() => sendResponse({ ok: true }));
+    return true;
+  }
+});
