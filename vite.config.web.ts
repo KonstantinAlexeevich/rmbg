@@ -1,5 +1,5 @@
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
-import { rename, rm } from 'node:fs/promises';
+import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { extname, join, resolve } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { defineConfig, type Connect, type Plugin, type PreviewServer, type ViteDevServer } from 'vite';
@@ -115,10 +115,31 @@ function flattenWebPages(): Plugin {
   };
 }
 
+/** Подставляет id кэша shell SW (версия пакета), чтобы после деплоя сбросить shell. */
+function stampServiceWorkerCache(): Plugin {
+  return {
+    name: 'rmbg:stamp-sw-cache',
+    apply: 'build',
+    async closeBundle() {
+      const swPath = resolve(import.meta.dirname, 'dist-web/sw.js');
+      if (!existsSync(swPath)) return;
+      const src = await readFile(swPath, 'utf8');
+      await writeFile(swPath, src.replaceAll('__SW_CACHE_ID__', pkg.version));
+    },
+  };
+}
+
 export default defineConfig({
   base: '/',
   define: appDefines,
-  plugins: [react(), tailwindcss(), prettyDevRoutes(), serveOrtAssets(), flattenWebPages()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    prettyDevRoutes(),
+    serveOrtAssets(),
+    flattenWebPages(),
+    stampServiceWorkerCache(),
+  ],
   build: {
     outDir: 'dist-web',
     emptyOutDir: true,

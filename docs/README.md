@@ -33,9 +33,9 @@ URL студии; в пакете остаются иконки, SW и стра�
 
 Модель permissions зафиксирована ([02-architecture.md](02-architecture.md),
 [cws/submission.md](cws/submission.md)): обязательный host только на origin студии;
-optional `http(s)://*/*` — пул для точечного grant при ПКМ. Перед подачей в стор —
-swap localhost → prod origin в `STUDIO_WEB_URL`, `host_permissions` и
-`content_scripts.matches`; дочистить listing (`description.md`) и URL политики.
+optional `http(s)://*/*` — пул для точечного grant при ПКМ. Origin студии на билде —
+`VITE_STUDIO_WEB_URL` (default localhost; стор: `.env.store` / `package:store`). Перед
+подачей — URL политики и listing (`description.md`).
 
 ## Инварианты, которые не нарушаем
 

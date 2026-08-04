@@ -1,0 +1,22 @@
+{
+  "extName": {
+    "message": "PNG Maker",
+    "description": "Extension name shown in the Chrome Web Store and chrome://extensions"
+  },
+  "extDescription": {
+    "message": "Try PNG Maker - a simple background remover. Create a transparent PNG with a clear background and save multiple images easily.",
+    "description": "Extension description for the Chrome Web Store listing"
+  },
+  "actionTitle": {
+    "message": "Open PNG Maker",
+    "description": "Toolbar button tooltip"
+  },
+  "menuAdd": {
+    "message": "Add to PNG Maker",
+    "description": "Context menu: add image to the studio session"
+  },
+  "menuSave": {
+    "message": "Save without background",
+    "description": "Context menu parent: silent export without opening the studio UI"
+  }
+}

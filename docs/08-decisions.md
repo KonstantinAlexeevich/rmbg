@@ -173,9 +173,10 @@ code. `.onnx` — файл данных. Прецедент — Transformers.js 
 ## Р-22. Терминология UI: профессиональные термины, EN-first
 
 Подписи в интерфейсе — отраслевые термины (Photoshop Select → Modify, Lightroom Export,
-Figma), а не описания действий. Расшифровка уходит в тултип. Английский словарь —
-первоисточник; русский — перевод. Локаль по умолчанию определяется из
-`navigator.language` с фолбэком на `en`. Иконки — lucide-react; правило системы:
+Figma), а не описания действий. Расшифровка уходит в тултип. Английский словарь
+`locales/studio/en.json` — первоисточник; русский — `locales/studio/ru.json`; runtime —
+`src/studio/state/i18n.ts`. Локаль по умолчанию определяется из `navigator.language` с
+фолбэком на `en` (переключателя языка нет). Иконки — lucide-react; правило системы:
 карандаш = переименование текста, слайдеры = настройки. Глоссарий —
 [09-glossary.md](09-glossary.md).
 
@@ -221,13 +222,13 @@ Link2Off переключает режим «все стороны одинак�
 
 - отдельная Vite-сборка `dist-web` (`dev:web` / `build:web`), COOP/COEP headers;
 - extension `dist` без React/ORT — только SW + CS + about + icons;
-- SW открывает `STUDIO_WEB_URL` (`http://localhost:5173/`);
+- SW открывает `STUDIO_WEB_URL` из `VITE_STUDIO_WEB_URL` (default localhost);
 - `src/platform/*` — storage / download / assets / env (`VITE_APP_TARGET`);
 - monorepo-пакеты не вводим: один repo, две цели сборки;
 - web: `numThreads = 1` — pthread ORT зависает в Vite-dev на nested workers;
 - absolute URL для `ort/` — иначе dynamic import в dev ломается.
 
-Не в этом шаге (открыто): popup-экспорт, прод-деплой + swap studio origin в манифесте,
+Не в этом шаге (открыто): popup-экспорт, прод-деплой + `.env.store`,
 npm-библиотека studio.
 
 Открытые риски split: listing CWS/`description.md` ещё не продаёт ПКМ; квоты
@@ -241,8 +242,8 @@ IndexedDB/Cache — на origin **сайта**, не extension; настройк
 
 - Permissions (модель не пересматриваем при смене домена студии):
   - обязательные: `storage`, `contextMenus`, `activeTab`, `scripting`;
-  - `host_permissions` — **только** origin студии (dev: localhost; prod: публичный
-    HTTPS) — совпадает с `content_scripts.matches` и `STUDIO_WEB_URL`;
+  - `host_permissions` — **только** origin студии из `VITE_STUDIO_WEB_URL` (совпадает с
+    `content_scripts.matches`; в `dist/manifest.json` пишет плагин сборки);
   - `optional_host_permissions`: `http://*/*`, `https://*/*` — пул; при ПКМ Chrome
     спрашивает конкретный origin картинки, не весь интернет при установке.
 - Extract:
@@ -257,7 +258,8 @@ IndexedDB/Cache — на origin **сайта**, не extension; настройк
   - **Add** — `openStudioTab({ focus: true })`, обычная карточка;
   - **Save** — `focus: false`, item `ephemeral` (не в гриде), compose выбранного
     экспорта, `downloadItem` с `saveAs: false`, затем удаление item.
-- Локаль пунктов меню — `chrome.i18n.getUILanguage()`, не `settings.ui.locale` студии.
+- Локаль пунктов меню — Chrome `_locales` + `chrome.i18n.getMessage` (язык UI браузера),
+  не `settings.ui.locale` студии.
 - Permission `downloads` не нужен: save делает web-адаптер студии.
 
 ## Риски
@@ -298,3 +300,22 @@ IndexedDB/Cache — на origin **сайта**, не extension; настройк
 - Квота origin (IndexedDB + Cache Storage). Пользователь с несколькими большими сессиями
   упрётся в лимит, плюс веса делят ту же квоту. Смягчение: `navigator.storage.estimate()`,
   предупреждение, удаление старых сессий.
+
+## Р-29. Студия как installable PWA (2026-08)
+
+Web-студия уже на своём HTTPS/localhost origin (Р-27) — добавляем минимальный PWA-слой,
+чтобы пользователь мог «установить» приложение из браузера (standalone окно), без
+замены thin extension.
+
+- `public/manifest.webmanifest` + иконки 192/512; link/meta в `src/studio/index.html`.
+- Shell service worker `public/sw.js`: precache shell, network-first для navigations,
+  cache-first для same-origin `/assets/` и `/ort/`; **не** перехватывает `.onnx`
+  (кэш весов остаётся в приложении, Р-17).
+- При отдаче HTML из SW снова выставляются COOP/COEP (Р-08), иначе offline shell
+  потерял бы `crossOriginIsolated`.
+- Регистрация только в production web (`register-sw.ts`); в dev HMR не трогаем.
+- Из пакета расширения `manifest.webmanifest` / `sw.js` вычищаются post-build —
+  это не MV3 background.
+
+Ограничение: установленная PWA не даёт context menu / action icon; для этого по-прежнему
+нужно расширение. Первый запуск с весами по-прежнему требует сеть.

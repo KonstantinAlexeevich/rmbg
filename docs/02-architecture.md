@@ -8,10 +8,11 @@
 | **Расширение** | `vite.config.ts` → `dist/` | service worker, studio-bridge CS, about, icons, manifest |
 
 Студия **не** открывается как `chrome-extension://…/studio.html`. Service worker
-открывает URL web-студии — сейчас `http://localhost:5173/` (`STUDIO_WEB_URL` в
-`src/platform/studio-url.ts`). **Add to PNG Maker** фокусирует вкладку; **Save without
-background** открывает/использует вкладку без фокуса. Прод-домен: тот же URL + совпадающие
-`host_permissions` / `content_scripts.matches` (см. раздел permissions ниже).
+открывает URL web-студии — по умолчанию `http://localhost:5173/` (`VITE_STUDIO_WEB_URL` →
+`STUDIO_WEB_URL` в `src/platform/studio-url.ts`). **Add to PNG Maker** фокусирует вкладку;
+**Save without background** открывает/использует вкладку без фокуса. Прод: тот же env на
+сборке расширения подставляет URL и совпадающие `host_permissions` /
+`content_scripts.matches` (см. раздел permissions и [07-build.md](07-build.md)).
 
 Shared-код (`src/core`, `src/studio`, `src/workers`, `src/platform`, `src/shared`) общий;
 границы npm-пакетов и monorepo пока не вводим.
@@ -25,7 +26,8 @@ Shared-код (`src/core`, `src/studio`, `src/workers`, `src/platform`, `src/sha
   `chrome.runtime` ↔ `window.postMessage` (jobs + синк имён экспортов для меню).
 - **Страница студии** (origin web-приложения). React: сессия, UI, очередь, IndexedDB,
   platform-адаптеры storage/download/assets, fetch весов, приём jobs из bridge;
-  скачивание файлов (включая silent Save) — здесь.
+  скачивание файлов (включая silent Save) — здесь. Production: installable PWA
+  (`manifest.webmanifest` + shell `sw.js`); не заменяет Chrome-расширение (ПКМ / иконка).
 - **Воркер сегментации** (`segmentation.worker.ts`). `InferenceSession`, decode, model run, mask / compose.
 - **Воркер экспорта** (`export.worker.ts`). ZIP через fflate.
 - **About** — `about.html`: в web-сборке на том же origin; в extension-сборке остаётся
@@ -43,7 +45,7 @@ Chrome-специфика не размазана по UI/core. Флаг сбо�
 | настройки | `chrome.storage.local` | `localStorage` (префикс `rmbg:`) |
 | скачивание файлов | `chrome.downloads` (ветка в коде; в thin package не используется) | File System Access / `<a download>` |
 | URL статики | `chrome.runtime.getURL` | `new URL(..., origin)` (абсолютный; нужен ORT) |
-| URL студии | константа `STUDIO_WEB_URL` | — |
+| URL студии | `VITE_STUDIO_WEB_URL` → `STUDIO_WEB_URL` | — |
 
 ## Диаграмма контекстов
 
@@ -112,15 +114,19 @@ sequenceDiagram
 
 ## Манифест расширения и permissions
 
-Модель доступов **зафиксирована** для thin package + hosted studio. Меняется только
-конкретный origin студии (dev → prod), не набор полей.
+Модель доступов **зафиксирована** для thin package + hosted studio. Конкретный origin
+студии задаётся **на билде** через `VITE_STUDIO_WEB_URL` (default localhost) — один
+источник для `STUDIO_WEB_URL`, `host_permissions` и `content_scripts.matches`
+(плагин `rmbg:inject-studio-origin` в `vite.config.ts`). `public/manifest.json` в репо
+держит localhost как шаблон структуры; в `dist/manifest.json` после сборки — фактический
+origin.
 
-Сейчас (dev) в `public/manifest.json` и `STUDIO_WEB_URL` — `http://localhost:5173`.
-Для CWS / прод: один и тот же публичный origin в трёх местах:
+Примеры:
 
-1. `STUDIO_WEB_URL` (`src/platform/studio-url.ts`);
-2. `host_permissions`;
-3. `content_scripts[].matches`.
+- локально: `npm run build` / `npm run dev` → `http://localhost:5173/`
+- стор: скопировать `.env.store.example` → `.env.store`, подставить домен,
+  `npm run package:store` (mode `store`)
+- разово: `VITE_STUDIO_WEB_URL=https://app.example.com/ npm run package`
 
 ```json
 {
@@ -196,7 +202,7 @@ fetch идёт со страницы студии. Если у HF пропадё
 
 ## Открытые вопросы
 
-- Прод-домен и деплой `dist-web`; swap `STUDIO_WEB_URL` + `host_permissions` +
-  `content_scripts.matches` (permissions-модель уже не меняется).
+- Прод-домен и деплой `dist-web`; для extension — `.env.store` /
+  `VITE_STUDIO_WEB_URL` (см. [07-build.md](07-build.md)).
 - Вернуть ли ORT threads на web production после проверки preview/CDN.
 - Listing CWS (`description.md`) — маркетинг ПКМ / silent Save.

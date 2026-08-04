@@ -1,0 +1,22 @@
+{
+  "extName": {
+    "message": "PNG Maker",
+    "description": "Extension name shown in the Chrome Web Store and chrome://extensions"
+  },
+  "extDescription": {
+    "message": "PNG Maker — простое удаление фона. Создавайте прозрачный PNG и сохраняйте несколько изображений за раз.",
+    "description": "Extension description for the Chrome Web Store listing"
+  },
+  "actionTitle": {
+    "message": "Открыть PNG Maker",
+    "description": "Toolbar button tooltip"
+  },
+  "menuAdd": {
+    "message": "Добавить в PNG Maker",
+    "description": "Context menu: add image to the studio session"
+  },
+  "menuSave": {
+    "message": "Сохранить без фона",
+    "description": "Context menu parent: silent export without opening the studio UI"
+  }
+}

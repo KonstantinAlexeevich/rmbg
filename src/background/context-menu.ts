@@ -17,24 +17,6 @@ import {
 } from './extract-image';
 import { deliverPendingJobsToStudio, openStudioTab } from './delivery';
 
-function menuLocale(): 'ru' | 'en' {
-  const lang = chrome.i18n.getUILanguage().toLowerCase();
-  return lang.startsWith('ru') ? 'ru' : 'en';
-}
-
-function labels(locale: 'ru' | 'en'): { add: string; save: string } {
-  if (locale === 'ru') {
-    return {
-      add: 'Добавить в PNG Maker',
-      save: 'Сохранить без фона',
-    };
-  }
-  return {
-    add: 'Add to PNG Maker',
-    save: 'Save without background',
-  };
-}
-
 async function isStudioDocumentUrl(url: string): Promise<boolean> {
   if (url === '') return false;
   const origin = await resolveStudioOrigin();
@@ -50,21 +32,19 @@ export function rebuildContextMenus(): Promise<void> {
 
 async function rebuildContextMenusNow(): Promise<void> {
   await chrome.contextMenus.removeAll();
-  const locale = menuLocale();
-  const text = labels(locale);
   const exports = await loadMenuExports();
   const seen = new Set<string>();
   const documentUrlPatterns = contextMenuDocumentUrlPatterns();
 
   await createMenu({
     id: MENU_ADD,
-    title: text.add,
+    title: chrome.i18n.getMessage('menuAdd'),
     contexts: ['image'],
     documentUrlPatterns,
   });
   await createMenu({
     id: MENU_SAVE_PARENT,
-    title: text.save,
+    title: chrome.i18n.getMessage('menuSave'),
     contexts: ['image'],
     documentUrlPatterns,
   });

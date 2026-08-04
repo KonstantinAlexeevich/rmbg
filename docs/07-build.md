@@ -16,9 +16,16 @@ CRXJS и подобные не используем. Манифест стати
 ```
 rmbg/
   docs/
+  locales/
+    studio/
+      en.json                 → bundled into web studio
+      ru.json
   public/
-    manifest.json             → dist/ (extension)
-    icons/                    → dist/ и dist-web/
+    manifest.json             → dist/ (extension); name/description via __MSG_*__
+    manifest.webmanifest      → dist-web/ (PWA install)
+    sw.js                     → dist-web/ (studio shell service worker)
+    _locales/{en,ru}/         → dist/_locales/ (Chrome i18n)
+    icons/                    → dist/ и dist-web/ (в т.ч. 192/512 для PWA)
   scripts/
     fetch-models.mjs
     copy-ort-assets.mjs       arg: dist | dist-web
@@ -64,21 +71,33 @@ rmbg/
 - Headers COOP + COEP на `server` и `preview`.
 - Dev: middleware `/ort/*` из `node_modules/onnxruntime-web/dist`; pretty routes `/` → studio, `/about.html` → about.
 - `public/manifest.json` из `dist-web` удаляется post-build (нужен только расширению).
+- **PWA:** `public/manifest.webmanifest` + `public/sw.js` + иконки 192/512; регистрация SW
+  только в `import.meta.env.PROD` (`src/studio/register-sw.ts`). Shell-кэш stamp’ится
+  версией пакета (`__SW_CACHE_ID__` → `package.json` version). Веса `.onnx` SW не кэширует
+  (отдельный Cache Storage в приложении).
 - Workers: `worker.format: 'es'`.
 
 ### Extension (`vite.config.ts`)
 
 | Script | Назначение |
 | --- | --- |
-| `dev` | `vite build --watch` → `dist/` |
-| `build` | `tsc` + vite build (без ORT copy — студии/ORT в пакете нет) |
-| `package` | zip `dist/` → `rmbg.zip` |
+| `dev` | `vite build --watch` → `dist/` (studio URL = default localhost) |
+| `build` | `tsc` + vite build |
+| `build:store` | то же с `--mode store` (читает `.env.store`) |
+| `package` / `package:store` | zip `dist/` → `rmbg.zip` |
 
 - Entries: service-worker, studio-bridge, about.
-- `define`: `VITE_APP_TARGET=extension`.
+- `define`: `VITE_APP_TARGET=extension`, `VITE_APP_VERSION`, **`VITE_STUDIO_WEB_URL`**.
+- URL студии: env `VITE_STUDIO_WEB_URL` (CLI / `.env` / `.env.[mode]`), иначе
+  `http://localhost:5173/`. Нормализация в `scripts/studio-url.ts`. В лог сборки:
+  `[rmbg] extension build: studio → …`.
+- Плагин `inject-studio-origin` пишет тот же origin в `dist/manifest.json`
+  (`host_permissions` + `content_scripts.matches`). `public/manifest.json` не править
+  руками под прод.
 - Content script `studio-bridge.js` после vite **пересобирается esbuild в один IIFE**
-  (без `import` shared-чанков): манифест грузит CS как классический скрипт.
-- Пакет: `service-worker.js`, `studio-bridge.js`, `about.html`, assets about, icons, manifest. **Без** React-студии и `ort/`.
+  (без `import` shared-чанков); те же `define`, что у Vite.
+- Пакет: `service-worker.js`, `studio-bridge.js`, `about.html`, assets about, icons,
+  manifest, `_locales/`. **Без** React-студии, `ort/`, `manifest.webmanifest`, `sw.js`.
 
 ## Особенности
 
@@ -94,7 +113,8 @@ rmbg/
 
 ## Скрипты npm
 
-- `dev` / `build` / `package` — extension
+- `dev` / `build` / `package` — extension (localhost studio)
+- `build:store` / `package:store` — extension под прод URL (`.env.store`)
 - `dev:web` / `build:web` / `preview:web` — studio site
 - `models`, `typecheck`, `lint`, `format`
 
@@ -110,16 +130,20 @@ rmbg/
 
 Если порт 5173 занят — остановить прежний `dev:web` (`lsof -ti :5173 | xargs kill`).
 
-Preview web (`preview:web` на 4173) SW **по умолчанию не открывает**: поменять
-`STUDIO_WEB_URL` **и** совпадающие `host_permissions` / `content_scripts.matches` в
-`public/manifest.json`, затем пересобрать extension.
+Preview web (`preview:web` на 4173) для SW:
+
+```bash
+VITE_STUDIO_WEB_URL=http://localhost:4173/ npm run build
+```
+
+(или временный `.env` / `.env.local` — в gitignore).
 
 ## Публикация (состояние после split)
 
 - Extension ZIP **тонкий** (SW + studio-bridge CS + about + icons; без React/ORT).
-- Перед CWS: задеплоить `dist-web` с COOP/COEP; в extension-сборке выставить prod
-  origin в `STUDIO_WEB_URL`, `host_permissions`, `content_scripts.matches` (одинаковый
-  origin; optional `http(s)://*/*` не трогать).
+- Перед CWS: задеплоить `dist-web` с COOP/COEP; для ZIP —
+  `cp .env.store.example .env.store`, прописать прод URL, `npm run package:store`.
+  Либо разово: `VITE_STUDIO_WEB_URL=https://… npm run package`.
 - Обоснования permissions / remote code / privacy — [cws/submission.md](cws/submission.md),
   [cws/privacy.md](cws/privacy.md); listing (`description.md`) — маркетинг ПКМ.
 - Лицензии: `LICENSES.md`, about page.

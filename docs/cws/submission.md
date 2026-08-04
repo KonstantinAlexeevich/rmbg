@@ -63,10 +63,12 @@ tab and so the declared content script matches that page.
 
 | Stage | Value |
 | --- | --- |
-| Dev (current) | `http://localhost:5173/*` |
-| Prod (before CWS) | `https://<public-studio-host>/*` |
+| Dev (default build) | `http://localhost:5173/*` |
+| Prod (`build:store` / `VITE_STUDIO_WEB_URL`) | `https://<public-studio-host>/*` |
 
-Must stay in sync with `STUDIO_WEB_URL` and `content_scripts[].matches`.
+Baked at extension build time from `VITE_STUDIO_WEB_URL` into `STUDIO_WEB_URL` and
+`dist/manifest.json` (`host_permissions` + `content_scripts.matches`). Do not hand-edit
+`public/manifest.json` for store.
 
 ### Optional host permissions
 
@@ -114,8 +116,8 @@ Background removal runs **on-device** there (Web Workers + ONNX Runtime).
 | Check | Expected |
 | --- | --- |
 | Studio React / ORT in ZIP | No |
-| SW opens `STUDIO_WEB_URL` | Yes (prod URL for store build) |
-| `host_permissions` | Studio origin only (prod HTTPS, not localhost) |
+| SW opens `STUDIO_WEB_URL` | Yes (`VITE_STUDIO_WEB_URL` for store build) |
+| `host_permissions` | Studio origin only (injected from same env) |
 | `content_scripts.matches` | Same studio origin |
 | `optional_host_permissions` | `http://*/*`, `https://*/*` (runtime per-origin grant) |
 | Permissions | `storage`, `contextMenus`, `activeTab`, `scripting` |

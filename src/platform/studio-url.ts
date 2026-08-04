@@ -1,5 +1,16 @@
-/** Локальный URL web-студии. Позже заменится на прод-домен. */
-export const STUDIO_WEB_URL = 'http://localhost:5173/';
+/** URL web-студии: задаётся на билде через VITE_STUDIO_WEB_URL (см. vite.config.ts). */
+
+const DEFAULT_STUDIO_WEB_URL = 'http://localhost:5173/';
+
+function normalizeStudioWebUrl(raw: string): string {
+  const trimmed = raw.trim();
+  const withSlash = trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
+  return new URL(withSlash).href;
+}
+
+export const STUDIO_WEB_URL = normalizeStudioWebUrl(
+  import.meta.env.VITE_STUDIO_WEB_URL || DEFAULT_STUDIO_WEB_URL,
+);
 
 /** Маркер на <html> студии: CS и скрытие ПКМ опираются на него + origin. */
 export const STUDIO_MARKER_ATTR = 'data-png-maker-studio';
