@@ -25,7 +25,7 @@ const resultThumbUrls = new Map<string, string>();
 
 export let visibleIds = new Set<string>();
 
-/** itemId → presetId: после compose скачать результат этого экспорта (ПКМ «Save with export»). */
+/** itemId → presetId: после compose скачать результат этого экспорта (ПКМ «Save without background»). */
 const autoDownloadPresetByItem = new Map<string, string>();
 
 /** Тихий импорт: не показывать в UI, удалить после download/fail. */

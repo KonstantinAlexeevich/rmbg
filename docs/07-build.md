@@ -24,15 +24,19 @@ rmbg/
     copy-ort-assets.mjs       arg: dist | dist-web
   src/
     platform/                 env, assets, storage, download, studio-url, base64
+    shared/                   ext-protocol (SW ↔ CS ↔ page)
     background/
-      service-worker.ts       opens studio, context menus, jobs
+      service-worker.ts       opens studio, wires menus/delivery
       context-menu.ts
+      delivery.ts             openStudioTab, deliver jobs
+      extract-image.ts
       jobs.ts
+      studio-origin.ts
     content/
       studio-bridge.ts        CS on studio origin only
-      bridge-protocol.ts
     studio/                   React studio (web entry)
       ext-bridge.ts           page side of CS bridge
+      ext-sync.ts
     legal/                    about (web + extension entries)
     core/
       inference/
@@ -72,6 +76,8 @@ rmbg/
 
 - Entries: service-worker, studio-bridge, about.
 - `define`: `VITE_APP_TARGET=extension`.
+- Content script `studio-bridge.js` после vite **пересобирается esbuild в один IIFE**
+  (без `import` shared-чанков): манифест грузит CS как классический скрипт.
 - Пакет: `service-worker.js`, `studio-bridge.js`, `about.html`, assets about, icons, manifest. **Без** React-студии и `ort/`.
 
 ## Особенности
@@ -105,11 +111,15 @@ rmbg/
 Если порт 5173 занят — остановить прежний `dev:web` (`lsof -ti :5173 | xargs kill`).
 
 Preview web (`preview:web` на 4173) SW **по умолчанию не открывает**: поменять
-`STUDIO_WEB_URL` и пересобрать extension.
+`STUDIO_WEB_URL` **и** совпадающие `host_permissions` / `content_scripts.matches` в
+`public/manifest.json`, затем пересобрать extension.
 
 ## Публикация (состояние после split)
 
-- Extension ZIP сейчас **тонкий** (без ORT ~24 МБ эпохи «всё в пакете»). CWS-тексты в
-  [cws/](cws/) требуют обновления перед подачей.
-- Web-студию деплоить отдельно (`dist-web`) с COOP/COEP на edge.
+- Extension ZIP **тонкий** (SW + studio-bridge CS + about + icons; без React/ORT).
+- Перед CWS: задеплоить `dist-web` с COOP/COEP; в extension-сборке выставить prod
+  origin в `STUDIO_WEB_URL`, `host_permissions`, `content_scripts.matches` (одинаковый
+  origin; optional `http(s)://*/*` не трогать).
+- Обоснования permissions / remote code / privacy — [cws/submission.md](cws/submission.md),
+  [cws/privacy.md](cws/privacy.md); listing (`description.md`) — маркетинг ПКМ.
 - Лицензии: `LICENSES.md`, about page.

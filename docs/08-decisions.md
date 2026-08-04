@@ -51,10 +51,12 @@ WebGPU-бэкенд ORT не покрывает операторы динами�
 
 ## Р-08. Cross-origin isolation (COOP/COEP)
 
-Ключи `cross_origin_embedder_policy` и `cross_origin_opener_policy` в **manifest**
-дают isolation для extension pages (about). Для **web-студии** те же политики —
-HTTP-заголовки Vite `server`/`preview` и позже reverse-proxy на проде. Isolation
-нужна для `SharedArrayBuffer`; на web target threads ORT всё равно 1 (Р-27).
+Нужна для `SharedArrayBuffer` / ORT. После Р-27 студия на web origin: COOP/COEP задаются
+**HTTP-заголовками** Vite `server`/`preview` (и позже reverse-proxy), не ключами манифеста.
+
+Ключи `cross_origin_embedder_policy` / `cross_origin_opener_policy` в manifest
+**убраны** из thin package: extension pages (about) isolation не требуют; ORT в ZIP нет.
+На web target threads ORT всё равно 1 (Р-27).
 
 ## Р-09. Фон в v1 — только прозрачный и однотонный
 
@@ -107,16 +109,18 @@ HTTP-заголовки Vite `server`/`preview` и позже reverse-proxy на
 
 ## Р-16. Веса скачиваются в рантайме, а не лежат в пакете (отменяет Р-03)
 
+> Часть формулировок про «ORT wasm в пакете расширения» **superseded Р-27**: runtime ORT
+> живёт на origin web-студии (`dist-web/ort/`); thin extension ORT не содержит.
+
 Пакет с двумя файлами весов — около 220 МБ. Это качается не только при установке, но и при
 каждом обновлении расширения; проверка в Chrome Web Store для такого размера уходит на
 ручной разбор и занимает недели. Цена Р-03 — мгновенный офлайн-старт — оказалась ниже
 цены тяжёлого пакета.
 
-Веса уезжают на Hugging Face (пин на конкретный коммит). Расширение при открытии студии
+Веса уезжают на Hugging Face (пин на конкретный коммит). Студия при открытии
 определяет бэкенд, понимает, какой из двух файлов нужен, смотрит в кэш и при промахе
-качает фоном. ORT и `.wasm` остаются в пакете: запрет MV3 на remotely hosted code касается
-исполняемого кода, а `.onnx` — файл данных. Прецедент — расширения на Transformers.js,
-которые качают модели с HF и проходят ревью, зашив рантайм локально.
+качает фоном. Исполняемый ORT / `.wasm` — на origin студии (Р-27), не с CDN как remote
+code. `.onnx` — файл данных. Прецедент — Transformers.js + HF.
 
 Цена: состояние «модель ещё не готова» со всеми ветками UI, первый запуск без сети
 нерабочий, IP пользователя раскрывается хосту. Это осознанный компромисс.
@@ -212,46 +216,61 @@ Link2Off переключает режим «все стороны одинак�
 
 ## Р-27. Web-студия + thin extension (2026-08)
 
-Цель: хостить студию на домене, из расширения открывать URL; позже — мост «добавить
-изображение / сохранить с пресетом». На первом шаге:
+Цель: хостить студию на домене, из расширения открывать URL; мост «добавить изображение /
+сохранить с пресетом» — Р-28.
 
 - отдельная Vite-сборка `dist-web` (`dev:web` / `build:web`), COOP/COEP headers;
-- extension `dist` без React/ORT — только SW + about + icons;
+- extension `dist` без React/ORT — только SW + CS + about + icons;
 - SW открывает `STUDIO_WEB_URL` (`http://localhost:5173/`);
 - `src/platform/*` — storage / download / assets / env (`VITE_APP_TARGET`);
 - monorepo-пакеты не вводим: один repo, две цели сборки;
 - web: `numThreads = 1` — pthread ORT зависает в Vite-dev на nested workers;
 - absolute URL для `ort/` — иначе dynamic import в dev ломается.
 
-Не в этом шаге: ~~messaging extension↔site~~ (сделано в Р-28), popup-экспорт, прод-деплой,
+Не в этом шаге (открыто): popup-экспорт, прод-деплой + swap studio origin в манифесте,
 npm-библиотека studio.
 
-Открытые риски split: тексты CWS/privacy устарели относительно thin package; квоты
+Открытые риски split: listing CWS/`description.md` ещё не продаёт ПКМ; квоты
 IndexedDB/Cache — на origin **сайта**, не extension; настройки web не в
-`chrome.storage` (в меню уходит только список id/name экспортов — Р-28).
+`chrome.storage` (в меню уходит только список id/name экспортов — Р-28). Permissions
+модель (studio host + optional pool) — закрыта, см. Р-28.
 
 ## Р-28. Контекстное меню + studio-only bridge (2026-08)
 
-ПКМ по картинке: «Add to PNG Maker» / «Save with export» (submenu имён экспортов).
+ПКМ по картинке: «Add to PNG Maker» / «Save without background» (submenu имён экспортов).
 
-- `contextMenus` + `activeTab`/`scripting`: картинка читается во вкладке клика (не SW-fetch
-  на весь интернет). Optional host permissions — точечный запрос origin CDN при необходимости.
-  Job → студия через sendMessage.
-- Content script `studio-bridge.js` **только** на origin студии: `postMessage` jobs
-  странице; страница синкает `{id,name}` экспортов в `chrome.storage.local` для меню.
-- Обработка и скачивание — в web-студии (тот же queue/compose); «Save with export»
-  помечает item для compose выбранного экспорта и автоскачивания после `done`.
+- Permissions (модель не пересматриваем при смене домена студии):
+  - обязательные: `storage`, `contextMenus`, `activeTab`, `scripting`;
+  - `host_permissions` — **только** origin студии (dev: localhost; prod: публичный
+    HTTPS) — совпадает с `content_scripts.matches` и `STUDIO_WEB_URL`;
+  - `optional_host_permissions`: `http://*/*`, `https://*/*` — пул; при ПКМ Chrome
+    спрашивает конкретный origin картинки, не весь интернет при установке.
+- Extract:
+  - `data:` — в SW;
+  - `blob:` — inject во вкладке клика;
+  - `http(s):` — `permissions.request` на origin картинки **синхронно при клике**
+    (до любого `await`), затем `fetch` в SW.
+- Job → `chrome.storage.session` → `tabs.sendMessage` → CS → `postMessage` странице.
+- Content script `studio-bridge.js` **только** на origin студии; страница синкает
+  `{id,name}` экспортов в `chrome.storage.local` для submenu.
+- Обработка и скачивание — в web-студии (тот же queue/compose):
+  - **Add** — `openStudioTab({ focus: true })`, обычная карточка;
+  - **Save** — `focus: false`, item `ephemeral` (не в гриде), compose выбранного
+    экспорта, `downloadItem` с `saveAs: false`, затем удаление item.
 - Локаль пунктов меню — `chrome.i18n.getUILanguage()`, не `settings.ui.locale` студии.
+- Permission `downloads` не нужен: save делает web-адаптер студии.
 
 ## Риски
 
 - Ревьюер Chrome Web Store может счесть граф `.onnx` логикой (remotely hosted code), а не
-  данными. Смягчение: в обосновании явно пишем, что исполняемый код (JS, WASM) целиком в
-  пакете; `connect-src` сужен до Hugging Face; прецеденты Transformers.js.
-- CORS через редирект Hugging Face (`resolve` → CDN). Спайк (июль 2026): ACAO есть и на
-  resolve (отражение Origin), и на `us.aws.cdn.hf.co` (`*`); `host_permissions` не нужны.
-  Остаточный риск — смена схемы CDN у HF или исчезновение ACAO. Смягчение: запасная
-  ветка с `host_permissions`; суженный `connect-src` уже учитывает `*.aws.cdn.hf.co`.
+  данными. Смягчение: исполняемый код (JS, WASM ORT) с first-party studio origin
+  (`dist-web`); в ZIP расширения его нет; `.onnx` — data file + SHA-256; см.
+  [cws/submission.md](cws/submission.md).
+- CORS через редирект Hugging Face (`resolve` → CDN) — запрос **со страницы студии**,
+  не через extension `host_permissions`. Спайк (июль 2026): ACAO есть и на resolve
+  (отражение Origin), и на `us.aws.cdn.hf.co` (`*`). Остаточный риск — смена схемы CDN
+  или исчезновение ACAO. Смягчение: зеркало / прокси весов на своём origin студии;
+  **не** добавлять HF в манифест расширения.
 - Вытеснение кэша браузером и повторные 176 МБ. Смягчение: `navigator.storage.persist()`,
   отдельный текст в UI «модель удалена браузером, нужно скачать снова».
 - Первый запуск без сети нерабочий. Смягчение: честная ошибка с кнопкой «Повторить», без
@@ -267,9 +286,9 @@ IndexedDB/Cache — на origin **сайта**, не extension; настройк
 - Нехватка видеопамяти на слабых GPU при больших изображениях. Смягчение:
   последовательная очередь, освобождение ресурсов после каждой задачи, ретрай на WASM для
   конкретного изображения.
-- Отказ Chrome Web Store из-за «remotely hosted code» в собранном бандле. Типовая причина —
-  сборщик генерирует загрузку воркера или wasm через blob/URL. Смягчение: проверка
-  собранного бандла на такие конструкции до подачи.
+- Отказ Chrome Web Store из-за «remotely hosted code». Для thin package: ORT/JS студии
+  с first-party deploy; в ZIP нет бандла воркеров/wasm. Риск остаётся у web-сборки
+  (blob:/dynamic worker URL) — проверять `dist-web` до деплоя.
 - Расхождение препроцессинга с эталоном. Неверная нормализация даёт «почти работающую»
   маску, которую легко принять за особенность модели.
 - Поля letterbox — вход, которого модель не видела при обучении (эталонный конвейер

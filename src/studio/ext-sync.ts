@@ -1,7 +1,7 @@
 import {
   BRIDGE_SOURCE,
   type BridgeFromPage,
-} from '../content/bridge-protocol';
+} from '../shared/ext-protocol';
 import type { Settings } from '../core/storage/settings';
 
 function postToBridge(message: BridgeFromPage): void {

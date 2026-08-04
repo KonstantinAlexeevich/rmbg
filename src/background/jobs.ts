@@ -1,48 +1,31 @@
-/** Jobs от контекстного меню → студия через session storage + content script. */
+/** Jobs от контекстного меню → студия через session storage. */
 
-export type MenuExport = { id: string; name: string };
+import {
+  EXT_JOBS_KEY,
+  MENU_EXPORTS_KEY,
+  type ExtJob,
+  type MenuExport,
+} from '../shared/ext-protocol';
 
-export type ExtJob =
-  | {
-      id: string;
-      kind: 'add';
-      base64: string;
-      mime: string;
-      name: string;
-    }
-  | {
-      id: string;
-      kind: 'save';
-      presetId: string;
-      base64: string;
-      mime: string;
-      name: string;
-    }
-  | {
-      id: string;
-      kind: 'error';
-      message: string;
-    };
-
-const JOBS_KEY = 'extJobs';
-export const MENU_EXPORTS_KEY = 'menuExports';
+export type { ExtJob, MenuExport };
+export { MENU_EXPORTS_KEY };
 
 export async function enqueueJob(job: ExtJob): Promise<void> {
-  const stored = await chrome.storage.session.get(JOBS_KEY);
-  const current = Array.isArray(stored[JOBS_KEY])
-    ? (stored[JOBS_KEY] as ExtJob[])
+  const stored = await chrome.storage.session.get(EXT_JOBS_KEY);
+  const current = Array.isArray(stored[EXT_JOBS_KEY])
+    ? (stored[EXT_JOBS_KEY] as ExtJob[])
     : [];
   current.push(job);
-  await chrome.storage.session.set({ [JOBS_KEY]: current });
+  await chrome.storage.session.set({ [EXT_JOBS_KEY]: current });
 }
 
 export async function claimJobs(): Promise<ExtJob[]> {
-  const stored = await chrome.storage.session.get(JOBS_KEY);
-  const jobs = Array.isArray(stored[JOBS_KEY])
-    ? (stored[JOBS_KEY] as ExtJob[])
+  const stored = await chrome.storage.session.get(EXT_JOBS_KEY);
+  const jobs = Array.isArray(stored[EXT_JOBS_KEY])
+    ? (stored[EXT_JOBS_KEY] as ExtJob[])
     : [];
   if (jobs.length === 0) return [];
-  await chrome.storage.session.set({ [JOBS_KEY]: [] });
+  await chrome.storage.session.set({ [EXT_JOBS_KEY]: [] });
   return jobs;
 }
 

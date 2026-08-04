@@ -91,6 +91,24 @@ type SessionRecord = {
 осмысленное состояние домена («ещё не посчитано»), и оно однозначно. Везде остальное
 используем пустые значения вместо `null`: `error: ''`, пустой массив, а не `undefined`.
 
+### UI / bridge side-state (не в IndexedDB)
+
+```ts
+// ItemView в zustand — проекция ItemRecord + флаги вкладки
+type ItemView = {
+  // …поля из ItemRecord, нужные гриду…
+  ephemeral: boolean; // silent «Save without background»; фильтр UI: !ephemeral
+};
+
+// Память оркестратора (context.ts), не переживает reload вкладки:
+// autoDownloadPresetByItem: Map<itemId, presetId>
+// ephemeralItemIds: Set<itemId>
+```
+
+Silent Save создаёт обычный `ItemRecord` в IDB, помечает id ephemeral + auto-download
+preset в памяти, скрывает из Grid/App/BottomBar. После `done` — download, затем delete.
+При reload mid-flight ephemeral-флаг теряется (edge case; не персистим в v1).
+
 `overrides` — слепки для пары «изображение + экспорт (`Preset`)». Кнопка
 Customize this image / «Только для этого изображения» копирует текущие значения
 экспорта и края в слепок; дальше они живут отдельно и на правки глобального

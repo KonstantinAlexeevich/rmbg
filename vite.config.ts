@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { rename, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { build as esbuild } from 'esbuild';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -31,11 +32,34 @@ function flattenPages(): Plugin {
   };
 }
 
+/**
+ * Content script в манифесте — классический скрипт (без type:module).
+ * Vite иначе выносит shared в assets/*.js с import — CS падает при загрузке.
+ * Пересобираем studio-bridge в один IIFE поверх vite-чанка.
+ */
+function bundleContentScript(): Plugin {
+  return {
+    name: 'rmbg:bundle-content-script',
+    apply: 'build',
+    async closeBundle() {
+      await esbuild({
+        entryPoints: [resolve(import.meta.dirname, 'src/content/studio-bridge.ts')],
+        outfile: resolve(import.meta.dirname, 'dist/studio-bridge.js'),
+        bundle: true,
+        format: 'iife',
+        target: 'es2022',
+        platform: 'browser',
+        logLevel: 'silent',
+      });
+    },
+  };
+}
+
 // Студия вынесена в web-сборку; в пакет расширения входят SW и about.
 export default defineConfig({
   base: '/',
   define: appDefines,
-  plugins: [react(), tailwindcss(), flattenPages()],
+  plugins: [react(), tailwindcss(), flattenPages(), bundleContentScript()],
   build: {
     target: 'es2022',
     rollupOptions: {
@@ -45,6 +69,7 @@ export default defineConfig({
           import.meta.dirname,
           'src/background/service-worker.ts',
         ),
+        // Entry нужен, чтобы Vite знал о файле; closeBundle перезапишет IIFE.
         'studio-bridge': resolve(
           import.meta.dirname,
           'src/content/studio-bridge.ts',

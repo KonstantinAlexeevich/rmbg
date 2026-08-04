@@ -1,5 +1,9 @@
 import { isExtension } from './env';
 
+/**
+ * Сохранение файла. Thin package: студия на web-origin → всегда web-ветка.
+ * chrome.downloads остаётся для hypothetical extension-target UI.
+ */
 export async function downloadBlob(
   blob: Blob,
   filename: string,

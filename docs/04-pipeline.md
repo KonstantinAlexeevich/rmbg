@@ -162,10 +162,20 @@ type Preset = {
 - Для каждого элемента считается эффективная пара через `resolveComposition`; для
   активного экспорта со свежим `result` (хэш совпал) берётся кэш, иначе — compose из маски.
 - Имя архива: `rmbg-YYYYMMDD-HHmm.zip`.
-- Скачивание: `URL.createObjectURL(zipBlob)` → `chrome.downloads.download({ url, filename,
-  saveAs: true })`, затем `URL.revokeObjectURL` после события завершения загрузки.
-  Ранний revoke ломает скачивание больших архивов.
-- В архив попадают только выбранные карточки со статусом `done`.
+- Скачивание через `src/platform/download.ts` (`downloadBlob`):
+  - **web** (фактическая студия): при `saveAs: true` — File System Access при наличии,
+    иначе `<a download>`; silent Save и single-file с карточки — `saveAs: false`
+    (`<a download>` без диалога).
+  - **extension target**: ветка `chrome.downloads` в коде остаётся, но thin package
+    студии не хостит — permission `downloads` в манифесте не декларируем.
+  Ранний `revokeObjectURL` ломает большие архивы (chrome-ветка ждёт complete).
+- В архив попадают только выбранные карточки со статусом `done` (ephemeral не в UI
+  и не попадают в выбор пользователя).
+
+## Silent Save (ПКМ «Save without background»)
+
+После compose с override-пресетом из job: `downloadItem` → удаление ephemeral item из
+IDB и store. Ошибка silent path — item тоже убирается (quota может дать toast).
 
 ## Открытые вопросы
 

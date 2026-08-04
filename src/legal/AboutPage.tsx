@@ -122,17 +122,26 @@ export function AboutPage() {
               <h3 className="font-semibold text-zinc-900">Permissions</h3>
               <ul className="list-disc space-y-1 pl-5">
                 <li>
-                  <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">storage</code> — save
-                  preferences, export presets, and model-cache metadata locally
+                  <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">storage</code> — menu
+                  export list and short-lived import jobs
                 </li>
                 <li>
-                  <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">downloads</code> — save
-                  exported images and ZIP archives when you ask
+                  <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">contextMenus</code> —
+                  “Add to PNG Maker” / “Save without background” on images
+                </li>
+                <li>
+                  <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">activeTab</code> +{' '}
+                  <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">scripting</code> — read
+                  the selected image after a context-menu click
                 </li>
               </ul>
               <p>
-                The extension does not use host permissions to read arbitrary websites, and it does
-                not inject content scripts into web pages.
+                Required host access is only the studio origin (open/focus tab + bridge).
+                Optional host access is requested for a specific image CDN when you use the
+                context menu. File downloads run in the web studio (browser download / File
+                System Access), not via a{' '}
+                <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">downloads</code>{' '}
+                permission. The only declared content script runs on the studio origin.
               </p>
             </div>
 

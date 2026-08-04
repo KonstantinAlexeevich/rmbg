@@ -21,7 +21,8 @@ URL студии; в пакете остаются иконки, SW и стра�
 - [07-build.md](07-build.md) — стек, две сборки (web / extension), скрипты, dev-цикл
 - [08-decisions.md](08-decisions.md) — журнал принятых решений и известные риски
 - [09-glossary.md](09-glossary.md) — глоссарий терминов интерфейса (EN → RU)
-- [cws/](cws/) — материалы Chrome Web Store (нужны сверки перед следующей подачей — см. ниже)
+- [cws/](cws/) — материалы Chrome Web Store (permissions / privacy / remote code сверены с
+  архитектурой; перед подачей — URL политики, listing, prod origin)
 
 ## Статус
 
@@ -30,9 +31,11 @@ URL студии; в пакете остаются иконки, SW и стра�
 не входят в пакет расширения. UI студии (экспорты, overrides, «до/после», нижняя панель
 и т.д.) без изменения продуктовой модели — см. [09-glossary.md](09-glossary.md).
 
-Тексты [cws/](cws/) ещё описывают прежнюю схему «студия + ORT целиком в ZIP расширения».
-Перед следующей подачей в CWS их нужно привести в соответствие с фактическим пакетом и
-хостингом студии (или временно вернуть студию в пакет).
+Модель permissions зафиксирована ([02-architecture.md](02-architecture.md),
+[cws/submission.md](cws/submission.md)): обязательный host только на origin студии;
+optional `http(s)://*/*` — пул для точечного grant при ПКМ. Перед подачей в стор —
+swap localhost → prod origin в `STUDIO_WEB_URL`, `host_permissions` и
+`content_scripts.matches`; дочистить listing (`description.md`) и URL политики.
 
 ## Инварианты, которые не нарушаем
 
@@ -44,8 +47,10 @@ URL студии; в пакете остаются иконки, SW и стра�
    с того же origin; скрипты студии — артефакты той же деплой-сборки. В пакете расширения
    ORT больше не лежит (студия не extension page).
 3. Content script только на origin студии (мост jobs / меню экспортов). Картинку с чужого
-   сайта читаем через `activeTab` + `scripting` после ПКМ; широкий host access — только
-   optional, по запросу на конкретный origin CDN. Studio origin в host_permissions —
-   фокус вкладки и matches CS.
-4. Дорогая операция (сегментация) выполняется один раз на изображение; смена фона,
+   сайта читаем после ПКМ: `data:` в SW; `blob:` — inject во вкладке клика; `http(s):` —
+   optional host на origin CDN, затем `fetch` в SW. Studio origin в `host_permissions` и
+   `content_scripts.matches` — вкладка студии и bridge (не весь интернет).
+4. Два режима ПКМ: **Add** — фокус студии + обычная карточка; **Save without background** —
+   без фокуса, ephemeral item, auto-download, удаление из сессии (см. Р-28).
+5. Дорогая операция (сегментация) выполняется один раз на изображение; смена фона,
    экспорта, края или слепка пересчитывает только композицию.

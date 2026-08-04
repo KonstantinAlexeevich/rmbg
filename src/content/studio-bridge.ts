@@ -1,44 +1,21 @@
 /** Content script только на origin студии: chrome.runtime ↔ window.postMessage. */
 
-const BRIDGE_SOURCE = 'png-maker-bridge' as const;
-const MENU_EXPORTS_KEY = 'menuExports';
-const STUDIO_ORIGIN_KEY = 'studioOrigin';
-const STUDIO_MARKER_ATTR = 'data-png-maker-studio';
-const STUDIO_MARKER_VALUE = '1';
-
-type ExtJob =
-  | {
-      id: string;
-      kind: 'add';
-      base64: string;
-      mime: string;
-      name: string;
-    }
-  | {
-      id: string;
-      kind: 'save';
-      presetId: string;
-      base64: string;
-      mime: string;
-      name: string;
-    }
-  | {
-      id: string;
-      kind: 'error';
-      message: string;
-    };
-
-type BridgeToPage =
-  | { source: typeof BRIDGE_SOURCE; type: 'JOB'; job: ExtJob }
-  | { source: typeof BRIDGE_SOURCE; type: 'BRIDGE_READY' };
-
-type BridgeFromPage =
-  | {
-      source: typeof BRIDGE_SOURCE;
-      type: 'SYNC_EXPORTS';
-      exports: { id: string; name: string }[];
-    }
-  | { source: typeof BRIDGE_SOURCE; type: 'PAGE_READY' };
+import {
+  STUDIO_MARKER_ATTR,
+  STUDIO_MARKER_VALUE,
+} from '../platform/studio-url';
+import {
+  BRIDGE_SOURCE,
+  MENU_EXPORTS_KEY,
+  MSG_JOBS,
+  MSG_PULL_JOBS,
+  MSG_STUDIO_READY,
+  STUDIO_ORIGIN_KEY,
+  type BridgeFromPage,
+  type BridgeToPage,
+  type ExtJob,
+  type MenuExport,
+} from '../shared/ext-protocol';
 
 function isStudioShell(): boolean {
   return (
@@ -50,9 +27,7 @@ function postToPage(message: BridgeToPage): void {
   window.postMessage(message, window.location.origin);
 }
 
-async function saveMenuExports(
-  exports: { id: string; name: string }[],
-): Promise<void> {
+async function saveMenuExports(exports: MenuExport[]): Promise<void> {
   await chrome.storage.local.set({ [MENU_EXPORTS_KEY]: exports });
 }
 
@@ -88,7 +63,7 @@ function startBridge(): void {
   void chrome.storage.local.set({ [STUDIO_ORIGIN_KEY]: window.location.origin });
   try {
     void chrome.runtime.sendMessage({
-      type: 'png-maker:studio-ready',
+      type: MSG_STUDIO_READY,
       origin: window.location.origin,
     });
   } catch {
@@ -106,9 +81,8 @@ function startBridge(): void {
     if (event.data.type === 'PAGE_READY') {
       pageReady = true;
       flushQueueToPage();
-      // попросить SW отдать накопленные jobs (на случай если claim пришёл раньше CS)
       try {
-        void chrome.runtime.sendMessage({ type: 'png-maker:pull-jobs' });
+        void chrome.runtime.sendMessage({ type: MSG_PULL_JOBS });
       } catch {
         // ignore
       }
@@ -116,18 +90,8 @@ function startBridge(): void {
   });
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message?.type === 'png-maker:jobs' && Array.isArray(message.jobs)) {
+    if (message?.type === MSG_JOBS && Array.isArray(message.jobs)) {
       enqueueForPage(message.jobs as ExtJob[]);
-      sendResponse({ ok: true });
-      return true;
-    }
-    if (message?.type === 'png-maker:claim-jobs') {
-      // legacy ping: попросить SW прислать jobs заново
-      try {
-        void chrome.runtime.sendMessage({ type: 'png-maker:pull-jobs' });
-      } catch {
-        // ignore
-      }
       sendResponse({ ok: true });
       return true;
     }

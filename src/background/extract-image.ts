@@ -1,5 +1,7 @@
 /** Доступ к хосту картинки и чтение байтов без обязательных host_permissions на весь интернет. */
 
+import { bytesToBase64 } from '../platform/base64';
+
 export type ExtractedImage = {
   base64: string;
   mime: string;
@@ -56,15 +58,6 @@ function sniffMime(bytes: Uint8Array, fallback: string): string {
   return fallback === 'image/png' || fallback === 'image/jpeg' || fallback === 'image/webp'
     ? fallback
     : 'image/png';
-}
-
-function bytesToBase64(bytes: Uint8Array): string {
-  let binary = '';
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-  }
-  return btoa(binary);
 }
 
 function fromBytes(

@@ -1,6 +1,5 @@
 import { configuredStudioOrigin } from '../platform/studio-url';
-
-export const STUDIO_ORIGIN_KEY = 'studioOrigin';
+import { STUDIO_ORIGIN_KEY } from '../shared/ext-protocol';
 
 /** Origin студии: из маркера страницы (storage) или из STUDIO_WEB_URL в сборке. */
 export async function resolveStudioOrigin(): Promise<string> {

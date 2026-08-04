@@ -19,7 +19,7 @@ export type ItemView = {
   stale: boolean;
   // слепок для текущего активного пресета; null = переопределения нет
   override: ItemOverride | null;
-  // ПКМ «Save with export»: не показывать в гриде, удалить после скачивания
+  // ПКМ «Save without background»: не показывать в гриде, удалить после скачивания
   ephemeral: boolean;
 };
 

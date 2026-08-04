@@ -8,22 +8,24 @@
 | **Расширение** | `vite.config.ts` → `dist/` | service worker, studio-bridge CS, about, icons, manifest |
 
 Студия **не** открывается как `chrome-extension://…/studio.html`. Service worker
-открывает (или фокусирует) URL web-студии — сейчас `http://localhost:5173/`
-(`STUDIO_WEB_URL` в `src/platform/studio-url.ts`). Позже — прод-домен без смены
-архитектуры.
+открывает URL web-студии — сейчас `http://localhost:5173/` (`STUDIO_WEB_URL` в
+`src/platform/studio-url.ts`). **Add to PNG Maker** фокусирует вкладку; **Save without
+background** открывает/использует вкладку без фокуса. Прод-домен: тот же URL + совпадающие
+`host_permissions` / `content_scripts.matches` (см. раздел permissions ниже).
 
-Shared-код (`src/core`, `src/studio`, `src/workers`, `src/platform`) общий; границы npm-пакетов
-и monorepo пока не вводим.
+Shared-код (`src/core`, `src/studio`, `src/workers`, `src/platform`, `src/shared`) общий;
+границы npm-пакетов и monorepo пока не вводим.
 
 ## Контексты исполнения
 
-- **Service worker** (`background`). Иконка → `tabs` для URL студии. Контекстное меню
-  на `image`: fetch `srcUrl`, job в `chrome.storage.session`, фокус студии.
-  Обработки изображений (ONNX) нет.
+- **Service worker** (`background`). Иконка → вкладка студии (с фокусом). Контекстное
+  меню на `image`: extract картинки → job в `chrome.storage.session` → доставка CS;
+  фокус студии только для Add. Обработки изображений (ONNX) нет.
 - **Content script** (`studio-bridge.js`) — **только** на origin студии: мост
   `chrome.runtime` ↔ `window.postMessage` (jobs + синк имён экспортов для меню).
 - **Страница студии** (origin web-приложения). React: сессия, UI, очередь, IndexedDB,
-  platform-адаптеры storage/download/assets, fetch весов, приём jobs из bridge.
+  platform-адаптеры storage/download/assets, fetch весов, приём jobs из bridge;
+  скачивание файлов (включая silent Save) — здесь.
 - **Воркер сегментации** (`segmentation.worker.ts`). `InferenceSession`, decode, model run, mask / compose.
 - **Воркер экспорта** (`export.worker.ts`). ZIP через fflate.
 - **About** — `about.html`: в web-сборке на том же origin; в extension-сборке остаётся
@@ -36,10 +38,10 @@ Shared-код (`src/core`, `src/studio`, `src/workers`, `src/platform`) общи
 Chrome-специфика не размазана по UI/core. Флаг сборки `import.meta.env.VITE_APP_TARGET`
 (`web` | `extension`):
 
-| API | extension | web |
+| API | extension target | web (фактическая студия) |
 | --- | --- | --- |
 | настройки | `chrome.storage.local` | `localStorage` (префикс `rmbg:`) |
-| скачивание файлов | `chrome.downloads` | File System Access / `<a download>` |
+| скачивание файлов | `chrome.downloads` (ветка в коде; в thin package не используется) | File System Access / `<a download>` |
 | URL статики | `chrome.runtime.getURL` | `new URL(..., origin)` (абсолютный; нужен ORT) |
 | URL студии | константа `STUDIO_WEB_URL` | — |
 
@@ -68,8 +70,8 @@ flowchart TB
     HF[Hugging Face weights]
     Click[Toolbar icon] --> SW
     CtxMenu[Context menu on image] --> SW
-    SW -->|tabs.create or focus| UI
-    SW -->|session jobs| CS
+    SW -->|tabs create focus on Add only| UI
+    SW -->|session jobs then sendMessage| CS
     CS <-->|postMessage| UI
     Files[User files] --> UI
     UI --> Loader
@@ -83,7 +85,7 @@ flowchart TB
     UI <--> LS
     UI -->|blobs| ZIPW
     ZIPW --> UI
-    UI -->|download adapters| DL[File save]
+    UI -->|web download adapter| DL[File save]
 ```
 
 ## Поток данных для одного изображения
@@ -108,7 +110,17 @@ sequenceDiagram
 Дорогая сегментация один раз; маска в IndexedDB; смена export / edge / override — только
 `compose`. Модули: `segment(image) -> Mask`, `compose(image, mask, settings) -> Blob`.
 
-## Манифест расширения (этап localhost)
+## Манифест расширения и permissions
+
+Модель доступов **зафиксирована** для thin package + hosted studio. Меняется только
+конкретный origin студии (dev → prod), не набор полей.
+
+Сейчас (dev) в `public/manifest.json` и `STUDIO_WEB_URL` — `http://localhost:5173`.
+Для CWS / прод: один и тот же публичный origin в трёх местах:
+
+1. `STUDIO_WEB_URL` (`src/platform/studio-url.ts`);
+2. `host_permissions`;
+3. `content_scripts[].matches`.
 
 ```json
 {
@@ -118,7 +130,7 @@ sequenceDiagram
   "minimum_chrome_version": "121",
   "action": { "default_title": "Open PNG Maker" },
   "background": { "service_worker": "service-worker.js", "type": "module" },
-  "permissions": ["storage", "downloads", "contextMenus", "activeTab", "scripting"],
+  "permissions": ["storage", "contextMenus", "activeTab", "scripting"],
   "host_permissions": ["http://localhost:5173/*"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],
   "content_scripts": [
@@ -127,36 +139,55 @@ sequenceDiagram
       "js": ["studio-bridge.js"],
       "run_at": "document_end"
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }
 ```
 
-- `host_permissions` на localhost — чтобы `tabs.query({ url })` видел URL студии.
-  На проде — origin студии вместо localhost; matches content script — тот же origin.
-- Картинка с ПКМ: `activeTab` + `scripting` на вкладке клика; при CDN на другом origin —
-  optional permission только на этот origin (не install-time доступ ко всем сайтам).
-- Content script **только** на origin студии (мост jobs / меню экспортов).
-- CSP / COEP / COOP в манифесте относятся к **extension pages** (about), не к web-студии.
-  `connect-src` для SW узкий (HF); байты картинки SW сам не качает.
-- Web-студия задаёт COOP/COEP через заголовки Vite `server` / `preview` (и позже — CDN
-  / reverse-proxy на проде): нужны `SharedArrayBuffer` / `crossOriginIsolated` для ORT.
-- Настройки студии на web — `localStorage`; в `chrome.storage.local` расширение держит
-  только список `{id,name}` экспортов для submenu.
+| Поле | Зачем | Install-time |
+| --- | --- | --- |
+| `storage` | `menuExports`, `studioOrigin`, session `extJobs` | да |
+| `contextMenus` | ПКМ Add / Save without background | да |
+| `activeTab` + `scripting` | one-shot `blob:` во вкладке клика (`executeScript`) | да (временный доступ к вкладке жеста) |
+| `host_permissions` | **только** origin студии: `tabs.query({ url })`, фокус вкладки, матч CS | да — один first-party origin |
+| `optional_host_permissions` (`http://*/*`, `https://*/*`) | пул для `permissions.request({ origins: [imageOrigin + '/*'] })` при ПКМ → `fetch` в SW | **нет** широкого гранта; Chrome спрашивает конкретный origin |
+| `content_scripts` | `studio-bridge.js` только на origin студии | инжект только на matches |
+
+Чего **нет** и не нужно:
+
+- `tabs`, `downloads` — save делает web-студия; URL-фильтр вкладок покрыт studio `host_permissions`;
+- обязательного `*://*/*` — весь открытый веб не запрашиваем при установке;
+- `wasm-unsafe-eval` / HF в extension CSP — ORT и веса на web origin;
+- COEP/COOP в манифесте — isolation только на хосте студии (Vite / CDN).
+
+Extract при ПКМ (`extract-image.ts`):
+
+- `data:` — decode в SW;
+- `blob:` — inject во вкладке клика (`activeTab` + `scripting`);
+- `http(s):` — `beginImageHostAccess` **синхронно из обработчика клика** (до любого
+  `await`, иначе Chrome глотает gesture), затем SW `fetch`.
+
+Настройки студии — `localStorage` сайта. В `chrome.storage.local` расширения — origin
+студии (маркер CS) и `{id,name}` экспортов для submenu.
 
 ## Сеть
 
-Студия: разовая загрузка `.onnx` с HF (CORS, `mode: 'cors'`), SHA-256, Cache Storage.
-ORT `.wasm`/`.mjs` — same-origin (`/ort/` или absolute `origin/ort/`).
+**Web-студия** (не extension): разовая загрузка `.onnx` с HF обычным CORS
+(`mode: 'cors'`), SHA-256, Cache Storage. ORT `.wasm`/`.mjs` — same-origin
+(`/ort/` или absolute `origin/ort/`). Extension `host_permissions` для HF **не** нужны:
+fetch идёт со страницы студии. Если у HF пропадёт ACAO — это проблема web CORS /
+запасной прокси или зеркала на своём origin, а не повод вешать HF в манифест расширения.
 
-Запасная ветка CORS HF — как раньше: `host_permissions` на HF/CDN, если ACAO пропадёт.
-
-Расширение: разовый `fetch(srcUrl)` выбранной картинки в SW при клике меню.
+**Расширение** при ПКМ: только гибридный extract выше (не «fetch любого URL без prompt»).
 
 ## WASM threads (web vs extension)
 
 При `crossOriginIsolated` ORT может поднимать pthread-воркеры. На **web** (Vite dev и
 в целом web-target) `numThreads = 1`: вложенные dynamic import `.mjs` воркеров в dev
-зависают на инициализации. В **extension** target при isolation — до 4 потоков.
+зависают на инициализации. Ветка `numThreads` для extension target остаётся в коде на
+случай инференса с extension origin; текущая студия — web origin, там всегда `1`.
 
 ## Обработка ошибок
 
@@ -165,6 +196,7 @@ ORT `.wasm`/`.mjs` — same-origin (`/ort/` или absolute `origin/ort/`).
 
 ## Открытые вопросы
 
-- Прод-домен, деплой `dist-web`, замена `STUDIO_WEB_URL` + matches CS.
+- Прод-домен и деплой `dist-web`; swap `STUDIO_WEB_URL` + `host_permissions` +
+  `content_scripts.matches` (permissions-модель уже не меняется).
 - Вернуть ли ORT threads на web production после проверки preview/CDN.
-- Материалы CWS vs thin package + hosted studio.
+- Listing CWS (`description.md`) — маркетинг ПКМ / silent Save.

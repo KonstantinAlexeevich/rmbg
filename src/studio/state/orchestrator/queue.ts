@@ -3,17 +3,15 @@ import {
   settingsHash,
 } from '../../../core/storage/settings';
 import type { Preset } from '../../../core/preset/types';
-import { getItem, putItem, deleteItems } from '../../../core/storage/db';
+import { getItem, putItem } from '../../../core/storage/db';
 import { resolveComposition } from '../../../core/preset/override';
 import { t } from '../i18n';
 import {
   db,
   hadSuccessfulRun,
   isQuotaError,
-  clearAutoDownloadPreset,
   isEphemeral,
   peekAutoDownloadPreset,
-  releaseUrls,
   segWorker,
   setHadSuccessfulRun,
   store,
@@ -21,7 +19,7 @@ import {
   workerInited,
 } from './context';
 import { fallbackToWasm } from './model';
-import { downloadItem } from './exporting';
+import { abortSilentExport, finishSilentExport } from './silent-export';
 
 let queueRunning = false;
 // длительности последних успешных прогонов для оценки оставшегося времени
@@ -196,29 +194,12 @@ async function processItem(id: string): Promise<void> {
     store.getState().upsertItem(toView(record, store.getState().settings));
 
     if (peekAutoDownloadPreset(id) !== undefined) {
-      clearAutoDownloadPreset(id);
-      await downloadItem(id);
-      if (isEphemeral(id)) {
-        await deleteItems(db, [id]);
-        releaseUrls([id]);
-        store.getState().removeItems([id]);
-      }
+      await finishSilentExport(id);
     }
   } catch (e) {
-    clearAutoDownloadPreset(id);
     if (isEphemeral(id)) {
-      try {
-        await deleteItems(db, [id]);
-      } catch {
-        // ignore
-      }
-      releaseUrls([id]);
-      store.getState().removeItems([id]);
-      if (isQuotaError(e)) {
-        store.getState().addToast('error', t('errorQuota'));
-        stopProcessing();
-      }
-      console.error(`Silent export failed for ${record.name}:`, e);
+      await abortSilentExport(id, record.name, e);
+      if (isQuotaError(e)) stopProcessing();
       return;
     }
     if (isQuotaError(e)) {

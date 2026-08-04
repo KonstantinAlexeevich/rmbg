@@ -1,9 +1,9 @@
 import { base64ToBlob } from '../platform/base64';
 import {
   BRIDGE_SOURCE,
-  type BridgeJobPayload,
+  type ExtJob,
   type BridgeToPage,
-} from '../content/bridge-protocol';
+} from '../shared/ext-protocol';
 import type { Settings } from '../core/storage/settings';
 import { useStudioStore } from './state/store';
 import { addFiles } from './state/orchestrator';
@@ -11,14 +11,14 @@ import { t } from './state/i18n';
 import { postPageReady, syncExportsToExtension } from './ext-sync';
 
 let pageReady = false;
-const pendingJobs: BridgeJobPayload[] = [];
+const pendingJobs: ExtJob[] = [];
 
 function resolvePresetId(requested: string, settings: Settings): string {
   if (settings.presets.some((p) => p.id === requested)) return requested;
   return settings.activePresetId;
 }
 
-async function handleJob(job: BridgeJobPayload): Promise<void> {
+async function handleJob(job: ExtJob): Promise<void> {
   if (job.kind === 'error') {
     useStudioStore.getState().addToast('error', t('errorExtJob', { message: job.message }));
     return;

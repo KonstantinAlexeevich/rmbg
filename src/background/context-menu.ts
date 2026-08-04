@@ -1,24 +1,21 @@
 import {
-  STUDIO_WEB_URL,
   contextMenuDocumentUrlPatterns,
   originsMatch,
 } from '../platform/studio-url';
 import {
-  claimJobs,
-  enqueueJob,
-  loadMenuExports,
-  type ExtJob,
+  MENU_ADD,
   MENU_EXPORTS_KEY,
-} from './jobs';
+  MENU_SAVE_PARENT,
+  MENU_SAVE_PREFIX,
+  type ExtJob,
+} from '../shared/ext-protocol';
+import { enqueueJob, loadMenuExports } from './jobs';
 import { resolveStudioOrigin } from './studio-origin';
 import {
   beginImageHostAccess,
   extractImageForContextMenu,
 } from './extract-image';
-
-const MENU_ADD = 'png-maker-add';
-const MENU_SAVE_PARENT = 'png-maker-save';
-const MENU_SAVE_PREFIX = 'png-maker-save:';
+import { deliverPendingJobsToStudio, openStudioTab } from './delivery';
 
 function menuLocale(): 'ru' | 'en' {
   const lang = chrome.i18n.getUILanguage().toLowerCase();
@@ -29,12 +26,12 @@ function labels(locale: 'ru' | 'en'): { add: string; save: string } {
   if (locale === 'ru') {
     return {
       add: 'Добавить в PNG Maker',
-      save: 'Сохранить с экспортом',
+      save: 'Сохранить без фона',
     };
   }
   return {
     add: 'Add to PNG Maker',
-    save: 'Save with export',
+    save: 'Save without background',
   };
 }
 
@@ -104,56 +101,6 @@ export function watchMenuExports(): void {
   });
 }
 
-export async function openStudioTab(options?: {
-  focus?: boolean;
-}): Promise<number | undefined> {
-  const focus = options?.focus !== false;
-  const origin = await resolveStudioOrigin();
-  const patterns = [`${origin}/*`];
-  if (!STUDIO_WEB_URL.startsWith(origin)) {
-    patterns.push(`${STUDIO_WEB_URL}*`);
-  }
-  const tabs = await chrome.tabs.query({ url: patterns });
-  const existing = tabs[0];
-  if (existing !== undefined && existing.id !== undefined) {
-    if (focus) {
-      await chrome.tabs.update(existing.id, { active: true });
-      if (existing.windowId !== undefined) {
-        await chrome.windows.update(existing.windowId, { focused: true });
-      }
-    }
-    return existing.id;
-  }
-  const created = await chrome.tabs.create({ url: STUDIO_WEB_URL, active: focus });
-  return created.id;
-}
-
-async function sleep(ms: number): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export async function deliverPendingJobsToStudio(
-  tabId: number | undefined,
-): Promise<void> {
-  if (tabId === undefined) return;
-  const jobs = await claimJobs();
-  if (jobs.length === 0) return;
-
-  for (let attempt = 0; attempt < 20; attempt++) {
-    try {
-      await chrome.tabs.sendMessage(tabId, { type: 'png-maker:jobs', jobs });
-      return;
-    } catch {
-      await sleep(250);
-    }
-  }
-
-  for (const job of jobs) {
-    await enqueueJob(job);
-  }
-  console.warn('PNG Maker: failed to deliver jobs to studio tab', tabId);
-}
-
 export async function onContextMenuClicked(
   info: chrome.contextMenus.OnClickData,
   tab: chrome.tabs.Tab | undefined,
@@ -215,7 +162,7 @@ export async function onContextMenuClicked(
   }
 
   await enqueueJob(job);
-  // «Save with export» — тихо: студия в фоне, карточка ephemeral
+  // «Save without background» — тихо: студия в фоне, карточка ephemeral
   const studioTabId = await openStudioTab({ focus: !silent });
   await deliverPendingJobsToStudio(studioTabId);
 }

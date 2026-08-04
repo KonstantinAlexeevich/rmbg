@@ -1,13 +1,13 @@
 // Service worker MV3: открытие студии, контекстное меню, доставка jobs.
 // Обработки изображений здесь нет: SW засыпает, WebGPU недоступен.
 import {
-  deliverPendingJobsToStudio,
   onContextMenuClicked,
-  openStudioTab,
   rebuildContextMenus,
   watchMenuExports,
 } from './context-menu';
+import { deliverPendingJobsToStudio, openStudioTab } from './delivery';
 import { saveStudioOrigin } from './studio-origin';
+import { MSG_PULL_JOBS, MSG_STUDIO_READY } from '../shared/ext-protocol';
 
 async function initSessionAccess(): Promise<void> {
   // По умолчанию session storage недоступен content scripts.
@@ -37,16 +37,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message?.type === 'png-maker:ping') {
-    sendResponse({ ok: true });
-    return;
-  }
-  if (message?.type === 'png-maker:studio-ready' && typeof message.origin === 'string') {
+  if (message?.type === MSG_STUDIO_READY && typeof message.origin === 'string') {
     void saveStudioOrigin(message.origin);
     sendResponse({ ok: true });
     return;
   }
-  if (message?.type === 'png-maker:pull-jobs') {
+  if (message?.type === MSG_PULL_JOBS) {
     const tabId = sender.tab?.id;
     void deliverPendingJobsToStudio(tabId).then(() => sendResponse({ ok: true }));
     return true;

@@ -18,7 +18,7 @@
     }
   },
   "background": { "service_worker": "service-worker.js", "type": "module" },
-  "permissions": ["storage", "downloads", "contextMenus", "activeTab", "scripting"],
+  "permissions": ["storage", "contextMenus", "activeTab", "scripting"],
   "host_permissions": ["http://localhost:5173/*"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],
   "content_scripts": [
@@ -29,8 +29,6 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http: https: data: blob: https://huggingface.co https://*.hf.co https://*.aws.cdn.hf.co"
-  },
-  "cross_origin_embedder_policy": { "value": "require-corp" },
-  "cross_origin_opener_policy": { "value": "same-origin" }
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }
