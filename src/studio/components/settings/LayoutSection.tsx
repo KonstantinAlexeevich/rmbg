@@ -82,7 +82,7 @@ export function LayoutSection({
     <div className="flex flex-col gap-2.5">
       {!editingOverride && (
         <label className="flex flex-col gap-1 text-sm text-zinc-700">
-          {t('outputName')}
+          {t.outputName()}
           <input
             type="text"
             value={preset.name}
@@ -96,7 +96,7 @@ export function LayoutSection({
                 renamePreset(
                   s,
                   s.activePresetId,
-                  trimmed === '' ? t('outputDefaultName') : trimmed,
+                  trimmed === '' ? t.outputDefaultName() : trimmed,
                 ),
               );
             }}
@@ -105,21 +105,21 @@ export function LayoutSection({
         </label>
       )}
 
-      <span className="mt-1 text-sm font-medium text-zinc-700">{t('canvasLabel')}</span>
+      <span className="mt-1 text-sm font-medium text-zinc-700">{t.canvasLabel()}</span>
       <div className="flex rounded-(--radius-control) bg-zinc-100 p-0.5 text-sm">
         <button
           type="button"
           onClick={() => patchLayout(() => ({ sizeMode: 'original' }))}
           className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${!isFixed ? 'bg-white shadow' : 'text-zinc-500'}`}
         >
-          {t('canvasOriginal')}
+          {t.canvasOriginal()}
         </button>
         <button
           type="button"
           onClick={() => patchLayout(() => ({ sizeMode: 'fixed' }))}
           className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${isFixed ? 'bg-white shadow' : 'text-zinc-500'}`}
         >
-          {t('canvasCustom')}
+          {t.canvasCustom()}
         </button>
       </div>
 
@@ -127,14 +127,14 @@ export function LayoutSection({
         <>
           <div className="mt-1 grid grid-cols-2 gap-2">
             <NumberField
-              label={t('canvasWidth')}
+              label={t.canvasWidth()}
               value={canvas.width}
               onChange={(width) =>
                 patchLayout((f) => ({ canvas: { ...f.canvas, width } }))
               }
             />
             <NumberField
-              label={t('canvasHeight')}
+              label={t.canvasHeight()}
               value={canvas.height}
               onChange={(height) =>
                 patchLayout((f) => ({ canvas: { ...f.canvas, height } }))
@@ -143,13 +143,13 @@ export function LayoutSection({
           </div>
 
           <div className="mt-1 flex items-center justify-between gap-2">
-            <span className="text-sm text-zinc-700">{t('paddingLabel')}</span>
+            <span className="text-sm text-zinc-700">{t.paddingLabel()}</span>
             <button
               type="button"
               onClick={toggleLinked}
               aria-pressed={linkedMargins}
-              aria-label={linkedMargins ? t('paddingUnlink') : t('paddingLink')}
-              title={linkedMargins ? t('paddingUnlink') : t('paddingLink')}
+              aria-label={linkedMargins ? t.paddingUnlink() : t.paddingLink()}
+              title={linkedMargins ? t.paddingUnlink() : t.paddingLink()}
               className={`cursor-pointer rounded-(--radius-control) border p-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
                 linkedMargins
                   ? 'border-blue-300 bg-blue-50 text-blue-700'
@@ -165,7 +165,7 @@ export function LayoutSection({
           </div>
           {linkedMargins ? (
             <NumberField
-              ariaLabel={t('paddingLabel')}
+              ariaLabel={t.paddingLabel()}
               value={marginPercent('top')}
               min={0}
               max={45}
@@ -174,28 +174,28 @@ export function LayoutSection({
           ) : (
             <div className="grid grid-cols-2 gap-2">
               <NumberField
-                label={t('marginTop')}
+                label={t.marginTop()}
                 value={marginPercent('top')}
                 min={0}
                 max={45}
                 onChange={(v) => setMargin('top', v)}
               />
               <NumberField
-                label={t('marginRight')}
+                label={t.marginRight()}
                 value={marginPercent('right')}
                 min={0}
                 max={45}
                 onChange={(v) => setMargin('right', v)}
               />
               <NumberField
-                label={t('marginBottom')}
+                label={t.marginBottom()}
                 value={marginPercent('bottom')}
                 min={0}
                 max={45}
                 onChange={(v) => setMargin('bottom', v)}
               />
               <NumberField
-                label={t('marginLeft')}
+                label={t.marginLeft()}
                 value={marginPercent('left')}
                 min={0}
                 max={45}
@@ -205,7 +205,7 @@ export function LayoutSection({
           )}
 
           <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            {t('alignmentLabel')}
+            {t.alignmentLabel()}
             <select
               value={anchor}
               onChange={(e) =>
@@ -215,15 +215,15 @@ export function LayoutSection({
               }
               className="field"
             >
-              <option value="center">{t('alignmentMiddle')}</option>
-              <option value="top">{t('alignmentTop')}</option>
-              <option value="bottom">{t('alignmentBottom')}</option>
+              <option value="center">{t.alignmentMiddle()}</option>
+              <option value="top">{t.alignmentTop()}</option>
+              <option value="bottom">{t.alignmentBottom()}</option>
             </select>
           </label>
 
           <label
             className="flex items-center gap-2 text-sm text-zinc-700"
-            title={t('allowZoomHint')}
+            title={t.allowZoomHint()}
           >
             <input
               type="checkbox"
@@ -241,19 +241,19 @@ export function LayoutSection({
               }
               className="accent-blue-600"
             />
-            {t('allowZoom')}
+            {t.allowZoom()}
           </label>
         </>
       )}
 
-      <span className="mt-1 text-sm font-medium text-zinc-700">{t('backgroundLabel')}</span>
+      <span className="mt-1 text-sm font-medium text-zinc-700">{t.backgroundLabel()}</span>
       <div className="flex rounded-(--radius-control) bg-zinc-100 p-0.5 text-sm">
         <button
           type="button"
           onClick={() => patchLayout(() => ({ background: { kind: 'transparent' } }))}
           className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
         >
-          {t('bgTransparent')}
+          {t.bgTransparent()}
         </button>
         <button
           type="button"
@@ -262,7 +262,7 @@ export function LayoutSection({
           }
           className={`flex-1 cursor-pointer rounded-(--radius-control) px-2 py-1 ${!isTransparent ? 'bg-white shadow' : 'text-zinc-500'}`}
         >
-          {t('bgSolid')}
+          {t.bgSolid()}
         </button>
       </div>
       {!isTransparent && (
@@ -271,8 +271,8 @@ export function LayoutSection({
             <button
               key={color}
               type="button"
-              aria-label={t(labelKey)}
-              title={t(labelKey)}
+              aria-label={t[labelKey]()}
+              title={t[labelKey]()}
               onClick={() => patchLayout(() => ({ background: { kind: 'solid', color } }))}
               className={`h-7 w-7 cursor-pointer rounded-full border ${
                 solidColor === color
@@ -290,20 +290,20 @@ export function LayoutSection({
                 background: { kind: 'solid', color: e.target.value },
               }))
             }
-            aria-label={t('bgCustomColor')}
-            title={t('bgCustomColor')}
+            aria-label={t.bgCustomColor()}
+            title={t.bgCustomColor()}
             className="h-7 w-9 cursor-pointer rounded-(--radius-control) border border-zinc-300"
           />
         </div>
       )}
       {isTransparent && preset.output.format === 'jpeg' && (
-        <p className="text-xs text-amber-600">{t('bgJpegNote')}</p>
+        <p className="text-xs text-amber-600">{t.bgJpegNote()}</p>
       )}
 
       {!editingOverride && (
         <>
           <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            {t('formatLabel')}
+            {t.formatLabel()}
             <select
               value={preset.output.format}
               onChange={(e) =>
@@ -331,7 +331,7 @@ export function LayoutSection({
           </label>
           {preset.output.format !== 'png' && (
             <Slider
-              label={t('qualityLabel')}
+              label={t.qualityLabel()}
               min={0.5}
               max={1}
               step={0.01}

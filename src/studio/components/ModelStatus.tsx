@@ -25,7 +25,7 @@ export function ModelStatus() {
             />
           </div>
           <span>
-            {t('modelDownloading', {
+            {t.modelDownloading({
               loaded: formatBytes(model.loadedBytes),
               total: model.totalBytes > 0 ? formatBytes(model.totalBytes) : '…',
             })}
@@ -35,22 +35,22 @@ export function ModelStatus() {
             onClick={cancelModelDownload}
             className="cursor-pointer text-zinc-500 underline hover:text-zinc-700"
           >
-            {t('modelCancel')}
+            {t.modelCancel()}
           </button>
         </div>
       );
     }
     case 'verifying':
-      return <span className="text-xs text-zinc-600">{t('modelVerifying')}</span>;
+      return <span className="text-xs text-zinc-600">{t.modelVerifying()}</span>;
     case 'creating':
-      return <span className="text-xs text-zinc-600">{t('modelCreating')}</span>;
+      return <span className="text-xs text-zinc-600">{t.modelCreating()}</span>;
     case 'evicted':
       return (
         <div className="flex items-center gap-2 text-xs text-amber-700">
-          <span>{t('modelEvicted')}</span>
+          <span>{t.modelEvicted()}</span>
           <button type="button" onClick={retryModelDownload} className="btn-secondary text-xs">
             <Download className="h-4 w-4" aria-hidden />
-            {t('modelDownload')}
+            {t.modelDownload()}
           </button>
         </div>
       );
@@ -58,19 +58,19 @@ export function ModelStatus() {
       return (
         <button type="button" onClick={retryModelDownload} className="btn-secondary text-xs">
           <Download className="h-4 w-4" aria-hidden />
-          {t('modelDownload')}
+          {t.modelDownload()}
         </button>
       );
     case 'failed':
       return (
         <div className="flex items-center gap-2 text-xs text-red-600">
-          <span>{t('modelFailed')}</span>
+          <span>{t.modelFailed()}</span>
           <button
             type="button"
             onClick={retryModelDownload}
             className="cursor-pointer rounded-(--radius-control) border border-red-300 px-2 py-0.5 font-medium hover:bg-red-50"
           >
-            {t('modelRetry')}
+            {t.modelRetry()}
           </button>
         </div>
       );

@@ -203,13 +203,13 @@ async function processItem(id: string): Promise<void> {
       return;
     }
     if (isQuotaError(e)) {
-      store.getState().addToast('error', t('errorQuota'));
+      store.getState().addToast('error', t.errorQuota());
       stopProcessing();
     }
     console.error(`Processing failed for ${record.name}:`, e);
     record.status = 'failed';
     // На карточке — что случилось и что делать; сырое сообщение только в консоль.
-    record.error = isQuotaError(e) ? t('errorQuota') : t('errorProcessing');
+    record.error = isQuotaError(e) ? t.errorQuota() : t.errorProcessing();
     try {
       await putItem(db, record);
     } catch {

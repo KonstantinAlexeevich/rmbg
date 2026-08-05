@@ -65,7 +65,7 @@ export async function clearAllData(): Promise<void> {
   const ids = store.getState().items.map((i) => i.id);
   releaseUrls(ids);
   await clearAll(db);
-  const session = await createSession(db, defaultPreset(t('outputDefaultName')).id);
+  const session = await createSession(db, defaultPreset(t.outputDefaultName()).id);
   setSessionId(session.id);
   store.getState().setItems([]);
 }

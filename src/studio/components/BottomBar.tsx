@@ -43,28 +43,28 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
                 />
               </div>
               <span className="truncate text-sm text-zinc-700">
-                {t('progressProcessed', { done: batch.done, total: batch.total })}
+                {t.progressProcessed({ done: batch.done, total: batch.total })}
                 {batch.etaMs > 0 &&
-                  `, ${t('progressEta', { eta: formatDuration(batch.etaMs) })}`}
+                  `, ${t.progressEta({ eta: formatDuration(batch.etaMs) })}`}
               </span>
               <button
                 type="button"
                 onClick={stopProcessing}
                 disabled={batch.stopRequested}
-                title={t('progressStopHint')}
+                title={t.progressStopHint()}
                 className="btn-secondary shrink-0"
               >
                 <CircleStop className="h-4 w-4" aria-hidden />
-                {t('progressStop')}
+                {t.progressStop()}
               </button>
             </>
           ) : exporting.running ? (
             <span className="truncate text-sm text-zinc-700">
-              {t('exportPreparing', { done: exporting.done, total: exporting.total })}
+              {t.exportPreparing({ done: exporting.done, total: exporting.total })}
             </span>
           ) : (
             <span className="truncate text-xs text-zinc-500">
-              {t('selectedCount', { selected, total: items.length })}
+              {t.selectedCount({ selected, total: items.length })}
             </span>
           )}
         </div>
@@ -72,7 +72,7 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
         <div className="flex shrink-0 items-center gap-2">
           <button type="button" onClick={onAddFiles} className="btn-secondary">
             <ImagePlus className="h-4 w-4" aria-hidden />
-            {t('addImages')}
+            {t.addImages()}
           </button>
           <button
             type="button"
@@ -80,7 +80,7 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
             disabled={busy}
             className="btn-secondary"
           >
-            {t('sessionClear')}
+            {t.sessionClear()}
           </button>
           <button
             type="button"
@@ -89,7 +89,7 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
             className="btn-primary"
           >
             <FileArchive className="h-4 w-4" aria-hidden />
-            {t('exportZip')}
+            {t.exportZip()}
             {exportable > 0 ? ` (${exportable})` : ''}
           </button>
         </div>
@@ -97,8 +97,8 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
 
       <ConfirmDialog
         open={confirmClear}
-        message={t('confirmClearSession')}
-        confirmLabel={t('sessionClear')}
+        message={t.confirmClearSession()}
+        confirmLabel={t.sessionClear()}
         danger
         onCancel={() => setConfirmClear(false)}
         onConfirm={() => {

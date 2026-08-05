@@ -41,14 +41,14 @@ export function ConfirmDialog({
         <p className="text-sm text-zinc-800">{message}</p>
         <div className="mt-5 flex justify-end gap-2">
           <button type="button" onClick={onCancel} className="btn-secondary">
-            {t('confirmCancel')}
+            {t.confirmCancel()}
           </button>
           <button
             type="button"
             onClick={onConfirm}
             className={danger ? 'btn-danger' : 'btn-primary'}
           >
-            {confirmLabel ?? t('confirmOk')}
+            {confirmLabel ?? t.confirmOk()}
           </button>
         </div>
       </div>

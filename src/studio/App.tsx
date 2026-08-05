@@ -108,7 +108,7 @@ export function App() {
             {dragOver && compareItemId === '' && (
               <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-4 border-dashed border-blue-400 bg-blue-100/60">
                 <span className="rounded-(--radius-surface) bg-white px-6 py-3 text-lg font-medium text-blue-700 shadow">
-                  {t('emptyTitle')}
+                  {t.emptyTitle()}
                 </span>
               </div>
             )}
@@ -135,8 +135,8 @@ export function App() {
       <Toasts />
       <ConfirmDialog
         open={confirmDelete}
-        message={t('confirmDeleteSelected')}
-        confirmLabel={t('cardDelete')}
+        message={t.confirmDeleteSelected()}
+        confirmLabel={t.cardDelete()}
         danger
         onCancel={() => setConfirmDelete(false)}
         onConfirm={() => {

@@ -38,7 +38,7 @@ export async function abortSilentExport(
   store.getState().removeItems([itemId]);
 
   if (isQuotaError(error)) {
-    store.getState().addToast('error', t('errorQuota'));
+    store.getState().addToast('error', t.errorQuota());
   }
   console.error(`Silent export failed for ${itemName}:`, error);
 }

@@ -38,7 +38,7 @@ function ToastView({ toast }: { toast: Toast }) {
       <button
         type="button"
         onClick={() => dismiss(toast.id)}
-        aria-label={t('toastDismiss')}
+        aria-label={t.toastDismiss()}
         className="cursor-pointer opacity-60 hover:opacity-100"
       >
         <X className="h-4 w-4" aria-hidden />

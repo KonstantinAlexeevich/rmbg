@@ -1,15 +1,16 @@
 // Catalogs live in locales/studio/*.json. English is the source dictionary;
 // Russian is a full translation keyed by the same keys.
-// Components never hardcode UI copy — only MessageKey via t().
+// Call sites use property access: t.addImages(), t.progressProcessed({ done, total }).
 
 import {
+  createMessages,
   detectLocale,
-  translate,
   type Locale,
   type MessageKey,
+  type Messages,
 } from '../../shared/messages';
 
-export type { Locale, MessageKey };
+export type { Locale, MessageKey, Messages };
 export { detectLocale };
 
 let currentLocale: Locale = 'en';
@@ -22,12 +23,7 @@ export function getLocale(): Locale {
   return currentLocale;
 }
 
-export function t(
-  key: MessageKey,
-  params?: Record<string, string | number>,
-): string {
-  return translate(currentLocale, key, params);
-}
+export const t: Messages = createMessages(() => currentLocale);
 
 export function formatBytes(bytes: number): string {
   if (currentLocale === 'ru') {

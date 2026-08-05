@@ -60,7 +60,7 @@ export async function bootstrap(): Promise<void> {
     estimate.quota > 0 &&
     estimate.usage / estimate.quota > 0.8
   ) {
-    store.getState().addToast('warning', t('warnQuota'));
+    store.getState().addToast('warning', t.warnQuota());
   }
 
   // воркеры создаются сразу: композиция не требует сессии модели

@@ -24,7 +24,7 @@ function StatusOverlay({ item }: { item: ItemView }) {
       return (
         <div className="absolute inset-0 flex items-center justify-center bg-white/60">
           <span className="rounded-(--radius-control) bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
-            {t('statusQueued')}
+            {t.statusQueued()}
           </span>
         </div>
       );
@@ -33,7 +33,7 @@ function StatusOverlay({ item }: { item: ItemView }) {
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/40">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-blue-600" />
           <span className="rounded-(--radius-control) bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
-            {t('statusSegmenting')}
+            {t.statusSegmenting()}
           </span>
         </div>
       );
@@ -42,7 +42,7 @@ function StatusOverlay({ item }: { item: ItemView }) {
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/40">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-blue-600" />
           <span className="rounded-(--radius-control) bg-zinc-800/80 px-2 py-0.5 text-xs text-white">
-            {t('statusComposing')}
+            {t.statusComposing()}
           </span>
         </div>
       );
@@ -115,7 +115,7 @@ export function ItemCard({ item }: { item: ItemView }) {
             type="checkbox"
             checked={item.selected}
             onChange={(e) => void setItemSelected(item.id, e.target.checked)}
-            aria-label={t('cardSelect', { name: item.name })}
+            aria-label={t.cardSelect({ name: item.name })}
             className="h-4 w-4 accent-blue-600"
           />
         </label>
@@ -123,14 +123,14 @@ export function ItemCard({ item }: { item: ItemView }) {
         {item.maskEmpty && (
           <div className="absolute right-0 bottom-0 left-0 flex items-center justify-center gap-1 bg-amber-400/90 px-2 py-0.5 text-center text-xs font-medium text-amber-950">
             <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
-            {t('cardEmptyMask')}
+            {t.cardEmptyMask()}
           </div>
         )}
 
         {item.override !== null && (
           <span
-            title={t('cardOverride')}
-            aria-label={t('cardOverride')}
+            title={t.cardOverride()}
+            aria-label={t.cardOverride()}
             className="absolute top-2 left-10 rounded-(--radius-control) bg-blue-600 p-1 text-white"
           >
             <Wand2 className="h-4 w-4" aria-hidden />
@@ -141,24 +141,24 @@ export function ItemCard({ item }: { item: ItemView }) {
           {item.status === 'done' && (
             <>
               <IconButton
-                label={t('cardOpenPreview')}
+                label={t.cardOpenPreview()}
                 onClick={() => setCompareItemId(item.id)}
               >
                 <Expand className="h-4 w-4" aria-hidden />
               </IconButton>
               <IconButton
-                label={t('cardDownload')}
+                label={t.cardDownload()}
                 onClick={() => void downloadItem(item.id)}
               >
                 <Download className="h-4 w-4" aria-hidden />
               </IconButton>
             </>
           )}
-          <IconButton label={t('cardRename')} onClick={startRename}>
+          <IconButton label={t.cardRename()} onClick={startRename}>
             <Pencil className="h-4 w-4" aria-hidden />
           </IconButton>
           <IconButton
-            label={t('cardDelete')}
+            label={t.cardDelete()}
             onClick={() => void deleteItem(item.id)}
           >
             <Trash2 className="h-4 w-4" aria-hidden />
@@ -172,7 +172,7 @@ export function ItemCard({ item }: { item: ItemView }) {
             ref={inputRef}
             type="text"
             value={draft}
-            aria-label={t('cardRename')}
+            aria-label={t.cardRename()}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commitRename}
             onKeyDown={(e) => {
@@ -191,12 +191,12 @@ export function ItemCard({ item }: { item: ItemView }) {
           </span>
         )}
         {item.status === 'done' && (
-          <span className="text-xs text-zinc-400">{t('statusDone')}</span>
+          <span className="text-xs text-zinc-400">{t.statusDone()}</span>
         )}
         {item.status === 'failed' && (
           <>
             <span className="truncate text-xs text-red-600" title={item.error}>
-              {item.error !== '' ? item.error : t('statusFailed')}
+              {item.error !== '' ? item.error : t.statusFailed()}
             </span>
             <button
               type="button"
@@ -204,7 +204,7 @@ export function ItemCard({ item }: { item: ItemView }) {
               className="inline-flex cursor-pointer items-center gap-1 self-start text-xs font-medium text-blue-600 hover:text-blue-500"
             >
               <RotateCcw className="h-4 w-4" aria-hidden />
-              {t('cardRetry')}
+              {t.cardRetry()}
             </button>
           </>
         )}

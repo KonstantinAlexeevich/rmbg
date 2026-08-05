@@ -43,7 +43,7 @@ export async function addFiles(
   for (const file of files) {
     if (!isAcceptedType(file.type)) {
       if (!ephemeral) {
-        state.addToast('warning', t('errorUnsupportedFile', { name: file.name }));
+        state.addToast('warning', t.errorUnsupportedFile({ name: file.name }));
       }
       continue;
     }
@@ -75,11 +75,11 @@ export async function addFiles(
       }
     } catch (e) {
       if (isQuotaError(e)) {
-        if (!ephemeral) state.addToast('error', t('errorQuota'));
+        if (!ephemeral) state.addToast('error', t.errorQuota());
         return createdIds;
       }
       if (!ephemeral) {
-        state.addToast('warning', `${file.name}: ${t('errorDecode')}`);
+        state.addToast('warning', `${file.name}: ${t.errorDecode()}`);
       }
     }
   }

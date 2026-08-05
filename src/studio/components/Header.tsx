@@ -19,13 +19,13 @@ export function Header() {
           className="h-6 w-6"
           aria-hidden
         />
-        {t('appName')}
+        {t.appName()}
       </span>
 
       <button
         type="button"
         onClick={() => setDiagnosticsOpen(true)}
-        title={t('diagTitle')}
+        title={t.diagTitle()}
         className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
           backend === 'webgpu'
             ? 'bg-emerald-100 text-emerald-700'
@@ -37,7 +37,7 @@ export function Header() {
         ) : (
           <Cpu className="h-4 w-4" aria-hidden />
         )}
-        {backend === 'webgpu' ? t('badgeGpu') : t('badgeCpu')}
+        {backend === 'webgpu' ? t.badgeGpu() : t.badgeCpu()}
         <Gauge className="h-4 w-4 opacity-60" aria-hidden />
       </button>
 

@@ -169,11 +169,11 @@ export function Viewer() {
         <button
           type="button"
           onClick={() => setCompareItemId('')}
-          aria-label={t('viewerBack')}
+          aria-label={t.viewerBack()}
           className="btn-secondary shrink-0"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          {t('viewerBack')}
+          {t.viewerBack()}
         </button>
       </div>
 
@@ -200,7 +200,7 @@ export function Viewer() {
           {urls.originalUrl !== '' && (
             <img
               src={urls.originalUrl}
-              alt={t('compareBefore')}
+              alt={t.compareBefore()}
               className="absolute inset-0 h-full w-full"
               draggable={false}
               style={{ clipPath: `inset(0 ${100 - split}% 0 0)` }}
@@ -209,7 +209,7 @@ export function Viewer() {
           {urls.resultUrl !== '' && (
             <img
               src={urls.resultUrl}
-              alt={t('compareAfter')}
+              alt={t.compareAfter()}
               className="absolute inset-0 h-full w-full"
               draggable={false}
               style={{ clipPath: `inset(0 0 0 ${split}%)` }}
@@ -225,10 +225,10 @@ export function Viewer() {
             </div>
           </div>
           <span className="absolute top-2 left-2 rounded-(--radius-control) bg-zinc-900/70 px-2 py-0.5 text-xs text-white">
-            {t('compareBefore')}
+            {t.compareBefore()}
           </span>
           <span className="absolute top-2 right-2 rounded-(--radius-control) bg-zinc-900/70 px-2 py-0.5 text-xs text-white">
-            {t('compareAfter')}
+            {t.compareAfter()}
           </span>
         </div>
       </div>
@@ -238,8 +238,8 @@ export function Viewer() {
           type="button"
           onClick={() => navigate(-1)}
           disabled={index <= 0}
-          aria-label={t('viewerPrev')}
-          title={t('viewerPrev')}
+          aria-label={t.viewerPrev()}
+          title={t.viewerPrev()}
           className="btn-secondary"
         >
           <ChevronLeft className="h-5 w-5" aria-hidden />
@@ -248,8 +248,8 @@ export function Viewer() {
           type="button"
           onClick={() => navigate(1)}
           disabled={index >= items.length - 1}
-          aria-label={t('viewerNext')}
-          title={t('viewerNext')}
+          aria-label={t.viewerNext()}
+          title={t.viewerNext()}
           className="btn-secondary"
         >
           <ChevronRight className="h-5 w-5" aria-hidden />

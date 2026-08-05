@@ -24,9 +24,9 @@ export function ExportPresetsModal() {
     >
       <div className="surface w-full max-w-sm p-5">
         <h2 className="mb-1 text-base font-semibold text-zinc-900">
-          {t('exportPickerTitle')}
+          {t.exportPickerTitle()}
         </h2>
-        <p className="mb-3 text-xs text-zinc-500">{t('exportPickerHint')}</p>
+        <p className="mb-3 text-xs text-zinc-500">{t.exportPickerHint()}</p>
 
         <ul className="flex flex-col gap-1.5">
           {settings.presets.map((p) => {
@@ -49,7 +49,7 @@ export function ExportPresetsModal() {
 
         <div className="mt-5 flex justify-end gap-2">
           <button type="button" onClick={() => setOpen(false)} className="btn-secondary">
-            {t('exportPickerCancel')}
+            {t.exportPickerCancel()}
           </button>
           <button
             type="button"
@@ -60,7 +60,7 @@ export function ExportPresetsModal() {
             }}
             className="btn-primary"
           >
-            {t('exportPickerConfirm')}
+            {t.exportPickerConfirm()}
           </button>
         </div>
       </div>

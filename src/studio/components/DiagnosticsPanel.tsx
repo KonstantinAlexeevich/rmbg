@@ -27,7 +27,7 @@ function modelPhaseText(phase: string): string {
     detecting: 'diagPhaseDetecting',
   };
   const key = keys[phase];
-  return key !== undefined ? t(key) : phase;
+  return key !== undefined ? t[key]() : phase;
 }
 
 export function DiagnosticsPanel() {
@@ -50,39 +50,39 @@ export function DiagnosticsPanel() {
         }}
       >
         <div className="surface w-full max-w-md p-5">
-          <h2 className="mb-3 text-base font-semibold text-zinc-900">{t('diagTitle')}</h2>
+          <h2 className="mb-3 text-base font-semibold text-zinc-900">{t.diagTitle()}</h2>
 
           <Row
-            label={t('diagBackend')}
-            value={backend === 'webgpu' ? t('diagBackendWebgpu') : t('diagBackendWasm')}
+            label={t.diagBackend()}
+            value={backend === 'webgpu' ? t.diagBackendWebgpu() : t.diagBackendWasm()}
           />
-          <Row label={t('diagFallbackReason')} value={diag.fallbackReason} />
-          <Row label={t('diagAdapter')} value={diag.adapterName} />
+          <Row label={t.diagFallbackReason()} value={diag.fallbackReason} />
+          <Row label={t.diagAdapter()} value={diag.adapterName} />
           <Row
-            label={t('diagIsolated')}
-            value={diag.crossOriginIsolated ? t('diagYes') : t('diagNo')}
-          />
-          <Row
-            label={t('diagThreads')}
-            value={diag.wasmThreads ? t('diagYes') : t('diagNo')}
-          />
-          <Row label={t('diagModelState')} value={modelPhaseText(model.phase)} />
-          <Row label={t('diagModelUrl')} value={diag.modelUrl} />
-          <Row
-            label={t('diagModelLoadMs')}
-            value={diag.downloadMs > 0 ? t('unitMs', { value: diag.downloadMs }) : ''}
+            label={t.diagIsolated()}
+            value={diag.crossOriginIsolated ? t.diagYes() : t.diagNo()}
           />
           <Row
-            label={t('diagWarmupMs')}
-            value={diag.warmupMs > 0 ? t('unitMs', { value: diag.warmupMs }) : ''}
+            label={t.diagThreads()}
+            value={diag.wasmThreads ? t.diagYes() : t.diagNo()}
+          />
+          <Row label={t.diagModelState()} value={modelPhaseText(model.phase)} />
+          <Row label={t.diagModelUrl()} value={diag.modelUrl} />
+          <Row
+            label={t.diagModelLoadMs()}
+            value={diag.downloadMs > 0 ? t.unitMs({ value: diag.downloadMs }) : ''}
           />
           <Row
-            label={t('diagLastRunMs')}
-            value={diag.lastRunMs > 0 ? t('unitMs', { value: diag.lastRunMs }) : ''}
+            label={t.diagWarmupMs()}
+            value={diag.warmupMs > 0 ? t.unitMs({ value: diag.warmupMs }) : ''}
+          />
+          <Row
+            label={t.diagLastRunMs()}
+            value={diag.lastRunMs > 0 ? t.unitMs({ value: diag.lastRunMs }) : ''}
           />
 
           <label className="mt-4 flex flex-col gap-1 text-sm text-zinc-700">
-            {t('diagBackendOverride')}
+            {t.diagBackendOverride()}
             <select
               value={settings.backendOverride}
               onChange={(e) =>
@@ -94,7 +94,7 @@ export function DiagnosticsPanel() {
               <option value="webgpu">webgpu</option>
               <option value="wasm">wasm</option>
             </select>
-            <span className="text-xs text-zinc-500">{t('diagBackendOverrideHint')}</span>
+            <span className="text-xs text-zinc-500">{t.diagBackendOverrideHint()}</span>
           </label>
 
           <div className="mt-5 flex justify-between">
@@ -103,10 +103,10 @@ export function DiagnosticsPanel() {
               onClick={() => setConfirmErase(true)}
               className="rounded-(--radius-control) border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
-              {t('diagClearAll')}
+              {t.diagClearAll()}
             </button>
             <button type="button" onClick={() => setOpen(false)} className="btn-secondary">
-              {t('diagClose')}
+              {t.diagClose()}
             </button>
           </div>
         </div>
@@ -114,8 +114,8 @@ export function DiagnosticsPanel() {
 
       <ConfirmDialog
         open={confirmErase}
-        message={t('confirmEraseAll')}
-        confirmLabel={t('diagClearAll')}
+        message={t.confirmEraseAll()}
+        confirmLabel={t.diagClearAll()}
         danger
         onCancel={() => setConfirmErase(false)}
         onConfirm={() => {

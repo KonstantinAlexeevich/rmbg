@@ -1,5 +1,5 @@
 import { storageGet, storageSet } from '../../platform/storage';
-import { detectLocale, translate, type Locale } from '../../shared/messages';
+import { detectLocale, type Locale, messagesFor } from '../../shared/messages';
 import type { EdgeSettings, ModelAsset } from '../types';
 import { defaultPreset, type Preset } from '../preset/types';
 
@@ -18,11 +18,11 @@ export type Settings = {
 const STORAGE_KEY = 'settings';
 
 function defaultExportName(locale: Locale): string {
-  return translate(locale, 'outputDefaultName');
+  return messagesFor(locale).outputDefaultName();
 }
 
 function copyExportName(locale: Locale, name: string): string {
-  return translate(locale, 'outputCopySuffix', { name });
+  return messagesFor(locale).outputCopySuffix({ name });
 }
 
 export function defaultSettings(): Settings {

@@ -45,7 +45,7 @@ export function PresetsSection({
   }, [settings.activePresetId, editingOverride]);
 
   return (
-    <Section title={t('outputsTitle')} highlighted={editingOverride}>
+    <Section title={t.outputsTitle()} highlighted={editingOverride}>
       <div className="flex flex-col gap-4">
         <ul className="-mx-3.5 -mr-4 flex flex-col border-y border-zinc-200">
           {settings.presets.map((p, index) => {
@@ -81,8 +81,8 @@ export function PresetsSection({
                           setSettingsOpen((v) => !v);
                         }}
                         aria-expanded={panelOpen}
-                        aria-label={t('outputSettings')}
-                        title={t('outputSettings')}
+                        aria-label={t.outputSettings()}
+                        title={t.outputSettings()}
                         className={`border-r border-zinc-300 p-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
                           panelOpen
                             ? `bg-zinc-100 text-zinc-800 ${editingOverride ? 'cursor-default' : 'cursor-pointer'}`
@@ -100,8 +100,8 @@ export function PresetsSection({
                             purgeOverridesForPreset(id),
                           );
                         }}
-                        aria-label={t('outputDelete')}
-                        title={t('outputDelete')}
+                        aria-label={t.outputDelete()}
+                        title={t.outputDelete()}
                         className="btn-icon disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
                       >
                         <Trash2 className="h-4 w-4" aria-hidden />
@@ -132,13 +132,13 @@ export function PresetsSection({
           onClick={() =>
             void updateSettings((s) => {
               const source = activePreset(s);
-              return addPreset(s, t('outputCopySuffix', { name: source.name }));
+              return addPreset(s, t.outputCopySuffix({ name: source.name }));
             })
           }
           className="btn-secondary w-full"
         >
           <Plus className="h-4 w-4" aria-hidden />
-          {t('outputAdd')}
+          {t.outputAdd()}
         </button>
       </div>
     </Section>

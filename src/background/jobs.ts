@@ -6,7 +6,7 @@ import {
   type ExtJob,
   type MenuExport,
 } from '../shared/ext-protocol';
-import { detectLocale, translate } from '../shared/messages';
+import { detectLocale, messagesFor } from '../shared/messages';
 
 export type { ExtJob, MenuExport };
 export { MENU_EXPORTS_KEY };
@@ -34,7 +34,7 @@ export async function loadMenuExports(): Promise<MenuExport[]> {
   const stored = await chrome.storage.local.get(MENU_EXPORTS_KEY);
   const list = stored[MENU_EXPORTS_KEY];
   if (!Array.isArray(list) || list.length === 0) {
-    const name = translate(detectLocale(chrome.i18n.getUILanguage()), 'outputDefaultName');
+    const name = messagesFor(detectLocale(chrome.i18n.getUILanguage())).outputDefaultName();
     return [{ id: 'default', name }];
   }
   return list.filter(

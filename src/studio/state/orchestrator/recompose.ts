@@ -118,7 +118,7 @@ async function recomposeStale(): Promise<void> {
       store.getState().upsertItem(toView(record, settings));
     } catch (e) {
       if (isQuotaError(e)) {
-        store.getState().addToast('error', t('errorQuota'));
+        store.getState().addToast('error', t.errorQuota());
         return;
       }
       store.getState().patchItem(view.id, {

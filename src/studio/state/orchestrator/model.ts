@@ -31,7 +31,7 @@ export async function startModelPipeline(): Promise<void> {
   });
 
   if (backend === 'wasm' && settings.backendOverride === 'auto') {
-    state.addToast('info', t('wasmModeNotice'));
+    state.addToast('info', t.wasmModeNotice());
   }
 
   const variant = variantForBackend(backend);
@@ -79,7 +79,7 @@ async function loadModelAndInit(
     store.getState().setModel({
       phase: 'failed',
       reason: outcome.reason,
-      message: t('modelFailed'),
+      message: t.modelFailed(),
     });
     return;
   }
@@ -97,7 +97,7 @@ async function loadModelAndInit(
     await saveSettings(updated);
     // отказ в persist не блокирует работу, но пользователь должен знать
     if (!(await navigator.storage.persisted())) {
-      store.getState().addToast('warning', t('warnNoPersist'));
+      store.getState().addToast('warning', t.warnNoPersist());
     }
   }
   store.getState().patchDiagnostics({
@@ -137,7 +137,7 @@ async function loadModelAndInit(
       await fallbackToWasm(message);
     } else {
       store.getState().setModel({ phase: 'failed', reason: 'session', message });
-      store.getState().addToast('error', t('errorCritical'));
+      store.getState().addToast('error', t.errorCritical());
     }
   }
 }
@@ -150,7 +150,7 @@ export async function fallbackToWasm(reason: string): Promise<void> {
   setWorkerInited(false);
 
   store.getState().patchDiagnostics({ fallbackReason: reason });
-  store.getState().addToast('warning', t('fallbackNotice', { reason }));
+  store.getState().addToast('warning', t.fallbackNotice({ reason }));
 
   segWorker?.terminate();
   setSegWorker(new SegmentationWorkerClient());

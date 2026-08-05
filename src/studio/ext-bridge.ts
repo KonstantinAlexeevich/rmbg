@@ -20,7 +20,7 @@ function resolvePresetId(requested: string, settings: Settings): string {
 
 async function handleJob(job: ExtJob): Promise<void> {
   if (job.kind === 'error') {
-    useStudioStore.getState().addToast('error', t('errorExtJob', { message: job.message }));
+    useStudioStore.getState().addToast('error', t.errorExtJob({ message: job.message }));
     return;
   }
 

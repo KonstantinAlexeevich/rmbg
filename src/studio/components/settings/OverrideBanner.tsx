@@ -23,26 +23,26 @@ export function OverrideBanner({
       </h3>
       {editingOverride ? (
         <>
-          <p className="text-xs text-zinc-500">{t('overrideActive')}</p>
+          <p className="text-xs text-zinc-500">{t.overrideActive()}</p>
           <button
             type="button"
             onClick={() => void resetItemOverride(itemId)}
             className="btn-secondary w-full"
           >
-            {t('overrideReset')}
+            {t.overrideReset()}
           </button>
         </>
       ) : (
         <>
           <p className="text-xs text-zinc-500">
-            {t('overrideEditingOutput', { name: presetName })}
+            {t.overrideEditingOutput({ name: presetName })}
           </p>
           <button
             type="button"
             onClick={() => void overrideCurrentItem(itemId)}
             className="btn-secondary w-full"
           >
-            {t('overrideCreate')}
+            {t.overrideCreate()}
           </button>
         </>
       )}

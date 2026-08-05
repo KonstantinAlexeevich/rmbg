@@ -147,7 +147,7 @@ export function SettingsPanel() {
           rel="noopener noreferrer"
           className="text-xs text-zinc-400 hover:text-zinc-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
         >
-          {t('aboutLinkLabel')}
+          {t.aboutLinkLabel()}
         </a>
       </div>
     </aside>

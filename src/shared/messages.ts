@@ -7,6 +7,13 @@ import ruMessages from '../../locales/studio/ru.json';
 export type MessageKey = keyof typeof en;
 export type Locale = 'en' | 'ru';
 
+type MessageParams = Record<string, string | number>;
+
+/** Per-key translators: `messages.progressProcessed({ done, total })`. */
+export type Messages = {
+  [K in MessageKey]: (params?: MessageParams) => string;
+};
+
 const dictionaries: Record<Locale, Record<MessageKey, string>> = {
   en,
   ru: ruMessages,
@@ -21,7 +28,7 @@ export function detectLocale(
 export function translate(
   locale: Locale,
   key: MessageKey,
-  params?: Record<string, string | number>,
+  params?: MessageParams,
 ): string {
   let text: string = dictionaries[locale][key];
   if (params !== undefined) {
@@ -30,4 +37,16 @@ export function translate(
     }
   }
   return text;
+}
+
+export function createMessages(getLocale: () => Locale): Messages {
+  const messages = {} as Messages;
+  for (const key of Object.keys(en) as MessageKey[]) {
+    messages[key] = (params?: MessageParams) => translate(getLocale(), key, params);
+  }
+  return messages;
+}
+
+export function messagesFor(locale: Locale): Messages {
+  return createMessages(() => locale);
 }
