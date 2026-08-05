@@ -2,7 +2,7 @@
 /**
  * Drive the live web studio and refresh promo/captures (+ samples/out cutouts).
  * Usage: node promo/capture.mjs
- * Env: STUDIO_URL (default http://localhost:5173/), SKIP_SERVER=1 to not spawn Vite.
+ * Env: STUDIO_URL (default http://localhost:5173/studio), SKIP_SERVER=1 to not spawn Vite.
  */
 import { spawn } from 'node:child_process';
 import { mkdirSync, readdirSync } from 'node:fs';
@@ -18,7 +18,7 @@ const samplesOutDir = join(__dirname, 'samples', 'out');
 /** Persistent profile so Cache Storage keeps the ONNX model between runs. */
 const profileDir = join(__dirname, '.pw-profile');
 
-const STUDIO_URL = process.env.STUDIO_URL ?? 'http://localhost:5173/';
+const STUDIO_URL = process.env.STUDIO_URL ?? 'http://localhost:5173/studio';
 const VIEWPORT = { width: 1280, height: 800 };
 const SIDEBAR_VIEWPORT = { width: 1280, height: 916 };
 const DPR = 2;
@@ -249,7 +249,7 @@ async function captureSidebar(page, outPath) {
   await page.getByRole('button', { name: 'White', exact: true }).click();
   // Promo crop of the sidebar should not include the About footer link.
   await page.addStyleTag({
-    content: 'aside.w-72 a[href$="about.html"] { display: none !important; }',
+    content: 'aside.w-72 a[href*="about"] { display: none !important; }',
   });
   await page.waitForTimeout(200);
   await dismissToasts(page);

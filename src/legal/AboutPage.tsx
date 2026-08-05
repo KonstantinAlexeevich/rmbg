@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { assetUrl } from '../platform/assets';
 import { appVersion, isExtension } from '../platform/env';
-import { studioPageUrl } from '../platform/studio-url';
+import { studioPageUrl, studioWebPath } from '../platform/studio-url';
 import { modelLicense, runtimeLicenses } from './licenseEntries';
 
 const linkClass =
@@ -9,8 +9,8 @@ const linkClass =
 
 export function AboutPage() {
   const version = appVersion();
-  // в extension-сборке about остаётся локальной страницей, студия уже на localhost
-  const studioUrl = isExtension ? studioPageUrl() : '/';
+  // extension: absolute STUDIO_WEB_URL; web: /studio (не лендинг /)
+  const studioUrl = isExtension ? studioPageUrl() : studioWebPath();
   const iconUrl = assetUrl('icons/icon-32.png');
 
   return (

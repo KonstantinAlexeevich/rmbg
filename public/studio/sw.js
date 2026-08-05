@@ -1,12 +1,13 @@
-/* PNG Maker studio shell SW. CACHE_ID is stamped at web build. */
+/* PNG Maker studio shell SW. Served from /studio/sw.js; controls /studio. */
+/* CACHE_ID is stamped at web build. */
 /* eslint-disable no-restricted-globals */
 
 const CACHE_ID = '__SW_CACHE_ID__';
 const SHELL_CACHE = `png-maker-shell-${CACHE_ID}`;
 
 const PRECACHE_URLS = [
-  '/',
-  '/index.html',
+  '/studio',
+  '/studio/index.html',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -38,11 +39,17 @@ function isNavigation(request) {
       (request.headers.get('accept') ?? '').includes('text/html'));
 }
 
+function isStudioPath(pathname) {
+  return pathname === '/studio' || pathname.startsWith('/studio/');
+}
+
 function shouldHandle(request, url) {
   if (request.method !== 'GET') return false;
   if (url.origin !== self.location.origin) return false;
   // Model weights use app Cache Storage (SHA check); do not shadow in SW.
   if (url.pathname.endsWith('.onnx')) return false;
+  // Never intercept landing/about HTML — they are ordinary browser pages.
+  if (isNavigation(request) && !isStudioPath(url.pathname)) return false;
   return true;
 }
 
@@ -88,14 +95,14 @@ async function networkFirstNavigation(request) {
   try {
     const fresh = withIsolation(await fetch(request));
     void cache.put(request, fresh.clone());
-    void cache.put('/', fresh.clone());
-    void cache.put('/index.html', fresh.clone());
+    void cache.put('/studio', fresh.clone());
+    void cache.put('/studio/index.html', fresh.clone());
     return fresh;
   } catch {
     const cached =
       (await cache.match(request)) ??
-      (await cache.match('/')) ??
-      (await cache.match('/index.html'));
+      (await cache.match('/studio')) ??
+      (await cache.match('/studio/index.html'));
     if (cached) return withIsolation(cached);
     throw new Error('offline and no cached shell');
   }

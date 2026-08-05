@@ -8,40 +8,47 @@ Try PNG Maker - a simple background remover. Create a transparent PNG with a cle
 
 PNG Maker — drop in a photo, get a clean cutout
 
-✨ PNG Maker is a background remover that runs entirely on your device. Add a photo, let the AI find the subject, and save a transparent PNG in seconds. No heavy photo editing software, no server queue, no sign-up.
+PNG Maker is a background remover that runs on your device. Add a photo, let the AI find the subject, and save a transparent PNG. No heavy photo editing software, no server queue.
 
-🚀 How to make an image transparent in three steps:
+🚀 How to make an image transparent:
 
-1. Open PNG Maker and drop in a batch of photos
-2. The AI detects the subject and will erase background pixels around it
-3. Choose a transparent or solid color backdrop, then download the result
+1. Install PNG Maker from the Chrome Web Store
+2. Click the extension icon to open it
+3. Drop in a photo or a batch of images
+4. The AI detects the subject and will erase background pixels around it
+5. Choose a transparent or solid color backdrop, then download the result
 
-🎯 Hair, fur, and thin edges are where most cutouts fall apart, and this png image maker holds up. If a result still needs help, the Threshold, Contract, and Feather sliders move the edge exactly where you want it.
+Edge refinement tunes the mask with Threshold, Contract, and Feather when the edge needs a tighter or softer finish. Use them when a fringe still needs a touch.
 
-🔒 Everything happens locally. Your photos never leave the computer, so there is no upload cap and no limit on resolution. Most tools that make png transparent files send your originals to a server first — this one never does.
+Everything happens locally. Your photos never leave your browser. Tools that make png transparent files usually upload first; this png image maker never does. After the model download, work stays offline.
 
-📂 Batch work is the point here, not an afterthought:
+📂 Batch work is built in:
 
-➤ Drop in dozens of files at once and remove bg from image after image
-➤ Paste straight from the clipboard with Ctrl+V
-➤ Doubles as a bulk image resizer: one canvas size for the whole set
+- Drop in dozens of files and remove bg from image after image
+- Paste from the clipboard with Ctrl+V
+- Use it as a bulk image resizer: one canvas size for the whole set
 
-It is the quickest way to delete background from image sets, make transparent png files in bulk, and make image png collections for a full catalog.
+Delete background from image sets, make transparent png files in bulk, and make image png collections.
+
+Right-click any image on the web:
+
+➤ Add to PNG Maker — opens app and adds the image to your session
+➤ Save without background — remove background and download the cutout; pick an export preset from the submenu
 
 🛠️ What this photo editor does:
 
-- One pass bg remove powered by on-device AI
-- Transparent background or any solid color you pick
-- Built-in image resizer: canvas size, padding, and alignment
-- Automatic picture cropper that trims down to the subject
-- Before and after slider for every single cutout
-- Original canvas mode keeps full resolution, with no watermarks
+✅ One-pass bg remove with on-device AI
+✅ Transparent background or any solid color
+✅ Image resizer: canvas size, padding, alignment
+✅ Picture cropper that trims down to the subject
+✅ Before/after slider on every cutout
+✅ Original canvas keeps source resolution
 
-💡 Export presets do the repetitive part. Set a custom canvas and PNG Maker will crop image borders down to the subject, center it with your padding, and apply that to every shot.
+Export presets do the repetitive part. Set a custom canvas and PNG Maker will crop image borders down to the subject, center it with your padding, and apply that to every shot.
 
-🖌️ Need to make png background transparent for one storefront and a white backdrop for another? That is two presets, not two sessions, and each lands in its own folder inside the ZIP. Any single shot can override its preset, so you can create transparent png files and padded ones side by side.
+Need to make png background transparent for one storefront and a white backdrop for another? That is two presets and each lands in its own folder inside the ZIP. Any single shot can override its preset, so you can create transparent png files and padded ones side by side.
 
-🔧 Change your mind about the canvas and nothing starts over: the cutouts are done, so the whole batch re-composes in about a second. That makes it a multiple image resizer and a light photo editor, not a one-shot converter.
+Change the canvas and the batch re-composes in about a second — a multiple image resizer and a light photo editor, not a one-shot converter.
 
 👥 Who uses PNG Maker every day:
 
@@ -50,21 +57,20 @@ It is the quickest way to delete background from image sets, make transparent pn
 👕 Print shops working on stickers, mugs, and t-shirt artwork
 📚 Students and office teams who remove background from charts and slides
 
-This transparent image generator fits all of those workflows, and nobody needs a tutorial to use it.
+This transparent image generator fits all of those workflows.
 
-🌟 Why people stay with it:
+🌟 Why people stay:
 
-▸ PNG Maker runs on Windows, macOS, Linux, and ChromeOS
-▸ No account, no credit card, no watermark
-▸ Batch export puts the whole set into one ZIP, a folder per preset
-▸ Your last session is restored when you reopen the tab
+🎯 Batch export → one ZIP, a folder per preset
+🎯 Last session restores when you reopen the tab
+🎯 Context-menu shortcuts keep remove background one right-click away
 
 📁 Formats and options:
 
-• Input: JPG, JPEG, PNG, and WEBP
-• Output: PNG with a full alpha channel, plus JPEG and WebP with a quality slider
-• Canvas: keep the original size, or set a width and height to reduce picture size
-• Saving: one file at a time, or the whole batch as a ZIP
+• Input: JPG, JPEG, PNG, WEBP
+• Output: PNG with full alpha; JPEG and WebP
+• Canvas: original size, or width/height to reduce picture size
+• Saving: one file, or the whole batch as a ZIP
 
 ❓ Questions and answers
 
@@ -80,7 +86,7 @@ This transparent image generator fits all of those workflows, and nobody needs a
 📌 Can I make an image a png with a colored backdrop instead?
 💡 Sure. Switch the background from transparent to any solid color and make clear background png files or branded ones from the same shot.
 
-📌 Can I create transparent picture sets for stickers or video?
+📌 Can I create transparent picture sets for stickers?
 💡 Yes. Sticker packs and avatars work the same way, and you can make image into png layers for a video timeline.
 
 🎉 The png maker transparent workflow takes seconds: drop, check the edge, download. Install PNG Maker and keep a png transparent maker one click away.

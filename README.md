@@ -24,7 +24,7 @@ npm install
 
 # Терминал A — студия (HMR)
 npm run dev:web
-# → http://localhost:5173/
+# → http://localhost:5173/  (лендинг; студия — /studio)
 
 # Терминал B — расширение
 npm run build
@@ -47,8 +47,8 @@ npm run build
 
 | Сценарий | Как |
 | --- | --- |
-| Локально | `npm run build` / `npm run dev` — default `http://localhost:5173/` |
-| Preview web на 4173 | `VITE_STUDIO_WEB_URL=http://localhost:4173/ npm run build` |
+| Локально | `npm run build` / `npm run dev` — default `http://localhost:5173/studio` |
+| Preview web на 4173 | `VITE_STUDIO_WEB_URL=http://localhost:4173/studio npm run build` |
 | Chrome Web Store | см. ниже |
 
 В логе сборки: `[rmbg] extension build: studio → …`.
@@ -71,11 +71,11 @@ npm run package          # dist/ → rmbg.zip (studio = localhost)
 
 # Прод (CWS)
 cp .env.store.example .env.store
-# прописать: VITE_STUDIO_WEB_URL=https://your-studio.example.com/
+# прописать: VITE_STUDIO_WEB_URL=https://your-studio.example.com/studio
 npm run package:store    # читает .env.store (mode store)
 
 # Или разово без файла:
-VITE_STUDIO_WEB_URL=https://your-studio.example.com/ npm run package
+VITE_STUDIO_WEB_URL=https://your-studio.example.com/studio npm run package
 ```
 
 Перед подачей в стор: задеплоить `dist-web` на тот же origin, что в
@@ -105,7 +105,9 @@ src/
   platform/                 env, studio-url, storage, download
   background/               service worker, ПКМ, extract, delivery
   content/                  studio-bridge (только origin студии)
-  studio/                   React-студия (web)
+  landing/                  каркас лендинга (/)
+  studio/                   React-студия (/studio)
+  legal/                    about (/about/; в extension — about.html)
   core/                     инференс, изображение, storage, ZIP
   workers/                  сегментация (ORT), экспорт
 ```

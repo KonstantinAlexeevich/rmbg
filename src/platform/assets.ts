@@ -1,6 +1,6 @@
 import { isExtension } from './env';
 
-/** Абсолютный URL статического ассета (`icons/...`, `ort/`, `about.html`). */
+/** Абсолютный URL статического ассета (`icons/...`, `ort/`). */
 export function assetUrl(path: string): string {
   const normalized = path.replace(/^\//, '');
   if (isExtension) {

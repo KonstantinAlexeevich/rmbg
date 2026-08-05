@@ -2,9 +2,10 @@
   "name": "PNG Maker",
   "short_name": "PNG Maker",
   "description": "Remove image backgrounds locally in the browser",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/studio",
+  "scope": "/studio",
   "display": "standalone",
+  "handle_links": "not-preferred",
   "background_color": "#fafafa",
   "theme_color": "#2563eb",
   "icons": [

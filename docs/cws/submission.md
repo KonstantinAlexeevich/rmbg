@@ -63,7 +63,7 @@ tab and so the declared content script matches that page.
 
 | Stage | Value |
 | --- | --- |
-| Dev (default build) | `http://localhost:5173/*` |
+| Dev (default build) | `http://localhost:5173/*` (studio path `/studio`) |
 | Prod (`build:store` / `VITE_STUDIO_WEB_URL`) | `https://<public-studio-host>/*` |
 
 Baked at extension build time from `VITE_STUDIO_WEB_URL` into `STUDIO_WEB_URL` and

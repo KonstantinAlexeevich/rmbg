@@ -208,9 +208,9 @@ Link2Off переключает режим «все стороны одинак�
 
 ## Р-26. Экран About — в web-сборке и (опционально) в extension
 
-Нужны версия, политика и лицензии. About входит в `dist-web` (`about.html`) и по-прежнему
-может собираться в пакет расширения. Ссылка «назад» ведёт на URL web-студии, не на
-`studio.html` extension origin. Текст политики для дашборда CWS — [cws/privacy.md](cws/privacy.md).
+Нужны версия, политика и лицензии. About входит в `dist-web` (`/about/`) и по-прежнему
+может собираться в пакет расширения (`about.html`). Ссылка «назад» ведёт на `/studio` /
+`STUDIO_WEB_URL`, не на `studio.html` extension origin. Текст политики для дашборда CWS — [cws/privacy.md](cws/privacy.md).
 
 Частично сужает прежнюю формулировку «только extension page как studio.html» — студия
 вынесена (Р-27).

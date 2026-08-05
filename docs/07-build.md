@@ -66,15 +66,19 @@ rmbg/
 | `build:web` | production → `dist-web/` + `copy-ort-assets.mjs dist-web` |
 | `preview:web` | preview port **4173** (не URL по умолчанию для SW) |
 
-- Entries: `src/studio/index.html`, `src/legal/about.html` → плоские `index.html` / `about.html`.
+- Entries: `src/landing/index.html`, `src/studio/index.html`, `src/legal/about.html` →
+  `index.html`, `studio/index.html`, `about/index.html`.
 - `define`: `VITE_APP_TARGET=web`, `VITE_APP_VERSION` из `package.json`.
 - Headers COOP + COEP на `server` и `preview`.
-- Dev: middleware `/ort/*` из `node_modules/onnxruntime-web/dist`; pretty routes `/` → studio, `/about.html` → about.
+- Dev: middleware `/ort/*` из `node_modules/onnxruntime-web/dist`; pretty routes
+  `/` → landing, `/studio` → studio, `/about/` → about.
 - `public/manifest.json` из `dist-web` удаляется post-build (нужен только расширению).
-- **PWA:** `public/manifest.webmanifest` + `public/sw.js` + иконки 192/512; регистрация SW
-  только в `import.meta.env.PROD` (`src/studio/register-sw.ts`). Shell-кэш stamp’ится
-  версией пакета (`__SW_CACHE_ID__` → `package.json` version). Веса `.onnx` SW не кэширует
-  (отдельный Cache Storage в приложении).
+- **PWA:** `public/manifest.webmanifest` (`start_url`/`scope` = `/studio`,
+  `handle_links: not-preferred`) + `public/studio/sw.js` + иконки 192/512; регистрация SW
+  только в `import.meta.env.PROD` (`src/studio/register-sw.ts`, script `/studio/sw.js`,
+  scope `/studio`). About/лендинг вне scope — обычные вкладки браузера. Shell-кэш
+  stamp’ится версией пакета (`__SW_CACHE_ID__` → `package.json` version). Веса `.onnx`
+  SW не кэширует (отдельный Cache Storage в приложении).
 - Workers: `worker.format: 'es'`.
 
 ### Extension (`vite.config.ts`)
@@ -89,7 +93,7 @@ rmbg/
 - Entries: service-worker, studio-bridge, about.
 - `define`: `VITE_APP_TARGET=extension`, `VITE_APP_VERSION`, **`VITE_STUDIO_WEB_URL`**.
 - URL студии: env `VITE_STUDIO_WEB_URL` (CLI / `.env` / `.env.[mode]`), иначе
-  `http://localhost:5173/`. Нормализация в `scripts/studio-url.ts`. В лог сборки:
+  `http://localhost:5173/studio`. Нормализация в `scripts/studio-url.ts`. В лог сборки:
   `[rmbg] extension build: studio → …`.
 - Плагин `inject-studio-origin` пишет тот же origin в `dist/manifest.json`
   (`host_permissions` + `content_scripts.matches`). `public/manifest.json` не править
@@ -123,17 +127,17 @@ rmbg/
 Нужны **оба** процесса:
 
 1. `npm install`
-2. Терминал A: `npm run dev:web` → http://localhost:5173/
+2. Терминал A: `npm run dev:web` → http://localhost:5173/ (лендинг), студия → `/studio`
 3. Терминал B: `npm run build` (или `npm run dev` для watch)
 4. `chrome://extensions` → Load unpacked → **`dist/`**
-5. Клик по иконке → вкладка студии на localhost. Первый раз — скачивание `.onnx`.
+5. Клик по иконке → вкладка студии на `http://localhost:5173/studio`. Первый раз — скачивание `.onnx`.
 
 Если порт 5173 занят — остановить прежний `dev:web` (`lsof -ti :5173 | xargs kill`).
 
 Preview web (`preview:web` на 4173) для SW:
 
 ```bash
-VITE_STUDIO_WEB_URL=http://localhost:4173/ npm run build
+VITE_STUDIO_WEB_URL=http://localhost:4173/studio npm run build
 ```
 
 (или временный `.env` / `.env.local` — в gitignore).

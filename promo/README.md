@@ -24,7 +24,7 @@ Prerequisites: Chromium for Playwright once (`npx playwright install chromium`),
 warm model cache (first capture downloads ONNX into `promo/.pw-profile/`).
 
 ```bash
-# Studio must be reachable (script reuses http://localhost:5173/ or starts dev:web)
+# Studio must be reachable (script reuses http://localhost:5173/studio or starts dev:web)
 npm run promo          # capture UI + cutouts, then render templates → promo/out/
 npm run promo:capture  # only refresh promo/captures/ and promo/samples/out/
 npm run promo:render   # only HTML templates → promo/out/

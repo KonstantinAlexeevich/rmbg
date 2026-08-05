@@ -1,6 +1,6 @@
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
-import { readFile, rename, rm, writeFile } from 'node:fs/promises';
-import { extname, join, resolve } from 'node:path';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { dirname, extname, join, resolve } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { defineConfig, type Connect, type Plugin, type PreviewServer, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -74,18 +74,61 @@ function serveOrtAssets(): Plugin {
   };
 }
 
-/** Удобные URL: / → студия, /about.html → about. */
+function qs(url: string): string {
+  return url.includes('?') ? url.slice(url.indexOf('?')) : '';
+}
+
+function pathOnly(url: string): string {
+  return url.split('?')[0] ?? '';
+}
+
+/** Удобные URL: / → лендинг, /studio → студия, /about/ → about.
+ *  /studio/ редиректим на канон /studio (без trailing slash). */
 function prettyDevRoutes(): Plugin {
+  const attach = (middlewares: Connect.Server) => {
+    middlewares.use((req, res, next) => {
+      const url = req.url ?? '';
+      const path = pathOnly(url);
+      const query = qs(url);
+
+      if (path === '/studio/') {
+        res.statusCode = 302;
+        res.setHeader('Location', `/studio${query}`);
+        res.end();
+        return;
+      }
+
+      if (path === '/' || path === '/index.html') {
+        req.url = `/src/landing/index.html${query}`;
+      } else if (path === '/studio' || path === '/studio/index.html') {
+        req.url = `/src/studio/index.html${query}`;
+      } else if (path === '/about' || path === '/about/' || path === '/about/index.html') {
+        req.url = `/src/legal/about.html${query}`;
+      }
+      next();
+    });
+  };
+
   return {
     name: 'rmbg:pretty-dev-routes',
     configureServer(server: ViteDevServer) {
-      server.middlewares.use((req, _res, next) => {
+      attach(server.middlewares);
+    },
+    configurePreviewServer(server: PreviewServer) {
+      // preview отдаёт dist-web: /studio без слэша → studio/index.html
+      server.middlewares.use((req, res, next) => {
         const url = req.url ?? '';
-        if (url === '/' || url.startsWith('/?') || url === '/index.html') {
-          req.url = '/src/studio/index.html' + (url.includes('?') ? url.slice(url.indexOf('?')) : '');
-        } else if (url === '/about.html' || url.startsWith('/about.html?')) {
-          req.url =
-            '/src/legal/about.html' + (url.includes('?') ? url.slice(url.indexOf('?')) : '');
+        const path = pathOnly(url);
+        const query = qs(url);
+
+        if (path === '/studio/') {
+          res.statusCode = 302;
+          res.setHeader('Location', `/studio${query}`);
+          res.end();
+          return;
+        }
+        if (path === '/studio') {
+          req.url = `/studio/index.html${query}`;
         }
         next();
       });
@@ -93,7 +136,13 @@ function prettyDevRoutes(): Plugin {
   };
 }
 
-// После build: dist-web/src/studio/index.html → index.html, about → about.html;
+async function moveFile(from: string, to: string): Promise<void> {
+  await mkdir(dirname(to), { recursive: true });
+  await rename(from, to);
+}
+
+// После build:
+// landing → index.html, studio → studio/index.html, about → about/index.html;
 // убираем manifest.json из public (он нужен только расширению).
 function flattenWebPages(): Plugin {
   return {
@@ -101,13 +150,17 @@ function flattenWebPages(): Plugin {
     apply: 'build',
     async closeBundle() {
       const dist = resolve(import.meta.dirname, 'dist-web');
-      await rename(
-        resolve(dist, 'src/studio/index.html'),
+      await moveFile(
+        resolve(dist, 'src/landing/index.html'),
         resolve(dist, 'index.html'),
       );
-      await rename(
+      await moveFile(
+        resolve(dist, 'src/studio/index.html'),
+        resolve(dist, 'studio/index.html'),
+      );
+      await moveFile(
         resolve(dist, 'src/legal/about.html'),
-        resolve(dist, 'about.html'),
+        resolve(dist, 'about/index.html'),
       );
       await rm(resolve(dist, 'src'), { recursive: true, force: true });
       await rm(resolve(dist, 'manifest.json'), { force: true });
@@ -121,7 +174,7 @@ function stampServiceWorkerCache(): Plugin {
     name: 'rmbg:stamp-sw-cache',
     apply: 'build',
     async closeBundle() {
-      const swPath = resolve(import.meta.dirname, 'dist-web/sw.js');
+      const swPath = resolve(import.meta.dirname, 'dist-web/studio/sw.js');
       if (!existsSync(swPath)) return;
       const src = await readFile(swPath, 'utf8');
       await writeFile(swPath, src.replaceAll('__SW_CACHE_ID__', pkg.version));
@@ -146,6 +199,7 @@ export default defineConfig({
     target: 'es2022',
     rollupOptions: {
       input: {
+        landing: resolve(import.meta.dirname, 'src/landing/index.html'),
         studio: resolve(import.meta.dirname, 'src/studio/index.html'),
         about: resolve(import.meta.dirname, 'src/legal/about.html'),
       },

@@ -8,7 +8,7 @@
 | **Расширение** | `vite.config.ts` → `dist/` | service worker, studio-bridge CS, about, icons, manifest |
 
 Студия **не** открывается как `chrome-extension://…/studio.html`. Service worker
-открывает URL web-студии — по умолчанию `http://localhost:5173/` (`VITE_STUDIO_WEB_URL` →
+открывает URL web-студии — по умолчанию `http://localhost:5173/studio` (`VITE_STUDIO_WEB_URL` →
 `STUDIO_WEB_URL` в `src/platform/studio-url.ts`). **Add to PNG Maker** фокусирует вкладку;
 **Save without background** открывает/использует вкладку без фокуса. Прод: тот же env на
 сборке расширения подставляет URL и совпадающие `host_permissions` /
@@ -24,14 +24,15 @@ Shared-код (`src/core`, `src/studio`, `src/workers`, `src/platform`, `src/sha
   фокус студии только для Add. Обработки изображений (ONNX) нет.
 - **Content script** (`studio-bridge.js`) — **только** на origin студии: мост
   `chrome.runtime` ↔ `window.postMessage` (jobs + синк имён экспортов для меню).
-- **Страница студии** (origin web-приложения). React: сессия, UI, очередь, IndexedDB,
+- **Страница студии** (`/studio` на origin web-приложения). React: сессия, UI, очередь, IndexedDB,
   platform-адаптеры storage/download/assets, fetch весов, приём jobs из bridge;
   скачивание файлов (включая silent Save) — здесь. Production: installable PWA
-  (`manifest.webmanifest` + shell `sw.js`); не заменяет Chrome-расширение (ПКМ / иконка).
+  (`manifest.webmanifest` + shell `sw.js`, scope `/studio`); не заменяет Chrome-расширение (ПКМ / иконка).
+- **Лендинг** (`/`) — маркетинговая оболочка на том же origin (каркас; контент позже).
 - **Воркер сегментации** (`segmentation.worker.ts`). `InferenceSession`, decode, model run, mask / compose.
 - **Воркер экспорта** (`export.worker.ts`). ZIP через fflate.
-- **About** — `about.html`: в web-сборке на том же origin; в extension-сборке остаётся
-  страницей расширения (офлайн-политиками), ссылка «назад» ведёт на URL студии.
+- **About** — `/about/` в web-сборке; в extension-сборке остаётся
+  страницей `about.html` расширения (офлайн-политиками), ссылка «назад» ведёт на URL студии.
 
 Композиция в v1 живёт в воркере сегментации (`OffscreenCanvas`).
 
@@ -123,10 +124,10 @@ origin.
 
 Примеры:
 
-- локально: `npm run build` / `npm run dev` → `http://localhost:5173/`
-- стор: скопировать `.env.store.example` → `.env.store`, подставить домен,
+- локально: `npm run build` / `npm run dev` → `http://localhost:5173/studio`
+- стор: скопировать `.env.store.example` → `.env.store`, подставить домен `/studio`,
   `npm run package:store` (mode `store`)
-- разово: `VITE_STUDIO_WEB_URL=https://app.example.com/ npm run package`
+- разово: `VITE_STUDIO_WEB_URL=https://app.example.com/studio npm run package`
 
 ```json
 {

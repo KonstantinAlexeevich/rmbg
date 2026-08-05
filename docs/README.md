@@ -27,14 +27,14 @@ URL студии; в пакете остаются иконки, SW и стра�
 ## Статус
 
 Спецификация отражает split **web-студия + thin extension** (2026-08): platform-слой,
-`npm run dev:web` / `build:web`, SW открывает `http://localhost:5173/`, ORT и React-студия
+`npm run dev:web` / `build:web`, SW открывает `http://localhost:5173/studio`, ORT и React-студия
 не входят в пакет расширения. UI студии (экспорты, overrides, «до/после», нижняя панель
 и т.д.) без изменения продуктовой модели — см. [09-glossary.md](09-glossary.md).
 
 Модель permissions зафиксирована ([02-architecture.md](02-architecture.md),
 [cws/submission.md](cws/submission.md)): обязательный host только на origin студии;
 optional `http(s)://*/*` — пул для точечного grant при ПКМ. Origin студии на билде —
-`VITE_STUDIO_WEB_URL` (default localhost; стор: `.env.store` / `package:store`). Перед
+`VITE_STUDIO_WEB_URL` (default `…/studio`; стор: `.env.store` / `package:store`). Перед
 подачей — URL политики и listing (`description.md`).
 
 ## Инварианты, которые не нарушаем

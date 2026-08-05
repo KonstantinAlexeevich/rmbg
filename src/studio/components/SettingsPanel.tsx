@@ -1,6 +1,6 @@
 import { activePreset } from '../../core/storage/settings';
 import type { EdgeSettings, ItemOverride } from '../../core/types';
-import { assetUrl } from '../../platform/assets';
+import { aboutPageUrl } from '../../platform/studio-url';
 import { useStudioStore } from '../state/store';
 import { t } from '../state/i18n';
 import { patchItemOverride, updateSettings } from '../state/orchestrator';
@@ -142,7 +142,7 @@ export function SettingsPanel() {
       </div>
       <div className="flex h-12 shrink-0 items-center justify-center border-t border-zinc-200 bg-white px-4">
         <a
-          href={assetUrl('about.html')}
+          href={aboutPageUrl()}
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-zinc-400 hover:text-zinc-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
