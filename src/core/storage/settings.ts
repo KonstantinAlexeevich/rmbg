@@ -1,4 +1,5 @@
 import { storageGet, storageSet } from '../../platform/storage';
+import { detectLocale, translate, type Locale } from '../../shared/messages';
 import type { EdgeSettings, ModelAsset } from '../types';
 import { defaultPreset, type Preset } from '../preset/types';
 
@@ -9,24 +10,24 @@ export type Settings = {
   // пресеты, по которым идёт экспорт ZIP (каждый — своя папка)
   exportPresetIds: string[];
   edge: EdgeSettings;
-  ui: { locale: 'ru' | 'en' };
+  ui: { locale: Locale };
   backendOverride: 'auto' | 'webgpu' | 'wasm'; // для диагностики
   modelAssets: ModelAsset[]; // скачанные варианты; пустой массив = ещё ничего нет
 };
 
 const STORAGE_KEY = 'settings';
 
-function detectDefaultLocale(): 'ru' | 'en' {
-  const lang = typeof navigator !== 'undefined' ? navigator.language : 'en';
-  return lang.toLowerCase().startsWith('ru') ? 'ru' : 'en';
+function defaultExportName(locale: Locale): string {
+  return translate(locale, 'outputDefaultName');
 }
 
-// Core keeps a minimal EN/RU map for names created before the studio i18n layer runs.
-const OUTPUT_DEFAULT_NAME = 'Original' as const;
+function copyExportName(locale: Locale, name: string): string {
+  return translate(locale, 'outputCopySuffix', { name });
+}
 
 export function defaultSettings(): Settings {
-  const locale = detectDefaultLocale();
-  const preset = defaultPreset(OUTPUT_DEFAULT_NAME);
+  const locale = detectLocale();
+  const preset = defaultPreset(defaultExportName(locale));
   return {
     version: 1,
     presets: [preset],
@@ -46,9 +47,14 @@ export async function loadSettings(): Promise<Settings> {
 }
 
 function migrateSettings(value: Settings): Settings {
-  const locale = value.ui?.locale === 'en' ? 'en' : value.ui?.locale === 'ru' ? 'ru' : detectDefaultLocale();
+  const locale: Locale =
+    value.ui?.locale === 'en' || value.ui?.locale === 'ru'
+      ? value.ui.locale
+      : detectLocale();
   const rawPresets =
-    value.presets.length > 0 ? value.presets : [defaultPreset(OUTPUT_DEFAULT_NAME)];
+    value.presets.length > 0
+      ? value.presets
+      : [defaultPreset(defaultExportName(locale))];
   // старые пресеты без sizeMode считаем fixed — сохраняем прежнее поведение;
   // allowUpscale — legacy-ключ до переименования в allowZoom
   const presets = rawPresets.map((p) => {
@@ -108,11 +114,11 @@ export function resolveExportPresets(settings: Settings): Preset[] {
   return exportPresets(settings);
 }
 
-export function duplicatePreset(preset: Preset, copyName?: string): Preset {
+export function duplicatePreset(preset: Preset, copyName: string): Preset {
   return {
     ...preset,
     id: crypto.randomUUID(),
-    name: copyName ?? `${preset.name} copy`,
+    name: copyName,
     canvas: { ...preset.canvas },
     fit: {
       ...preset.fit,
@@ -130,7 +136,7 @@ export function addPreset(settings: Settings, copyName?: string): Settings {
   const source = activePreset(settings);
   const copy = duplicatePreset(
     source,
-    copyName ?? `${source.name} copy`,
+    copyName ?? copyExportName(settings.ui.locale, source.name),
   );
   return {
     ...settings,

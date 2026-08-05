@@ -59,7 +59,7 @@ UX: по умолчанию одно поле на все стороны; кно
 | Add export | Добавить экспорт | `addPreset` / `duplicatePreset` |
 | Export settings | Настройки экспорта | — |
 | Delete export | Удалить экспорт | `removePreset` |
-| Canvas → Original / Custom | Холст → Как в оригинале / Заданный | `sizeMode` |
+| Canvas → Original / Custom | Холст → Как в оригинале / Свой размер | `sizeMode` |
 | Width, px / Height, px | Ширина, px / Высота, px | `canvas.*` |
 | Vertical alignment | Выравнивание по вертикали | `anchor` |
 | Top / Middle / Bottom | По верху / По центру / По низу | `anchor` |

@@ -2,23 +2,17 @@
 // Russian is a full translation keyed by the same keys.
 // Components never hardcode UI copy — only MessageKey via t().
 
-import en from '../../../locales/studio/en.json';
-import ruMessages from '../../../locales/studio/ru.json';
+import {
+  detectLocale,
+  translate,
+  type Locale,
+  type MessageKey,
+} from '../../shared/messages';
 
-export type MessageKey = keyof typeof en;
-
-const ru: Record<MessageKey, string> = ruMessages;
-
-const dictionaries = { en, ru };
-
-export type Locale = keyof typeof dictionaries;
+export type { Locale, MessageKey };
+export { detectLocale };
 
 let currentLocale: Locale = 'en';
-
-export function detectLocale(): Locale {
-  const lang = typeof navigator !== 'undefined' ? navigator.language : 'en';
-  return lang.toLowerCase().startsWith('ru') ? 'ru' : 'en';
-}
 
 export function setLocale(locale: Locale): void {
   currentLocale = locale;
@@ -32,13 +26,7 @@ export function t(
   key: MessageKey,
   params?: Record<string, string | number>,
 ): string {
-  let text: string = dictionaries[currentLocale][key];
-  if (params !== undefined) {
-    for (const [name, value] of Object.entries(params)) {
-      text = text.replaceAll(`{${name}}`, String(value));
-    }
-  }
-  return text;
+  return translate(currentLocale, key, params);
 }
 
 export function formatBytes(bytes: number): string {

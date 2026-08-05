@@ -41,7 +41,7 @@ instead of spawning Vite. Chrome for the HTML renderer: `CHROME_PATH` (default m
   `export.png`) plus sidebar crop (`menu-solid.png`); refreshed by `promo:capture`
 - `promo/.pw-profile/` — Playwright profile (gitignored) so the model stays cached
 
-Capture seeds four export presets (`500px 1:1`, `Original`, `720p`, `Shop white`) and
+Capture seeds four exports (`500px 1:1`, `Original`, `720p`, `Shop white`) and
 injects a slightly denser grid (`minmax(200px)`) so cards read better at CWS scale.
 
 ## Cropping a capture

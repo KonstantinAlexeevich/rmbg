@@ -1,6 +1,7 @@
 import { activePreset } from '../../../core/storage/settings';
 import { clearAll, createSession, getItem } from '../../../core/storage/db';
 import { defaultPreset } from '../../../core/preset/types';
+import { t } from '../i18n';
 import { resolveComposition } from '../../../core/preset/override';
 import { db, releaseUrls, segWorker, setSessionId, store } from './context';
 import { updateSettings } from './recompose';
@@ -64,7 +65,7 @@ export async function clearAllData(): Promise<void> {
   const ids = store.getState().items.map((i) => i.id);
   releaseUrls(ids);
   await clearAll(db);
-  const session = await createSession(db, defaultPreset().id);
+  const session = await createSession(db, defaultPreset(t('outputDefaultName')).id);
   setSessionId(session.id);
   store.getState().setItems([]);
 }

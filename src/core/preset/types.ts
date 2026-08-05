@@ -24,9 +24,8 @@ export type Preset = {
   output: { format: OutputFormat; quality: number };
 };
 
-// Default display name is English (UI source locale). Callers that know the
-// active locale pass a localized name (e.g. t('outputDefaultName')).
-export function defaultPreset(name = 'Original'): Preset {
+// Display name comes from locales (outputDefaultName) — callers pass it in.
+export function defaultPreset(name: string): Preset {
   return {
     id: crypto.randomUUID(),
     name,
