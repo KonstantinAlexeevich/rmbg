@@ -30,11 +30,11 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
 
   return (
     <>
-      <footer className="flex h-12 shrink-0 items-center gap-3 border-t border-zinc-200 bg-white px-4">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
+      <footer className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 bg-white px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-0 sm:h-12 sm:pb-0">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
           {batch.running ? (
             <>
-              <div className="h-1.5 w-40 shrink-0 overflow-hidden rounded-full bg-zinc-200">
+              <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-zinc-200 sm:w-40 sm:flex-none">
                 <div
                   className="h-full rounded-full bg-blue-500 transition-[width]"
                   style={{
@@ -42,7 +42,7 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
                   }}
                 />
               </div>
-              <span className="truncate text-sm text-zinc-700">
+              <span className="min-w-0 truncate text-sm text-zinc-700">
                 {t.progressProcessed({ done: batch.done, total: batch.total })}
                 {batch.etaMs > 0 &&
                   `, ${t.progressEta({ eta: formatDuration(batch.etaMs) })}`}
@@ -55,7 +55,7 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
                 className="btn-secondary shrink-0"
               >
                 <CircleStop className="h-4 w-4" aria-hidden />
-                {t.progressStop()}
+                <span className="hidden sm:inline">{t.progressStop()}</span>
               </button>
             </>
           ) : exporting.running ? (
@@ -69,29 +69,31 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
           )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <button type="button" onClick={onAddFiles} className="btn-secondary">
-            <ImagePlus className="h-4 w-4" aria-hidden />
-            {t.addImages()}
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:shrink-0 sm:items-center">
+          <button type="button" onClick={onAddFiles} className="btn-secondary min-w-0">
+            <ImagePlus className="h-4 w-4 shrink-0" aria-hidden />
+            <span className="truncate">{t.addImages()}</span>
           </button>
           <button
             type="button"
             onClick={() => setConfirmClear(true)}
             disabled={busy}
-            className="btn-secondary"
+            className="btn-secondary min-w-0"
           >
-            {t.sessionClear()}
+            <span className="truncate">{t.sessionClear()}</span>
           </button>
           <button
             type="button"
             data-testid="export-zip"
             onClick={onDownload}
             disabled={exportable === 0 || exporting.running}
-            className="btn-primary"
+            className="btn-primary min-w-0"
           >
-            <FileArchive className="h-4 w-4" aria-hidden />
-            {t.exportZip()}
-            {exportable > 0 ? ` (${exportable})` : ''}
+            <FileArchive className="h-4 w-4 shrink-0" aria-hidden />
+            <span className="truncate">
+              {t.exportZip()}
+              {exportable > 0 ? ` (${exportable})` : ''}
+            </span>
           </button>
         </div>
       </footer>

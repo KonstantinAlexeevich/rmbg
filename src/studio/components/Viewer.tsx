@@ -20,8 +20,8 @@ const EMPTY: CompareUrls = {
 };
 
 function revokeUrls(urls: CompareUrls): void {
-  URL.revokeObjectURL(urls.originalUrl);
-  URL.revokeObjectURL(urls.resultUrl);
+  if (urls.originalUrl !== '') URL.revokeObjectURL(urls.originalUrl);
+  if (urls.resultUrl !== '') URL.revokeObjectURL(urls.resultUrl);
 }
 
 export function Viewer() {
@@ -97,12 +97,10 @@ export function Viewer() {
     ].join('|');
   }, [settings, item?.override]);
 
-  // смена картинки — сброс; смена настроек — держим старый кадр до готовности нового
+  // смена картинки — только сплит; старый кадр держим до готовности нового
+  // (на iOS мгновенный EMPTY даёт заметное моргание шахматкой)
   useEffect(() => {
     setSplit(50);
-    revokeUrls(urlsRef.current);
-    urlsRef.current = EMPTY;
-    setUrls(EMPTY);
   }, [compareItemId]);
 
   useEffect(() => {
@@ -119,7 +117,9 @@ export function Viewer() {
         urlsRef.current = result;
         setUrls(result);
         // revoke после paint, чтобы img не потерял src на том же кадре
-        requestAnimationFrame(() => revokeUrls(prev));
+        requestAnimationFrame(() => {
+          if (prev.originalUrl !== '' || prev.resultUrl !== '') revokeUrls(prev);
+        });
       });
     }, 200);
     return () => {
@@ -163,7 +163,7 @@ export function Viewer() {
   };
 
   return (
-    <div className="flex h-full flex-col p-4">
+    <div className="flex h-full flex-col p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3 text-sm text-zinc-600">
         <span className="truncate font-medium text-zinc-800">{item.name}</span>
         <button
@@ -173,7 +173,7 @@ export function Viewer() {
           className="btn-secondary shrink-0"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          {t.viewerBack()}
+          <span className="hidden sm:inline">{t.viewerBack()}</span>
         </button>
       </div>
 

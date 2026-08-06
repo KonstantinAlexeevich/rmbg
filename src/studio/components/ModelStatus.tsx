@@ -24,15 +24,16 @@ export function ModelStatus() {
         <div
           data-testid="model-status"
           data-phase="downloading"
-          className="flex items-center gap-2 text-xs text-zinc-600"
+          className="flex min-w-0 items-center gap-2 text-xs text-zinc-600"
         >
-          <div className="h-1.5 w-32 overflow-hidden rounded-full bg-zinc-200">
+          <div className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-zinc-200 sm:w-32">
             <div
               className="h-full rounded-full bg-blue-500 transition-[width]"
               style={{ width: `${percent}%` }}
             />
           </div>
-          <span>
+          <span className="min-w-0 truncate sm:hidden">{percent}%</span>
+          <span className="hidden min-w-0 truncate sm:inline">
             {t.modelDownloading({
               loaded: formatBytes(model.loadedBytes),
               total: model.totalBytes > 0 ? formatBytes(model.totalBytes) : '…',
@@ -41,7 +42,7 @@ export function ModelStatus() {
           <button
             type="button"
             onClick={cancelModelDownload}
-            className="cursor-pointer text-zinc-500 underline hover:text-zinc-700"
+            className="shrink-0 cursor-pointer text-zinc-500 underline hover:text-zinc-700"
           >
             {t.modelCancel()}
           </button>
@@ -62,7 +63,7 @@ export function ModelStatus() {
       );
     case 'evicted':
       return (
-        <div data-testid="model-status" data-phase="evicted" className="flex items-center gap-2 text-xs text-amber-700">
+        <div data-testid="model-status" data-phase="evicted" className="flex flex-wrap items-center gap-2 text-xs text-amber-700">
           <span>{t.modelEvicted()}</span>
           <button type="button" onClick={retryModelDownload} className="btn-secondary text-xs">
             <Download className="h-4 w-4" aria-hidden />
@@ -85,7 +86,7 @@ export function ModelStatus() {
       );
     case 'failed':
       return (
-        <div data-testid="model-status" data-phase="failed" className="flex items-center gap-2 text-xs text-red-600">
+        <div data-testid="model-status" data-phase="failed" className="flex flex-wrap items-center gap-2 text-xs text-red-600">
           <span>{t.modelFailed()}</span>
           <button
             type="button"

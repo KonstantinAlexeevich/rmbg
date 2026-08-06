@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { activePreset } from '../../core/storage/settings';
 import type { EdgeSettings, ItemOverride } from '../../core/types';
 import { aboutPageUrl } from '../../platform/studio-url';
@@ -8,14 +9,41 @@ import { EdgeSection } from './settings/EdgeSection';
 import { OverrideBanner } from './settings/OverrideBanner';
 import { PresetsSection } from './settings/PresetsSection';
 
-export function SettingsPanel() {
+export function SettingsPanel({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   const settings = useStudioStore((s) => s.settings);
   const settingsLoaded = useStudioStore((s) => s.settingsLoaded);
   const items = useStudioStore((s) => s.items);
   const compareItemId = useStudioStore((s) => s.compareItemId);
 
-  if (!settingsLoaded)
-    return <aside className="flex w-72 shrink-0 flex-col border-l border-zinc-200 bg-white" />;
+  const shellClass = [
+    'flex flex-col border-zinc-200 bg-white',
+    open
+      ? 'fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] rounded-t-2xl border-t shadow-xl'
+      : 'hidden',
+    // на md+ панель всегда в раскладке справа, независимо от sheet-состояния
+    'md:relative md:inset-auto md:z-auto md:flex md:h-full md:max-h-none md:w-72 md:shrink-0 md:rounded-none md:border-t-0 md:border-l md:shadow-none',
+  ].join(' ');
+
+  if (!settingsLoaded) {
+    return (
+      <>
+        {open && (
+          <div
+            className="fixed inset-0 z-40 bg-zinc-950/40 md:hidden"
+            aria-hidden
+            onClick={onClose}
+          />
+        )}
+        <aside className={shellClass} />
+      </>
+    );
+  }
 
   const preset = activePreset(settings);
   const compareItem = items.find((i) => i.id === compareItemId);
@@ -112,44 +140,70 @@ export function SettingsPanel() {
   };
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-l border-zinc-200 bg-white">
-      <div className="flex-1 overflow-y-auto">
-        {viewing && (
-          <OverrideBanner
-            itemId={compareItemId}
-            itemName={compareItem.name}
-            presetName={preset.name}
+    <>
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-zinc-950/40 md:hidden"
+          aria-hidden
+          onClick={onClose}
+        />
+      )}
+      <aside className={shellClass} aria-label={t.settingsTitle()}>
+        <div className="flex shrink-0 flex-col border-b border-zinc-200 md:hidden">
+          <div className="flex justify-center pt-2.5 pb-1" aria-hidden>
+            <div className="h-1 w-10 rounded-full bg-zinc-300" />
+          </div>
+          <div className="flex items-center justify-between gap-3 px-4 pb-3">
+            <h2 className="text-sm font-semibold text-zinc-900">{t.settingsTitle()}</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t.close()}
+              className="btn-icon shrink-0"
+            >
+              <X className="h-5 w-5" aria-hidden />
+            </button>
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {viewing && (
+            <OverrideBanner
+              itemId={compareItemId}
+              itemName={compareItem.name}
+              presetName={preset.name}
+              editingOverride={editingOverride}
+            />
+          )}
+          <EdgeSection
+            edge={edge}
+            highlighted={editingOverride}
+            sharedNote={!editingOverride}
+            onPatch={patchEdge}
+          />
+          <PresetsSection
+            settings={settings}
+            preset={preset}
+            sizeMode={sizeMode}
+            canvas={canvas}
+            fit={fit}
+            anchor={anchor}
+            background={background}
+            patchLayout={patchLayout}
             editingOverride={editingOverride}
           />
-        )}
-        <EdgeSection
-          edge={edge}
-          highlighted={editingOverride}
-          sharedNote={!editingOverride}
-          onPatch={patchEdge}
-        />
-        <PresetsSection
-          settings={settings}
-          preset={preset}
-          sizeMode={sizeMode}
-          canvas={canvas}
-          fit={fit}
-          anchor={anchor}
-          background={background}
-          patchLayout={patchLayout}
-          editingOverride={editingOverride}
-        />
-      </div>
-      <div className="flex h-12 shrink-0 items-center justify-center border-t border-zinc-200 bg-white px-4">
-        <a
-          href={aboutPageUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-zinc-400 hover:text-zinc-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-        >
-          {t.aboutLinkLabel()}
-        </a>
-      </div>
-    </aside>
+        </div>
+        <div className="flex h-12 shrink-0 items-center justify-center border-t border-zinc-200 bg-white px-4 pb-[env(safe-area-inset-bottom)] md:pb-0">
+          <a
+            href={aboutPageUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-zinc-400 hover:text-zinc-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+          >
+            {t.aboutLinkLabel()}
+          </a>
+        </div>
+      </aside>
+    </>
   );
 }

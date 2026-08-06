@@ -1,16 +1,16 @@
-import { Cpu, Gauge, Zap } from 'lucide-react';
+import { Cpu, Gauge, SlidersHorizontal, Zap } from 'lucide-react';
 import { assetUrl } from '../../platform/assets';
 import { useStudioStore } from '../state/store';
 import { t } from '../state/i18n';
 import { ModelStatus } from './ModelStatus';
 
-export function Header() {
+export function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
   const backend = useStudioStore((s) => s.backend);
   const setDiagnosticsOpen = useStudioStore((s) => s.setDiagnosticsOpen);
 
   return (
-    <header className="flex items-center gap-3 border-b border-zinc-200 bg-white px-4 py-2.5 shadow-sm">
-      <span className="inline-flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900">
+    <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-zinc-200 bg-white px-3 py-2.5 shadow-sm sm:px-4">
+      <span className="inline-flex items-center gap-2 text-base font-bold tracking-tight text-zinc-900 sm:text-lg">
         <img
           src={assetUrl('icons/icon-32.png')}
           alt=""
@@ -43,7 +43,20 @@ export function Header() {
         <Gauge className="h-4 w-4 opacity-60" aria-hidden />
       </button>
 
-      <ModelStatus />
+      <button
+        type="button"
+        onClick={onOpenSettings}
+        aria-label={t.settingsOpen()}
+        title={t.settingsOpen()}
+        className="btn-secondary ml-auto md:hidden"
+      >
+        <SlidersHorizontal className="h-4 w-4" aria-hidden />
+        {t.settingsTitle()}
+      </button>
+
+      <div className="w-full min-w-0 md:w-auto md:flex-1">
+        <ModelStatus />
+      </div>
     </header>
   );
 }

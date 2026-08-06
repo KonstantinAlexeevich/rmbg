@@ -34,7 +34,7 @@ function ToastView({ toast }: { toast: Toast }) {
       className={`pointer-events-auto flex items-start gap-2 rounded-(--radius-surface) border px-4 py-2.5 text-sm shadow-lg ${COLORS[toast.kind]}`}
     >
       <ToastIcon kind={toast.kind} />
-      <span className="max-w-sm">{toast.text}</span>
+      <span className="max-w-full sm:max-w-sm">{toast.text}</span>
       <button
         type="button"
         onClick={() => dismiss(toast.id)}
@@ -50,7 +50,7 @@ function ToastView({ toast }: { toast: Toast }) {
 export function Toasts() {
   const toasts = useStudioStore((s) => s.toasts);
   return (
-    <div className="pointer-events-none fixed right-4 bottom-4 z-50 flex flex-col gap-2">
+    <div className="pointer-events-none fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-50 flex flex-col gap-2 sm:inset-x-auto sm:right-4 sm:bottom-4">
       {toasts.map((toast) => (
         <ToastView key={toast.id} toast={toast} />
       ))}

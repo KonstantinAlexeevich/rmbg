@@ -24,6 +24,7 @@ export function App() {
   const viewerPoppedByBrowserRef = useRef(false);
   const [dragOver, setDragOver] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Back браузера закрывает просмотр, а не уходит со страницы
   useEffect(() => {
@@ -60,6 +61,12 @@ export function App() {
     const onKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const inField = target.tagName === 'INPUT' || target.tagName === 'SELECT';
+      if (e.key === 'Escape' && settingsOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        setSettingsOpen(false);
+        return;
+      }
       if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !inField) {
         e.preventDefault();
         void selectAll();
@@ -70,16 +77,16 @@ export function App() {
       }
     };
     document.addEventListener('paste', onPaste);
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keydown', onKeyDown, true);
     return () => {
       document.removeEventListener('paste', onPaste);
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onKeyDown, true);
     };
-  }, [compareItemId]);
+  }, [compareItemId, settingsOpen]);
 
   return (
     <div
-      className="flex h-screen flex-col bg-zinc-50 text-zinc-900"
+      className="flex h-dvh flex-col bg-zinc-50 text-zinc-900 pt-[env(safe-area-inset-top)]"
       onDragOver={(e) => {
         e.preventDefault();
         setDragOver(true);
@@ -93,11 +100,11 @@ export function App() {
         void addFiles([...e.dataTransfer.files]);
       }}
     >
-      <Header />
+      <Header onOpenSettings={() => setSettingsOpen(true)} />
 
-      <div className="flex min-h-0 flex-1">
-        <div className="flex min-w-0 flex-1 flex-col">
-          <main className="relative min-w-0 flex-1 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <main className="relative min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
             {compareItemId !== '' ? (
               <Viewer />
             ) : items.length === 0 ? (
@@ -115,7 +122,7 @@ export function App() {
           </main>
           <BottomBar onAddFiles={() => fileInputRef.current?.click()} />
         </div>
-        <SettingsPanel />
+        <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       </div>
 
       <input

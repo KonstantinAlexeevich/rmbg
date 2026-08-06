@@ -230,7 +230,7 @@ function IconButton({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="cursor-pointer rounded-(--radius-control) bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+      className="cursor-pointer rounded-(--radius-control) bg-zinc-900/70 p-2 text-white hover:bg-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 sm:p-1.5"
     >
       {children}
     </button>

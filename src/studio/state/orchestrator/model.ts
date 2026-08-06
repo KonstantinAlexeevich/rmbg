@@ -95,8 +95,9 @@ async function loadModelAndInit(
     };
     store.getState().setSettings(updated);
     await saveSettings(updated);
-    // отказ в persist не блокирует работу, но пользователь должен знать
-    if (!(await navigator.storage.persisted())) {
+    // отказ в persist не блокирует работу; на Safari/iOS persist почти
+    // никогда не выдаётся — тост только пугает без пользы
+    if (expectsPersistentStorage() && !(await navigator.storage.persisted())) {
       store.getState().addToast('warning', t.warnNoPersist());
     }
   }
@@ -166,4 +167,12 @@ export function retryModelDownload(): void {
 
 export function cancelModelDownload(): void {
   modelAbort.abort();
+}
+
+/** Chrome/Edge/Firefox могут выдать persist; Safari (в т.ч. iOS) — почти никогда. */
+function expectsPersistentStorage(): boolean {
+  const ua = navigator.userAgent;
+  if (/iP(hone|ad|od)/.test(ua)) return false;
+  if (/Safari/.test(ua) && !/Chrome|Chromium|Edg|OPR/.test(ua)) return false;
+  return true;
 }

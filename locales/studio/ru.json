@@ -139,5 +139,7 @@
   "confirmOk": "Подтвердить",
   "close": "Закрыть",
   "toastDismiss": "Закрыть",
-  "aboutLinkLabel": "О приложении"
+  "aboutLinkLabel": "О приложении",
+  "settingsTitle": "Настройки",
+  "settingsOpen": "Открыть настройки"
 }

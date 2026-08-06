@@ -49,7 +49,7 @@ export function DiagnosticsPanel() {
           if (e.target === e.currentTarget) setOpen(false);
         }}
       >
-        <div className="surface w-full max-w-md p-5">
+        <div className="surface max-h-[min(36rem,calc(100dvh-2rem))] w-full max-w-md overflow-y-auto overscroll-contain p-5">
           <h2 className="mb-3 text-base font-semibold text-zinc-900">{t.diagTitle()}</h2>
 
           <Row

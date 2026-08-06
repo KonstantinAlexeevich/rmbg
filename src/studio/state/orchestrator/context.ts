@@ -21,8 +21,20 @@ export let workerInited = false;
 export let hadSuccessfulRun = false;
 export let fallbackHappened = false;
 
-const thumbUrls = new Map<string, string>();
-const resultThumbUrls = new Map<string, string>();
+type CachedUrl = { url: string; blob: Blob };
+
+const thumbUrls = new Map<string, CachedUrl>();
+const resultThumbUrls = new Map<string, CachedUrl>();
+
+/** Переиспользуем object URL, пока Blob тот же — иначе Safari мигает на revoke. */
+function objectUrlFor(cache: Map<string, CachedUrl>, id: string, blob: Blob): string {
+  const cached = cache.get(id);
+  if (cached !== undefined && cached.blob === blob) return cached.url;
+  if (cached !== undefined) URL.revokeObjectURL(cached.url);
+  const url = URL.createObjectURL(blob);
+  cache.set(id, { url, blob });
+  return url;
+}
 
 export let visibleIds = new Set<string>();
 
@@ -102,18 +114,18 @@ export function itemHash(settings: Settings, overrides: ItemOverride[]): string 
 }
 
 export function toView(item: ItemRecord, settings: Settings): ItemView {
-  const oldThumb = thumbUrls.get(item.id);
-  if (oldThumb !== undefined) URL.revokeObjectURL(oldThumb);
-  const thumbnailUrl = URL.createObjectURL(item.thumbnail);
-  thumbUrls.set(item.id, thumbnailUrl);
+  const thumbnailUrl = objectUrlFor(thumbUrls, item.id, item.thumbnail);
 
-  const oldResult = resultThumbUrls.get(item.id);
-  if (oldResult !== undefined) URL.revokeObjectURL(oldResult);
   let resultThumbnailUrl = '';
   if (item.result !== null) {
-    resultThumbnailUrl = URL.createObjectURL(item.result.thumbnail);
-    resultThumbUrls.set(item.id, resultThumbnailUrl);
+    resultThumbnailUrl = objectUrlFor(
+      resultThumbUrls,
+      item.id,
+      item.result.thumbnail,
+    );
   } else {
+    const oldResult = resultThumbUrls.get(item.id);
+    if (oldResult !== undefined) URL.revokeObjectURL(oldResult.url);
     resultThumbUrls.delete(item.id);
   }
 
@@ -143,10 +155,10 @@ export function releaseUrls(ids: string[]): void {
     ephemeralItemIds.delete(id);
     autoDownloadPresetByItem.delete(id);
     const thumb = thumbUrls.get(id);
-    if (thumb !== undefined) URL.revokeObjectURL(thumb);
+    if (thumb !== undefined) URL.revokeObjectURL(thumb.url);
     thumbUrls.delete(id);
     const result = resultThumbUrls.get(id);
-    if (result !== undefined) URL.revokeObjectURL(result);
+    if (result !== undefined) URL.revokeObjectURL(result.url);
     resultThumbUrls.delete(id);
   }
 }

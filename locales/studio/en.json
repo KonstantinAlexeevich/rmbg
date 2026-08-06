@@ -139,5 +139,7 @@
   "confirmOk": "Confirm",
   "close": "Close",
   "toastDismiss": "Dismiss",
-  "aboutLinkLabel": "About"
+  "aboutLinkLabel": "About",
+  "settingsTitle": "Settings",
+  "settingsOpen": "Open settings"
 }
