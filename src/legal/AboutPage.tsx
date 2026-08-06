@@ -61,8 +61,8 @@ export function AboutPage() {
               <p>No analytics, advertising, or accounts.</p>
               <p>
                 Questions:{' '}
-                <a href="mailto:klxshus@gmail.com" className={linkClass}>
-                  klxshus@gmail.com
+                <a href="mailto:png.maker.studio@gmail.com" className={linkClass}>
+                  png.maker.studio@gmail.com
                 </a>
               </p>
             </div>
