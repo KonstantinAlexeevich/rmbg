@@ -120,6 +120,7 @@ export function App() {
 
       <input
         ref={fileInputRef}
+        data-testid="file-input"
         type="file"
         multiple
         accept={ACCEPTED_MIME_TYPES.join(',')}

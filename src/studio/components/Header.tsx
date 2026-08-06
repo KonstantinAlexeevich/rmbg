@@ -26,6 +26,8 @@ export function Header() {
         type="button"
         onClick={() => setDiagnosticsOpen(true)}
         title={t.diagTitle()}
+        data-testid="backend-badge"
+        data-backend={backend}
         className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
           backend === 'webgpu'
             ? 'bg-emerald-100 text-emerald-700'

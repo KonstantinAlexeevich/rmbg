@@ -10,4 +10,13 @@ rmbg.zip
 .env.*.local
 .env.store
 promo/.pw-profile/
+e2e/.pw-profile/
+e2e/.pw-ext-profile/
+e2e/.pw-fp32-profile/
+e2e/.pw-fp32-ext-profile/
+e2e/.pw-fp32-diag/
+e2e/.pw-fp32-diag2/
+e2e/fixtures/*.onnx
+test-results/
+playwright-report/
 

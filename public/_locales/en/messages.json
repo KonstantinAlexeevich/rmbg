@@ -4,7 +4,7 @@
     "description": "Extension name shown in the Chrome Web Store and chrome://extensions"
   },
   "extDescription": {
-    "message": "Try PNG Maker - a simple background remover. Create a transparent PNG with a clear background and save multiple images easily.",
+    "message": "Try PNG Maker — a simple background remover for a transparent PNG with a clear background. Save multiple images in one go.",
     "description": "Extension description for the Chrome Web Store listing"
   },
   "actionTitle": {

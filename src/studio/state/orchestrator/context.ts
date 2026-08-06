@@ -8,6 +8,7 @@ import type { Database } from '../../../core/storage/db';
 import { findOverride, resolveComposition } from '../../../core/preset/override';
 import { useStudioStore, type ItemView } from '../store';
 import type { ExportWorkerClient, SegmentationWorkerClient } from '../workers';
+import { isResultStale } from './selectors';
 
 export const store = useStudioStore;
 
@@ -131,7 +132,7 @@ export function toView(item: ItemRecord, settings: Settings): ItemView {
     resultThumbnailUrl,
     hasMask: item.mask !== null,
     maskEmpty: item.mask !== null && item.mask.empty,
-    stale: item.result !== null && item.result.settingsHash !== hash,
+    stale: isResultStale(item.result, hash),
     override: override ?? null,
     ephemeral: ephemeralItemIds.has(item.id),
   };

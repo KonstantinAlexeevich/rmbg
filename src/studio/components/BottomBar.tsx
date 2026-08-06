@@ -84,6 +84,7 @@ export function BottomBar({ onAddFiles }: { onAddFiles: () => void }) {
           </button>
           <button
             type="button"
+            data-testid="export-zip"
             onClick={onDownload}
             disabled={exportable === 0 || exporting.running}
             className="btn-primary"

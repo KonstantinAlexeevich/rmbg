@@ -1,19 +1,17 @@
 import { resolveExportPresets } from '../../../core/storage/settings';
 import { getItem } from '../../../core/storage/db';
-import { extensionForFormat } from '../../../core/image/encode';
 import { downloadBlob as platformDownloadBlob } from '../../../platform/download';
 import { t } from '../i18n';
 import { ExportWorkerClient } from '../workers';
 import { db, exportWorker, setExportWorker, store } from './context';
+import { downloadFileName, selectExportableIds } from './selectors';
 
 export async function exportZip(): Promise<void> {
   const state = store.getState();
   if (state.exporting.running) return;
 
   // в архив попадают только выбранные карточки со статусом done
-  const ids = state.items
-    .filter((i) => i.selected && i.status === 'done')
-    .map((i) => i.id);
+  const ids = selectExportableIds(state.items);
   if (ids.length === 0) return;
 
   const presets = resolveExportPresets(state.settings);
@@ -50,10 +48,9 @@ export async function exportZip(): Promise<void> {
 export async function downloadItem(id: string): Promise<void> {
   const record = await getItem(db, id);
   if (record === null || record.result === null) return;
-  const base = record.name.replace(/\.[^.]+$/, '');
   await downloadBlob(
     record.result.blob,
-    `${base}.${extensionForFormat(record.result.format)}`,
+    downloadFileName(record.name, record.result.format),
     false,
   );
 }

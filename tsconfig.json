@@ -17,5 +17,14 @@
     "resolveJsonModule": true,
     "types": ["chrome", "vite/client"]
   },
-  "include": ["src", "locales", "scripts/studio-url.ts", "vite.config.ts", "vite.config.web.ts"]
+  "include": [
+    "src",
+    "locales",
+    "scripts/studio-url.ts",
+    "scripts/studio-url.test.ts",
+    "vite.config.ts",
+    "vite.config.web.ts",
+    "vitest.config.ts",
+    "vitest.setup.ts"
+  ]
 }

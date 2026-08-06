@@ -121,6 +121,29 @@ rmbg/
 - `build:store` / `package:store` — extension под прод URL (`.env.store`)
 - `dev:web` / `build:web` / `preview:web` — studio site
 - `models`, `typecheck`, `lint`, `format`
+- `test` / `test:watch` / `test:coverage` — Vitest (unit + integration)
+- `test:e2e` / `test:e2e:install` — Playwright studio smoke (см. ниже)
+
+## Тесты
+
+| Слой | Команда | Что гейтит |
+| --- | --- | --- |
+| Unit / integration | `npm test` | preset/settings/mask/ZIP/jobs/delivery/model-loader/IDB/orchestrator (мок-воркеры) |
+| Coverage | `npm run test:coverage` | v8; UI/workers/SW wiring исключены из отчёта намеренно |
+| Product e2e | `npm run test:e2e` | studio smoke + extension Add/Save (load unpacked `dist/`) |
+
+Зависимости: native `canvas`, Chromium (`npm run test:e2e:install`).
+ONNX в тестах **только локально** из `e2e/fixtures/` (без сети). Один раз положить веса:
+`npm run e2e:fetch-models` (или скопировать файлы вручную). `test:e2e` сам качать не будет.
+
+**Не гейтится автотестами:** клик по системному меню Chrome ПКМ; store listing — см. [cws/submission.md](cws/submission.md).
+
+Релизный гейт:
+
+```bash
+npm run typecheck && npm run lint && npm test && npm run test:e2e
+```
+
 
 ## Установка для разработки
 

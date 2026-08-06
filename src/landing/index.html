@@ -3,10 +3,73 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="PNG Maker — remove image backgrounds locally in the browser" />
-    <title>PNG Maker</title>
+
+    <title>PNG Maker — background remover for a transparent PNG</title>
+    <meta
+      name="description"
+      content="PNG Maker — background remover for a transparent PNG with a clear background. Remove bg from image in the browser, make PNG transparent, save multiple images in one go."
+    />
+    <meta
+      name="keywords"
+      content="PNG Maker, transparent PNG, clear background, background remover, remove background, remove bg from image, make png transparent, transparent png maker, make an image transparent, create transparent png, bg remove, transparent image, image resizer, delete background from image"
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="%SITE_ORIGIN%/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PNG Maker" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="%SITE_ORIGIN%/" />
+    <meta property="og:title" content="PNG Maker — background remover for a transparent PNG" />
+    <meta
+      property="og:description"
+      content="Background remover for a transparent PNG with a clear background. Runs in your browser — photos never leave the device. Save multiple images in one go."
+    />
+    <meta property="og:image" content="%SITE_ORIGIN%/icons/icon-512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="PNG Maker" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="PNG Maker — background remover for a transparent PNG" />
+    <meta
+      name="twitter:description"
+      content="Background remover for a transparent PNG with a clear background. Runs in your browser — photos never leave the device."
+    />
+    <meta name="twitter:image" content="%SITE_ORIGIN%/icons/icon-512.png" />
+
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="application-name" content="PNG Maker" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "PNG Maker",
+        "url": "%SITE_ORIGIN%/",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Chrome",
+        "browserRequirements": "Requires JavaScript. WebGPU or WASM.",
+        "description": "PNG Maker — background remover for a transparent PNG with a clear background. Save multiple images in one go. Runs on your device in the browser.",
+        "image": "%SITE_ORIGIN%/icons/icon-512.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Remove background from images",
+          "Transparent PNG or solid color backdrop",
+          "Batch export and ZIP download",
+          "On-device AI, no photo upload",
+          "Image resizer and subject crop"
+        ]
+      }
+    </script>
+
     <script type="module" src="/src/landing/main.tsx"></script>
   </head>
   <body>

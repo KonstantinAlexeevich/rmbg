@@ -1,18 +1,12 @@
 /** URL web-студии: задаётся на билде через VITE_STUDIO_WEB_URL (см. vite.config.ts). */
 
+import {
+  DEFAULT_STUDIO_WEB_URL,
+  normalizeStudioWebUrl,
+} from '../../scripts/studio-url';
 import { isExtension } from './env';
 
-const DEFAULT_STUDIO_WEB_URL = 'http://localhost:5173/studio';
-
-/** Канон: без trailing slash у пути (кроме корня `/`). */
-function normalizeStudioWebUrl(raw: string): string {
-  const trimmed = raw.trim();
-  const url = new URL(trimmed);
-  if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
-    url.pathname = url.pathname.replace(/\/+$/, '') || '/';
-  }
-  return url.href;
-}
+export { DEFAULT_STUDIO_WEB_URL, normalizeStudioWebUrl };
 
 export const STUDIO_WEB_URL = normalizeStudioWebUrl(
   import.meta.env.VITE_STUDIO_WEB_URL || DEFAULT_STUDIO_WEB_URL,
@@ -26,7 +20,7 @@ export function studioPageUrl(): string {
   return STUDIO_WEB_URL;
 }
 
-/** Web: /about/ на текущем origin; extension: локальный about.html в пакете. */
+/** Web: /about на текущем origin; extension: локальный about.html в пакете. */
 export function aboutPageUrl(): string {
   if (isExtension) {
     return chrome.runtime.getURL('about.html');
@@ -39,9 +33,9 @@ export function studioWebPath(): string {
   return '/studio';
 }
 
-/** Путь about на web-origin. */
+/** Путь about на web-origin (канон без trailing slash, как /studio). */
 export function aboutWebPath(): string {
-  return '/about/';
+  return '/about';
 }
 
 export function configuredStudioOrigin(): string {

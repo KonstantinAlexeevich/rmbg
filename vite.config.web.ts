@@ -2,9 +2,20 @@ import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, extname, join, resolve } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { defineConfig, type Connect, type Plugin, type PreviewServer, type ViteDevServer } from 'vite';
+import {
+  defineConfig,
+  loadEnv,
+  type Connect,
+  type Plugin,
+  type PreviewServer,
+  type ViteDevServer,
+} from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import {
+  DEFAULT_STUDIO_WEB_URL,
+  normalizeStudioWebUrl,
+} from './scripts/studio-url';
 
 const pkg = JSON.parse(
   readFileSync(resolve(import.meta.dirname, 'package.json'), 'utf8'),
@@ -19,6 +30,33 @@ const appDefines = {
   'import.meta.env.VITE_APP_TARGET': JSON.stringify('web'),
   'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
 };
+
+/** Origin публичного сайта: из VITE_STUDIO_WEB_URL (или VITE_SITE_ORIGIN). Пусто → относительные URL. */
+function resolveSiteOrigin(mode: string): string {
+  const env = loadEnv(mode, import.meta.dirname, '');
+  const raw =
+    process.env.VITE_SITE_ORIGIN ||
+    process.env.VITE_STUDIO_WEB_URL ||
+    env.VITE_SITE_ORIGIN ||
+    env.VITE_STUDIO_WEB_URL ||
+    DEFAULT_STUDIO_WEB_URL;
+  try {
+    return new URL(normalizeStudioWebUrl(raw)).origin;
+  } catch {
+    return '';
+  }
+}
+
+/** Подставляет %SITE_ORIGIN% в HTML (canonical / Open Graph / JSON-LD). */
+function stampSiteOrigin(mode: string): Plugin {
+  const origin = resolveSiteOrigin(mode);
+  return {
+    name: 'rmbg:stamp-site-origin',
+    transformIndexHtml(html) {
+      return html.replaceAll('%SITE_ORIGIN%', origin);
+    },
+  };
+}
 
 const mimeByExt: Record<string, string> = {
   '.wasm': 'application/wasm',
@@ -82,19 +120,29 @@ function pathOnly(url: string): string {
   return url.split('?')[0] ?? '';
 }
 
-/** Удобные URL: / → лендинг, /studio → студия, /about/ → about.
- *  /studio/ редиректим на канон /studio (без trailing slash). */
+/** Удобные URL: / → лендинг, /studio → студия, /about → about.
+ *  /studio/ и /about/ редиректим на канон без trailing slash. */
 function prettyDevRoutes(): Plugin {
+  const redirectNoTrailingSlash = (path: string, canon: string, query: string, res: ServerResponse) => {
+    if (path === `${canon}/`) {
+      res.statusCode = 302;
+      res.setHeader('Location', `${canon}${query}`);
+      res.end();
+      return true;
+    }
+    return false;
+  };
+
   const attach = (middlewares: Connect.Server) => {
     middlewares.use((req, res, next) => {
       const url = req.url ?? '';
       const path = pathOnly(url);
       const query = qs(url);
 
-      if (path === '/studio/') {
-        res.statusCode = 302;
-        res.setHeader('Location', `/studio${query}`);
-        res.end();
+      if (
+        redirectNoTrailingSlash(path, '/studio', query, res) ||
+        redirectNoTrailingSlash(path, '/about', query, res)
+      ) {
         return;
       }
 
@@ -102,7 +150,7 @@ function prettyDevRoutes(): Plugin {
         req.url = `/src/landing/index.html${query}`;
       } else if (path === '/studio' || path === '/studio/index.html') {
         req.url = `/src/studio/index.html${query}`;
-      } else if (path === '/about' || path === '/about/' || path === '/about/index.html') {
+      } else if (path === '/about' || path === '/about/index.html') {
         req.url = `/src/legal/about.html${query}`;
       }
       next();
@@ -115,20 +163,22 @@ function prettyDevRoutes(): Plugin {
       attach(server.middlewares);
     },
     configurePreviewServer(server: PreviewServer) {
-      // preview отдаёт dist-web: /studio без слэша → studio/index.html
+      // preview отдаёт dist-web: /studio и /about без слэша → */index.html
       server.middlewares.use((req, res, next) => {
         const url = req.url ?? '';
         const path = pathOnly(url);
         const query = qs(url);
 
-        if (path === '/studio/') {
-          res.statusCode = 302;
-          res.setHeader('Location', `/studio${query}`);
-          res.end();
+        if (
+          redirectNoTrailingSlash(path, '/studio', query, res) ||
+          redirectNoTrailingSlash(path, '/about', query, res)
+        ) {
           return;
         }
         if (path === '/studio') {
           req.url = `/studio/index.html${query}`;
+        } else if (path === '/about') {
+          req.url = `/about/index.html${query}`;
         }
         next();
       });
@@ -182,12 +232,13 @@ function stampServiceWorkerCache(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: '/',
   define: appDefines,
   plugins: [
     react(),
     tailwindcss(),
+    stampSiteOrigin(mode),
     prettyDevRoutes(),
     serveOrtAssets(),
     flattenWebPages(),
@@ -221,4 +272,4 @@ export default defineConfig({
     strictPort: true,
     headers: isolationHeaders,
   },
-});
+}));

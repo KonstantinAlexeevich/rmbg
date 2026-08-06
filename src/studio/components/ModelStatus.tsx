@@ -8,16 +8,24 @@ export function ModelStatus() {
 
   switch (model.phase) {
     case 'detecting':
-      return null;
+      return (
+        <div data-testid="model-status" data-phase="detecting" className="hidden" />
+      );
     case 'ready':
-      return null; // готова — индикатор скрывается
+      return (
+        <div data-testid="model-status" data-phase="ready" className="hidden" />
+      );
     case 'downloading': {
       const percent =
         model.totalBytes > 0
           ? Math.round((model.loadedBytes / model.totalBytes) * 100)
           : 0;
       return (
-        <div className="flex items-center gap-2 text-xs text-zinc-600">
+        <div
+          data-testid="model-status"
+          data-phase="downloading"
+          className="flex items-center gap-2 text-xs text-zinc-600"
+        >
           <div className="h-1.5 w-32 overflow-hidden rounded-full bg-zinc-200">
             <div
               className="h-full rounded-full bg-blue-500 transition-[width]"
@@ -41,12 +49,20 @@ export function ModelStatus() {
       );
     }
     case 'verifying':
-      return <span className="text-xs text-zinc-600">{t.modelVerifying()}</span>;
+      return (
+        <span data-testid="model-status" data-phase="verifying" className="text-xs text-zinc-600">
+          {t.modelVerifying()}
+        </span>
+      );
     case 'creating':
-      return <span className="text-xs text-zinc-600">{t.modelCreating()}</span>;
+      return (
+        <span data-testid="model-status" data-phase="creating" className="text-xs text-zinc-600">
+          {t.modelCreating()}
+        </span>
+      );
     case 'evicted':
       return (
-        <div className="flex items-center gap-2 text-xs text-amber-700">
+        <div data-testid="model-status" data-phase="evicted" className="flex items-center gap-2 text-xs text-amber-700">
           <span>{t.modelEvicted()}</span>
           <button type="button" onClick={retryModelDownload} className="btn-secondary text-xs">
             <Download className="h-4 w-4" aria-hidden />
@@ -56,14 +72,20 @@ export function ModelStatus() {
       );
     case 'canceled':
       return (
-        <button type="button" onClick={retryModelDownload} className="btn-secondary text-xs">
+        <button
+          type="button"
+          data-testid="model-status"
+          data-phase="canceled"
+          onClick={retryModelDownload}
+          className="btn-secondary text-xs"
+        >
           <Download className="h-4 w-4" aria-hidden />
           {t.modelDownload()}
         </button>
       );
     case 'failed':
       return (
-        <div className="flex items-center gap-2 text-xs text-red-600">
+        <div data-testid="model-status" data-phase="failed" className="flex items-center gap-2 text-xs text-red-600">
           <span>{t.modelFailed()}</span>
           <button
             type="button"

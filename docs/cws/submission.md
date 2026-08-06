@@ -111,6 +111,16 @@ Background removal runs **on-device** there (Web Workers + ONNX Runtime).
 
 ## Pre-submit technical checklist
 
+### Automated gate (local)
+
+```bash
+npm run typecheck && npm run lint && npm test && npm run test:e2e
+```
+
+Covers: core pipeline math, settings/IDB, jobs/delivery mocks, model-loader SHA/mirrors,
+orchestrator queue + silent Save, web studio smoke, extension Add/Save delivery (load unpacked).
+**Still manual:** native Chrome context-menu click UI; store screenshots/listing.
+
 ### Extension (`npm run build` → `dist/`)
 
 | Check | Expected |

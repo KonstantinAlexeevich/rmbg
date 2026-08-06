@@ -17,6 +17,7 @@ import {
   visibleIds,
 } from './context';
 import { syncExportsToExtension } from '../../ext-sync';
+import { isResultStale, selectRecomposeCandidates } from './selectors';
 
 let recomposeTimer = 0;
 let recomposeGeneration = 0;
@@ -34,7 +35,7 @@ async function refreshStaleFlags(settings: Settings): Promise<boolean> {
     const record = await getItem(db, view.id);
     if (record === null) continue;
     const hash = itemHash(settings, record.overrides);
-    const stale = record.result !== null && record.result.settingsHash !== hash;
+    const stale = isResultStale(record.result, hash);
     if (stale) anyStale = true;
     store.getState().patchItem(view.id, {
       override: findOverride(record.overrides, settings.activePresetId) ?? null,
@@ -63,14 +64,11 @@ async function recomposeStale(): Promise<void> {
   const compareId = store.getState().compareItemId;
 
   // открытая в просмотре — первой, затем видимые в гриде, потом остальные
-  const candidates = store
-    .getState()
-    .items.filter((i) => i.hasMask && (i.status === 'done' || i.stale))
-    .sort((a, b) => {
-      const score = (id: string) =>
-        (id === compareId ? 2 : 0) + (visibleIds.has(id) ? 1 : 0);
-      return score(b.id) - score(a.id);
-    });
+  const candidates = selectRecomposeCandidates(
+    store.getState().items,
+    compareId,
+    visibleIds,
+  );
 
   for (const view of candidates) {
     if (generation !== recomposeGeneration) return; // настройки изменились снова

@@ -2,16 +2,14 @@ import { STUDIO_WEB_URL } from '../platform/studio-url';
 import { MSG_JOBS } from '../shared/ext-protocol';
 import { claimJobs, enqueueJob } from './jobs';
 import { resolveStudioOrigin } from './studio-origin';
+import { studioTabUrlPatterns } from './studio-tabs';
 
 export async function openStudioTab(options?: {
   focus?: boolean;
 }): Promise<number | undefined> {
   const focus = options?.focus !== false;
   const origin = await resolveStudioOrigin();
-  const patterns = [`${origin}/*`];
-  if (!STUDIO_WEB_URL.startsWith(origin)) {
-    patterns.push(`${STUDIO_WEB_URL}*`);
-  }
+  const patterns = studioTabUrlPatterns(origin, STUDIO_WEB_URL);
   const tabs = await chrome.tabs.query({ url: patterns });
   const existing = tabs[0];
   if (existing !== undefined && existing.id !== undefined) {

@@ -4,19 +4,14 @@ import {
   type ExtJob,
   type BridgeToPage,
 } from '../shared/ext-protocol';
-import type { Settings } from '../core/storage/settings';
 import { useStudioStore } from './state/store';
 import { addFiles } from './state/orchestrator';
 import { t } from './state/i18n';
 import { postPageReady, syncExportsToExtension } from './ext-sync';
+import { resolvePresetId } from './resolve-preset-id';
 
 let pageReady = false;
 const pendingJobs: ExtJob[] = [];
-
-function resolvePresetId(requested: string, settings: Settings): string {
-  if (settings.presets.some((p) => p.id === requested)) return requested;
-  return settings.activePresetId;
-}
 
 async function handleJob(job: ExtJob): Promise<void> {
   if (job.kind === 'error') {

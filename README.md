@@ -39,6 +39,20 @@ npm run build
 
 Если порт 5173 занят: `lsof -ti :5173 | xargs kill`.
 
+## Тесты
+
+```bash
+npm test                 # Vitest unit + integration
+npm run test:coverage    # coverage summary
+npm run test:e2e:install # один раз: Chromium для Playwright
+npm run e2e:fetch-models # один раз: ONNX в e2e/fixtures/ (тесты сами не качают)
+npm run test:e2e         # studio smoke + extension Add/Save
+```
+
+Перед публикацией: `npm run typecheck && npm run lint && npm test && npm run test:e2e`.
+Подробнее — [docs/07-build.md](docs/07-build.md) § Тесты, чеклист в [TODO.md](TODO.md).
+
+
 ## URL студии (`VITE_STUDIO_WEB_URL`)
 
 На билде расширения один env задаёт и `STUDIO_WEB_URL` в коде, и

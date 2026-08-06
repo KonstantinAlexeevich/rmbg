@@ -46,7 +46,8 @@ export async function loadSettings(): Promise<Settings> {
   return migrateSettings(value);
 }
 
-function migrateSettings(value: Settings): Settings {
+/** Нормализация settings из storage (legacy sizeMode / allowUpscale / locale). */
+export function migrateSettings(value: Settings): Settings {
   const locale: Locale =
     value.ui?.locale === 'en' || value.ui?.locale === 'ru'
       ? value.ui.locale

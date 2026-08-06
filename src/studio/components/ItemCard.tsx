@@ -93,6 +93,8 @@ export function ItemCard({ item }: { item: ItemView }) {
   return (
     <div
       data-item-id={item.id}
+      data-testid="item-card"
+      data-status={item.status}
       tabIndex={0}
       onKeyDown={(e) => {
         if (renaming) return;

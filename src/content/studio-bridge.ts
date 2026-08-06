@@ -1,27 +1,21 @@
 /** Content script только на origin студии: chrome.runtime ↔ window.postMessage. */
 
 import {
-  STUDIO_MARKER_ATTR,
-  STUDIO_MARKER_VALUE,
-} from '../platform/studio-url';
-import {
   BRIDGE_SOURCE,
   MENU_EXPORTS_KEY,
   MSG_JOBS,
   MSG_PULL_JOBS,
   MSG_STUDIO_READY,
   STUDIO_ORIGIN_KEY,
-  type BridgeFromPage,
   type BridgeToPage,
   type ExtJob,
   type MenuExport,
 } from '../shared/ext-protocol';
-
-function isStudioShell(): boolean {
-  return (
-    document.documentElement?.getAttribute(STUDIO_MARKER_ATTR) === STUDIO_MARKER_VALUE
-  );
-}
+import {
+  flushJobsToPage,
+  isBridgeFromPage,
+  isStudioShell,
+} from './bridge-logic';
 
 function postToPage(message: BridgeToPage): void {
   window.postMessage(message, window.location.origin);
@@ -37,21 +31,9 @@ const queue: ExtJob[] = [];
 
 function enqueueForPage(jobs: ExtJob[]): void {
   for (const job of jobs) queue.push(job);
-  flushQueueToPage();
-}
-
-function flushQueueToPage(): void {
-  if (!pageReady) return;
-  while (queue.length > 0) {
-    const job = queue.shift();
-    if (job === undefined) break;
+  flushJobsToPage(queue, pageReady, (job) => {
     postToPage({ source: BRIDGE_SOURCE, type: 'JOB', job });
-  }
-}
-
-function isFromPage(data: unknown): data is BridgeFromPage {
-  if (typeof data !== 'object' || data === null) return false;
-  return (data as BridgeFromPage).source === BRIDGE_SOURCE;
+  });
 }
 
 let started = false;
@@ -72,7 +54,7 @@ function startBridge(): void {
 
   window.addEventListener('message', (event: MessageEvent) => {
     if (event.origin !== window.location.origin) return;
-    if (!isFromPage(event.data)) return;
+    if (!isBridgeFromPage(event.data)) return;
 
     if (event.data.type === 'SYNC_EXPORTS') {
       void saveMenuExports(event.data.exports);
@@ -80,7 +62,9 @@ function startBridge(): void {
     }
     if (event.data.type === 'PAGE_READY') {
       pageReady = true;
-      flushQueueToPage();
+      flushJobsToPage(queue, pageReady, (job) => {
+        postToPage({ source: BRIDGE_SOURCE, type: 'JOB', job });
+      });
       try {
         void chrome.runtime.sendMessage({ type: MSG_PULL_JOBS });
       } catch {
@@ -102,7 +86,7 @@ function startBridge(): void {
 }
 
 function tryStart(): boolean {
-  if (!isStudioShell()) return false;
+  if (!isStudioShell(document)) return false;
   startBridge();
   return true;
 }

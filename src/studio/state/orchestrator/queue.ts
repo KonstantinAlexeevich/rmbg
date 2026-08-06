@@ -1,8 +1,4 @@
-import {
-  activePreset,
-  settingsHash,
-} from '../../../core/storage/settings';
-import type { Preset } from '../../../core/preset/types';
+import { settingsHash } from '../../../core/storage/settings';
 import { getItem, putItem } from '../../../core/storage/db';
 import { resolveComposition } from '../../../core/preset/override';
 import { t } from '../i18n';
@@ -20,6 +16,12 @@ import {
 } from './context';
 import { fallbackToWasm } from './model';
 import { abortSilentExport, finishSilentExport } from './silent-export';
+import {
+  computeEtaMs,
+  resolveComposePreset,
+  selectPendingItemIds,
+  shouldRecordRunDuration,
+} from './selectors';
 
 let queueRunning = false;
 // длительности последних успешных прогонов для оценки оставшегося времени
@@ -27,11 +29,7 @@ const recentDurations: number[] = [];
 let wasmRunsSeen = 0;
 
 function updateEta(remaining: number): void {
-  const avg =
-    recentDurations.length > 0
-      ? recentDurations.reduce((a, b) => a + b, 0) / recentDurations.length
-      : 0;
-  store.getState().setBatch({ etaMs: avg > 0 ? Math.round(avg * remaining) : 0 });
+  store.getState().setBatch({ etaMs: computeEtaMs(recentDurations, remaining) });
 }
 
 export async function processAll(): Promise<void> {
@@ -42,9 +40,7 @@ export async function processAll(): Promise<void> {
   }
   if (queueRunning) return;
 
-  const pendingIds = state.items
-    .filter((i) => i.status === 'queued' || i.status === 'failed' || i.stale)
-    .map((i) => i.id);
+  const pendingIds = selectPendingItemIds(state.items);
   if (pendingIds.length === 0) return;
 
   queueRunning = true;
@@ -83,18 +79,6 @@ export async function retryItem(id: string): Promise<void> {
   await processItem(id);
 }
 
-function resolveComposePreset(
-  settings: ReturnType<typeof store.getState>['settings'],
-  itemId: string,
-): Preset {
-  const autoId = peekAutoDownloadPreset(itemId);
-  if (autoId !== undefined) {
-    const found = settings.presets.find((p) => p.id === autoId);
-    if (found !== undefined) return found;
-  }
-  return activePreset(settings);
-}
-
 async function processItem(id: string): Promise<void> {
   const worker = segWorker;
   if (worker === null) return;
@@ -103,7 +87,10 @@ async function processItem(id: string): Promise<void> {
   if (record === null) return;
 
   const settings = store.getState().settings;
-  const composePreset = resolveComposePreset(settings, id);
+  const composePreset = resolveComposePreset(
+    settings,
+    peekAutoDownloadPreset(id),
+  );
   const { preset, edge } = resolveComposition(
     composePreset,
     settings.edge,
@@ -143,7 +130,7 @@ async function processItem(id: string): Promise<void> {
       // первое изображение на WASM играет роль прогрева, в среднее не входит
       const isWasm = store.getState().backend === 'wasm';
       if (isWasm) wasmRunsSeen++;
-      if (!isWasm || wasmRunsSeen > 1) {
+      if (shouldRecordRunDuration(isWasm, wasmRunsSeen)) {
         recentDurations.push(duration);
         if (recentDurations.length > 5) recentDurations.shift();
       }

@@ -8,7 +8,8 @@ export type ExtractedImage = {
   name: string;
 };
 
-function fileNameFromUrl(srcUrl: string): string {
+/** Имя файла из URL картинки (для job / скачивания). */
+export function fileNameFromUrl(srcUrl: string): string {
   try {
     const path = new URL(srcUrl).pathname;
     const base = path.split('/').filter(Boolean).pop() ?? 'image';
@@ -20,7 +21,8 @@ function fileNameFromUrl(srcUrl: string): string {
   }
 }
 
-function guessMime(contentType: string, name: string): string {
+/** MIME из Content-Type или расширения имени. */
+export function guessMime(contentType: string, name: string): string {
   const raw = contentType.split(';')[0]?.trim().toLowerCase() ?? '';
   if (raw === 'image/png' || raw === 'image/jpeg' || raw === 'image/webp') return raw;
   const lower = name.toLowerCase();
@@ -29,7 +31,8 @@ function guessMime(contentType: string, name: string): string {
   return 'image/png';
 }
 
-function sniffMime(bytes: Uint8Array, fallback: string): string {
+/** MIME по magic bytes; иначе валидный fallback или png. */
+export function sniffMime(bytes: Uint8Array, fallback: string): string {
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
     return 'image/jpeg';
   }
